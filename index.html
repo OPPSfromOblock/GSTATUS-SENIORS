@@ -1410,9 +1410,11 @@ function loadStudentsFromFirebase() {
                     <td>${student.name}</td>
                     <td>${student.room}</td>
                     <td>${student.floor}</td>
-                    <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
+                   
+                  <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
                         ${student.points > 0 ? '+' : ''}${student.points}
                     </td>
+                   
                     <td>
                         <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
                             ${student.assignedGrade}
@@ -1423,6 +1425,8 @@ function loadStudentsFromFirebase() {
                             value="${student.remark || ''}" 
                             onchange="updateRemark('${student.id}', this.value)">
                     </td>
+                    <td>${student.class}</td>
+                    <td>${student.section}</td>
                 `;
                 rankingsTable.appendChild(row);
             });
