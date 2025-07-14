@@ -178,7 +178,7 @@
         }
         
         .student-card:hover {
-            transform: translateX(5px);
+            transform: translateY(5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
@@ -404,7 +404,7 @@
                     </div>
                     <div class="card-body">
                         <div class="search-container">
-                            <input type="text" class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, or room...">
+                            <input type="text" class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, room, class, or section...">
                             <i class="fas fa-search search-icon"></i>
                         </div>
                         <div id="searchResultsPoints" class="mb-3 row"></div>
@@ -550,7 +550,7 @@
             <div class="tab-pane fade" id="responses" role="tabpanel">
                 <h3><i class="fas fa-history"></i> Points History</h3>
                 
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-header">
                         <div class="row">
                             <div class="col-md-6">
@@ -564,6 +564,10 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="search-container">
+                            <input type="text" class="form-control" id="searchQueryHistory" placeholder="Search history by student name or ID...">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-secondary">
@@ -587,400 +591,400 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Default student data
+        // Default student data - ADD CLASS AND SECTION HERE FOR EACH STUDENT
         const allStudents = [
-            { id: "AF5582", room: "301/1", name: "PATLORI VAISHWIK REDDY", points: 0, floor: "3", active: true },
-            { id: "AF4738", room: "301/2", name: "VIRAT PARAG AILWAR", points: 0, floor: "3", active: true },
-            { id: "AE6895", room: "301/4", name: "TAGALPALLEWAK ARYA PRAJWAL", points: 0, floor: "3", active: true },
-            { id: "AF7714", room: "301/5", name: "MANIKYAM ARYAN", points: 0, floor: "3", active: true },
-            { id: "AE4571", room: "301/6", name: "YEMSANI RAM VARSHITH YADAV", points: 0, floor: "3", active: true },
-            { id: "AF7056", room: "301/7", name: "BADKA BHAGATH", points: 0, floor: "3", active: true },
-            { id: "AE5050", room: "301/9", name: "ADARSH TIWARY", points: 0, floor: "3", active: true },
-            { id: "AF5055", room: "301/11", name: "MADASTU DAYANANDA", points: 0, floor: "3", active: true },
-            { id: "AE8986", room: "301/12", name: "THAKUR RAGHUVENDR SINGH", points: 0, floor: "3", active: true },
-            { id: "AE5578", room: "301/13", name: "LOKINENI SATWIK RAO", points: 0, floor: "3", active: true },
-            { id: "AF2193", room: "301/14", name: "VARTHYA MAHENDHAR", points: 0, floor: "3", active: true },
-            { id: "AF8134", room: "301/15", name: "N HARSHAN", points: 0, floor: "3", active: true },
-            { id: "AF3735", room: "301/16", name: "CHEETI SAI SUHAAS", points: 0, floor: "3", active: true },
-            { id: "AD9852", room: "302/1", name: "SRI GANESH", points: 0, floor: "3", active: true },
-            { id: "AF1954", room: "302/2", name: "LAVUDYA SATHVIK", points: 0, floor: "3", active: true },
-            { id: "AF1627", room: "302/3", name: "SHUBHAM JOSHI", points: 0, floor: "3", active: true },
-            { id: "AF3615", room: "302/4", name: "AARADHY RAJARAM PATIL", points: 0, floor: "3", active: true },
-            { id: "AF9522", room: "302/5", name: "CHEBOLU MAHALAKSHMI BAVESH SARMA", points: 0, floor: "3", active: true },
-            { id: "AF4925", room: "302/6", name: "MADUGULA BHANU TEJA", points: 0, floor: "3", active: true },
-            { id: "AG1177", room: "302/7", name: "NEVIL D THUMMAR", points: 0, floor: "3", active: true },
-            { id: "AG1532", room: "302/8", name: "KATUKAM CHAITRANANDAM", points: 0, floor: "3", active: true },
-            { id: "AF2946", room: "302/9", name: "CHALASANI NIHANT CHOWDARY", points: 0, floor: "3", active: true },
-            { id: "AF5271", room: "302/10", name: "B CHETAN SWAROOP REDDY", points: 0, floor: "3", active: true },
-            { id: "AG1123", room: "302/11", name: "POTHIREDDY PRADHAM REDDY", points: 0, floor: "3", active: true },
-            { id: "AE1107", room: "302/12", name: "TAKLE SANSKAR DIGAMBAR", points: 0, floor: "3", active: true },
-            { id: "AF2851", room: "302/13", name: "SAINATH DHANAJI KOTALAPURE", points: 0, floor: "3", active: true },
-            { id: "AE8368", room: "302/15", name: "GUMMADI MANOJ REDDY", points: 0, floor: "3", active: true },
-            { id: "AE9514", room: "303/1", name: "MADDURI NIHITH JAI VENKATA SAI", points: 0, floor: "3", active: true },
-            { id: "AF4246", room: "303/2", name: "NEERATI SRI AVYUKT", points: 0, floor: "3", active: true },
-            { id: "AG1335", room: "303/3", name: "VARSHITH MONIGARI", points: 0, floor: "3", active: true },
-            { id: "AF8299", room: "303/4", name: "AARSH", points: 0, floor: "3", active: true },
-            { id: "AE6039", room: "303/5", name: "ARNAV AJAY KULKARNI", points: 0, floor: "3", active: true },
-            { id: "AE4809", room: "303/6", name: "SANDEEP PATEL", points: 0, floor: "3", active: true },
-            { id: "AF7485", room: "303/7", name: "K SHARVANTH", points: 0, floor: "3", active: true },
-            { id: "AG1833", room: "303/8", name: "RAMAGIRI AVANISH", points: 0, floor: "3", active: true },
-            { id: "AF4958", room: "303/9", name: "AYYAMOLLA ROSHAN", points: 0, floor: "3", active: true },
-            { id: "AC5368", room: "303/10", name: "KONDAVENI SRI HARSHA", points: 0, floor: "3", active: true },
-            { id: "AF9884", room: "303/11", name: "GURRALA MANISH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9850", room: "303/12", name: "SIDDAMSHETTY ADITYA", points: 0, floor: "3", active: true },
-            { id: "AF6649", room: "303/13", name: "BADATHALA RUSHI", points: 0, floor: "3", active: true },
-            { id: "AF9886", room: "303/14", name: "KRISHAN KUMAR", points: 0, floor: "3", active: true },
-            { id: "AG1154", room: "303/15", name: "POTLA VAMSHI KRISHNA", points: 0, floor: "3", active: true },
-            { id: "AE9143", room: "303/16", name: "PHANI NAGA SAI RITHVIK REDDY T", points: 0, floor: "3", active: true },
-            { id: "AE1860", room: "304/1", name: "SUNKARI JAYANTH", points: 0, floor: "3", active: true },
-            { id: "AF4423", room: "304/2", name: "BUREWAR ARNAV RAJARAM", points: 0, floor: "3", active: true },
-            { id: "AE4568", room: "304/3", name: "CHOLKAR PRAVASTHIK", points: 0, floor: "3", active: true },
-            { id: "AF9738", room: "304/5", name: "A SRIKAR", points: 0, floor: "3", active: true },
-            { id: "AE5672", room: "304/6", name: "BADDAM AVINASH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9695", room: "304/7", name: "PIGILATI VISHNU VARDHAN", points: 0, floor: "3", active: true },
-            { id: "AG1726", room: "304/8", name: "JUPALLY KRISHIK", points: 0, floor: "3", active: true },
-            { id: "AE9278", room: "304/9", name: "PATOLLA SRI HARSHITH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF5886", room: "304/10", name: "VIRAT SINGH", points: 0, floor: "3", active: true },
-            { id: "AF9623", room: "304/12", name: "SIDDHARTH CHAWHAN", points: 0, floor: "3", active: true },
-            { id: "AE5673", room: "304/13", name: "RUCHIK KUMAR PATEL", points: 0, floor: "3", active: true },
-            { id: "AD7983", room: "304/14", name: "KANDADI SAKSHITH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF3732", room: "304/15", name: "CHITTI GIDDA SRI NANDHAN REDDY", points: 0, floor: "3", active: true },
-            { id: "AE6342", room: "304/16", name: "RUDRA KALAPP MALBHAGE", points: 0, floor: "3", active: true },
-            { id: "AF2716", room: "305/1", name: "G AADARSH", points: 0, floor: "3", active: true },
-            { id: "AE3270", room: "305/2", name: ".GANNAVARAPU JOGEESWAR", points: 0, floor: "3", active: true },
-            { id: "AF9561", room: "305/3", name: "BIRANCHI NARAYAN PARAMANIK", points: 0, floor: "3", active: true },
-            { id: "AF2878", room: "305/4", name: "GOLLAPALLY RUTHVIK GOUD", points: 0, floor: "3", active: true },
-            { id: "AF3291", room: "305/5", name: "DONTHI VENKATA SATHYA TEJA", points: 0, floor: "3", active: true },
-            { id: "AE4400", room: "305/6", name: "BANTU BHANSHIDHAR", points: 0, floor: "3", active: true },
-            { id: "AF9526", room: "305/7", name: "BODE SIVAHARSHITH", points: 0, floor: "3", active: true },
-            { id: "AD9534", room: "305/8", name: "LAGGALA PRASANNA VADHAN", points: 0, floor: "3", active: true },
-            { id: "AE4937", room: "305/9", name: "CHETAN MUDUNURI", points: 0, floor: "3", active: true },
-            { id: "AE0518", room: "305/10", name: "NEELI SHEETHAL", points: 0, floor: "3", active: true },
-            { id: "AE4855", room: "305/11", name: "YARRAM SRUJANNADH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9443", room: "305/12", name: "MEDURI SAI MARUTI MAHEDHAR", points: 0, floor: "3", active: true },
-            { id: "AF1274", room: "305/13", name: "KOLIPAKA RUSHI RUTHVIK", points: 0, floor: "3", active: true },
-            { id: "AF9520", room: "305/14", name: "LAVETI DEVAMSH NARAYANA", points: 0, floor: "3", active: true },
-            { id: "AE4950", room: "305/15", name: "PARTH PATEL", points: 0, floor: "3", active: true },
-            { id: "AE1015", room: "305/16", name: "M SANYUTH", points: 0, floor: "3", active: true },
-            { id: "AE4906", room: "306/1", name: "MADDURI SAMPATH", points: 0, floor: "3", active: true },
-            { id: "AE7584", room: "306/2", name: "K LAXMI PRANEETH", points: 0, floor: "3", active: true },
-            { id: "AF7892", room: "306/3", name: "MALLEM SATYA VENKATA AGRATA", points: 0, floor: "3", active: true },
-            { id: "AF2799", room: "306/4", name: "DESU YOJITH KUMAR", points: 0, floor: "3", active: true },
-            { id: "AF9376", room: "306/5", name: "GURRAM SAI SANJEEV", points: 0, floor: "3", active: true },
-            { id: "AD9571", room: "306/7", name: "POGAKU DIKSHIT KUMAR", points: 0, floor: "3", active: true },
-            { id: "AG1942", room: "306/8", name: "NIKUNJ ANAND BAJAJ", points: 0, floor: "3", active: true },
-            { id: "AF2748", room: "306/9", name: "PRATHMESH SANKHALA", points: 0, floor: "3", active: true },
-            { id: "AF9464", room: "306/10", name: "MIRYALA SHRI CHARAN", points: 0, floor: "3", active: true },
-            { id: "AE5022", room: "306/11", name: "T HARISH", points: 0, floor: "3", active: true },
-            { id: "AF9360", room: "306/12", name: "MADI ASHWITH REDDY", points: 0, floor: "3", active: true },
-            { id: "AC8429", room: "306/13", name: "SABAVATH SURESH", points: 0, floor: "3", active: true },
-            { id: "AF9361", room: "306/14", name: "NAIKOTI MITHUN", points: 0, floor: "3", active: true },
-            { id: "AE5138", room: "306/15", name: "HRUDAY PATEL", points: 0, floor: "3", active: true },
-            { id: "AE5456", room: "306/16", name: "GADDE KARTEEK CHOWDARY", points: 0, floor: "3", active: true },
-            { id: "AG0423", room: "307/1", name: "SOLI SUHAS", points: 0, floor: "3", active: true },
-            { id: "AF9517", room: "307/3", name: "PARIKSHIT EKNATH CHINCHANE", points: 0, floor: "3", active: true },
-            { id: "AF9334", room: "307/5", name: "VOOTUKOORU VEERANATH RUTHVIK", points: 0, floor: "3", active: true },
-            { id: "AE9555", room: "307/7", name: "SRI VASTHAVA G", points: 0, floor: "3", active: true },
-            { id: "AE9556", room: "307/8", name: "NAVADEEP G", points: 0, floor: "3", active: true },
-            { id: "AG1520", room: "307/9", name: "PRATHAMESH LAXMAN AILANE", points: 0, floor: "3", active: true },
-            { id: "AD8786", room: "307/10", name: "SABBANI VARSHITH KUMAR", points: 0, floor: "3", active: true },
-            { id: "AE6341", room: "307/11", name: "YASH GUNDAPPA KANTE", points: 0, floor: "3", active: true },
-            { id: "AF9995", room: "307/12", name: "MOTHE SRIVATHSAV REDDY", points: 0, floor: "3", active: true },
-            { id: "AF2326", room: "307/13", name: "RYAKALA BHAVESH GOUD", points: 0, floor: "3", active: true },
-            { id: "AF9994", room: "307/14", name: "ARADHY SHIVKUMAR BIJAMWAR", points: 0, floor: "3", active: true },
-            { id: "AF3711", room: "307/15", name: "KANKANALA SRI VIGNESH", points: 0, floor: "3", active: true },
-            { id: "AE5021", room: "307/16", name: "THANNIR HARSHA VARDHAN", points: 0, floor: "3", active: true },
-            { id: "AF4824", room: "308/2", name: "INJAM YUGESH", points: 0, floor: "3", active: true },
-            { id: "AG0040", room: "308/3", name: "PUTTUBOINA CHARANJEET", points: 0, floor: "3", active: true },
-            { id: "AE5304", room: "308/4", name: "ANMOL ANIL JAJU", points: 0, floor: "3", active: true },
-            { id: "AG0042", room: "308/5", name: "BHEEMANA TEJA SAI SIVA RAYA CHOWDARY", points: 0, floor: "3", active: true },
-            { id: "AF2777", room: "308/6", name: "KAVYA NANJI VAID", points: 0, floor: "3", active: true },
-            { id: "AG0058", room: "308/7", name: "DEEPAN KUMAR SONI", points: 0, floor: "3", active: true },
-            { id: "AG1867", room: "308/8", name: "ABHINAY SAI N", points: 0, floor: "3", active: true },
-            { id: "AF5536", room: "308/9", name: "VENNA JAYANTH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9185", room: "308/10", name: "P YAGNA SAI SHANKAR REDDY", points: 0, floor: "3", active: true },
-            { id: "AF2338", room: "308/11", name: "PALAVALASA ADITHYA VARDHAN", points: 0, floor: "3", active: true },
-            { id: "AF3037", room: "308/12", name: "HARDIK JAIN", points: 0, floor: "3", active: true },
-            { id: "AF9566", room: "308/13", name: "RAKHOLIYA RUDRA KISHORBHAI", points: 0, floor: "3", active: true },
-            { id: "AF9198", room: "308/14", name: "VISHRUTH BAIRAGONIWAR", points: 0, floor: "3", active: true },
-            { id: "AE4852", room: "308/15", name: "DASARI VARSHITH", points: 0, floor: "3", active: true },
-            { id: "AE8083", room: "309/1", name: "SARTHAK SAGAR ZANWAR", points: 0, floor: "3", active: true },
-            { id: "AE5290", room: "309/2", name: "BANDARI RITHVIK", points: 0, floor: "3", active: true },
-            { id: "AG0082", room: "309/3", name: "BURIGARI SIDDARTH MANI", points: 0, floor: "3", active: true },
-            { id: "AE0558", room: "309/4", name: "SHIVAM SANKHLA", points: 0, floor: "3", active: true },
-            { id: "AG0142", room: "309/5", name: "PRANAV GOVIND GHORPADE", points: 0, floor: "3", active: true },
-            { id: "AF4853", room: "309/6", name: "PRATEEK PATRA", points: 0, floor: "3", active: true },
-            { id: "AG0146", room: "309/7", name: "BELLAM KARTHIK", points: 0, floor: "3", active: true },
-            { id: "AG2159", room: "309/8", name: "BALGURI SRIKAR SAGAR", points: 0, floor: "3", active: true },
-            { id: "AF5878", room: "309/9", name: "MANCHUKONDA SAI AAKARSHAN", points: 0, floor: "3", active: true },
-            { id: "AG0149", room: "309/10", name: "KOVVURI SHASHANK", points: 0, floor: "3", active: true },
-            { id: "AE5220", room: "309/11", name: "B HARSHAVARDHAN", points: 0, floor: "3", active: true },
-            { id: "AG0157", room: "309/12", name: "CHINTHAKUNTA VARSHITH REDDY", points: 0, floor: "3", active: true },
-            { id: "AE5283", room: "309/13", name: "B NITHISH YADAV", points: 0, floor: "3", active: true },
-            { id: "AC5367", room: "309/14", name: "P PRASANTH KUMAR", points: 0, floor: "3", active: true },
-            { id: "AE6228", room: "309/15", name: "CHINTHA KUSHAL KUMAR REDDY", points: 0, floor: "3", active: true },
-            { id: "AD8237", room: "309/16", name: "U KEETHAN GOUD", points: 0, floor: "3", active: true },
-            { id: "AF3407", room: "310/1", name: "AMRITANSH AGARWAL", points: 0, floor: "3", active: true },
-            { id: "AF5903", room: "310/2", name: "THIRUPATHI VARUN REDDY", points: 0, floor: "3", active: true },
-            { id: "AG0299", room: "310/3", name: "CIGUMAL BAVYESH KUSAL", points: 0, floor: "3", active: true },
-            { id: "AF6695", room: "310/4", name: "ALOK YADAV", points: 0, floor: "3", active: true },
-            { id: "AF4632", room: "310/5", name: "M S RUDRAVEER", points: 0, floor: "3", active: true },
-            { id: "AD5270", room: "310/6", name: "BOLLARAM ANISH REDDY", points: 0, floor: "3", active: true },
-            { id: "AG0322", room: "310/7", name: "SAURYAV SANDIP KADAM", points: 0, floor: "3", active: true },
-            { id: "AG1858", room: "310/8", name: "PATHAPATI JAYANTH SATYA VARMA", points: 0, floor: "3", active: true },
-            { id: "AG0394", room: "310/10", name: "PRATYUSH PRABHU", points: 0, floor: "3", active: true },
-            { id: "AE2190", room: "310/11", name: "N ADVITH", points: 0, floor: "3", active: true },
-            { id: "AG0371", room: "310/12", name: "PUJALA KARTHIK", points: 0, floor: "3", active: true },
-            { id: "AF5547", room: "310/13", name: "KAVYA ASHOK PATEL", points: 0, floor: "3", active: true },
-            { id: "AF9885", room: "310/14", name: "RASHWA GAJANAN MUKKAWAR", points: 0, floor: "3", active: true },
-            { id: "AF9883", room: "310/15", name: "KAVISH SHAILESH CHITMALWAR", points: 0, floor: "3", active: true },
-            { id: "AF2356", room: "310/16", name: "PITTLA SHREE HARSHA", points: 0, floor: "3", active: true },
-            { id: "AF4802", room: "311/1", name: "ADVIK PAMMI", points: 0, floor: "3", active: true },
-            { id: "AE4958", room: "311/2", name: "CH VIJAY KUMAR", points: 0, floor: "3", active: true },
-            { id: "AG0405", room: "311/3", name: "M ABHIRAJ", points: 0, floor: "3", active: true },
-            { id: "AG3133", room: "311/4", name: "THOTA SAMANYU", points: 0, floor: "3", active: true },
-            { id: "AG0406", room: "311/5", name: "DIVY MILANKUMAR", points: 0, floor: "3", active: true },
-            { id: "AF4222", room: "311/6", name: "VITTAL SAI CHARAN", points: 0, floor: "3", active: true },
-            { id: "AF9742", room: "311/7", name: "LINE SAI LOKESH", points: 0, floor: "3", active: true },
-            { id: "AG0359", room: "311/8", name: "SUMIT KUMAR", points: 0, floor: "3", active: true },
-            { id: "AF7229", room: "311/9", name: "RAVULA SHRIYAN REDDY", points: 0, floor: "3", active: true },
-            { id: "AG0454", room: "311/10", name: "TAARAN VIJAY ZALAVADIYA", points: 0, floor: "3", active: true },
-            { id: "AE4812", room: "311/11", name: "VADDEPU SANJITH", points: 0, floor: "3", active: true },
-            { id: "AF4062", room: "311/12", name: "N SAI KARTHIK", points: 0, floor: "3", active: true },
-            { id: "AF2359", room: "311/13", name: "YASH JAKAWAR", points: 0, floor: "3", active: true },
-            { id: "AF7228", room: "311/14", name: "THIRUKOVELA ADWAITH", points: 0, floor: "3", active: true },
-            { id: "AF4803", room: "311/15", name: "VADALIYA DEV MITESHBHAI", points: 0, floor: "3", active: true },
-            { id: "AF8553", room: "311/16", name: "GAJERA VED TUSHARBHAI", points: 0, floor: "3", active: true },
-            { id: "AD6299", room: "312/1", name: "VEMURI MRITHULL", points: 0, floor: "3", active: true },
-            { id: "AG0075", room: "312/2", name: "V ANIL", points: 0, floor: "3", active: true },
-            { id: "AF7232", room: "312/4", name: "SOMA ASHRITH REDDY", points: 0, floor: "3", active: true },
-            { id: "AG0474", room: "312/5", name: "CHHAVI RAJ", points: 0, floor: "3", active: true },
-            { id: "AF3434", room: "312/6", name: "UJJWAL RAJPUT", points: 0, floor: "3", active: true },
-            { id: "AG0554", room: "312/7", name: "BUDDE ASHWITH VARMA", points: 0, floor: "3", active: true },
-            { id: "AF7048", room: "312/8", name: "B ASHRITH SAI GOUD", points: 0, floor: "3", active: true },
-            { id: "AF2947", room: "312/9", name: "NARA THAKSHAK", points: 0, floor: "3", active: true },
-            { id: "AG0553", room: "312/10", name: "ABHINAV ANAND", points: 0, floor: "3", active: true },
-            { id: "AF3967", room: "312/11", name: "POOLA YASHWIN REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9218", room: "312/12", name: "ABHINAV REDDY", points: 0, floor: "3", active: true },
-            { id: "AF9478", room: "312/14", name: "RUTHVIK KOLLI", points: 0, floor: "3", active: true },
-            { id: "AE5606", room: "312/16", name: "AMIT SANTOSH AMBULGE", points: 0, floor: "3", active: true },
-            { id: "AD2367", room: "313/1", name: "B SANDEP KUMAR REDDY", points: 0, floor: "3", active: true },
-            { id: "AE1877", room: "313/2", name: "AKULA NRUSIMHA MAYUR KARTHIK", points: 0, floor: "3", active: true },
-            { id: "AF9214", room: "313/3", name: "KONDADI WISHVA TEJA", points: 0, floor: "3", active: true },
-            { id: "AE4542", room: "313/4", name: "SHAURYA PAWANKUMAR BHOSALE", points: 0, floor: "3", active: true },
-            { id: "AF3311", room: "313/5", name: "BIRELLY DHANUSH", points: 0, floor: "3", active: true },
-            { id: "AF9203", room: "313/7", name: "VISHAL", points: 0, floor: "3", active: true },
-            { id: "AG3268", room: "313/8", name: "NAMAN BOTHRA", points: 0, floor: "3", active: true },
-            { id: "AE9603", room: "313/9", name: "PRABHU SINGH", points: 0, floor: "3", active: true },
-            { id: "AF9199", room: "313/10", name: "ARJUN DEEPAK MAHAJAN", points: 0, floor: "3", active: true },
-            { id: "AF3696", room: "313/11", name: "ARIHANT KUMAR", points: 0, floor: "3", active: true },
-            { id: "AG0984", room: "313/12", name: "JAINIL ANKIT KACHHADIA", points: 0, floor: "3", active: true },
-            { id: "AE5063", room: "313/13", name: "HARSHEEL PATEL", points: 0, floor: "3", active: true },
-            { id: "AG0161", room: "313/14", name: "THADUVAYI SUDHESH GUPTTA", points: 0, floor: "3", active: true },
-            { id: "AE6907", room: "313/15", name: "NEELESH KUMAWAT", points: 0, floor: "3", active: true },
-            { id: "AF9254", room: "313/16", name: "JAY PRAVIN SOMANI", points: 0, floor: "3", active: true },
-            { id: "AE6240", room: "314/1", name: "DEV PATEL", points: 0, floor: "3", active: true },
-            { id: "AD8306", room: "314/2", name: "TANISHQ PATEL", points: 0, floor: "3", active: true },
-            { id: "AG2440", room: "314/3", name: "T.BHUWANA CHANDRA", points: 0, floor: "3", active: true },
-            { id: "AF5198", room: "314/4", name: "SHREYASH RADHESHYAM SHAHAGANTWAR", points: 0, floor: "3", active: true },
-            { id: "AG1042", room: "314/5", name: "HARDIK AMIT CHOPRA", points: 0, floor: "3", active: true },
-            { id: "AF7054", room: "314/6", name: "RHYTHM MANOJBHAI PANSURIYA", points: 0, floor: "3", active: true },
-            { id: "AG1039", room: "314/7", name: "GODDETI ANIKETH", points: 0, floor: "3", active: true },
-            { id: "AE8151", room: "314/9", name: "KUMMATI TRISHANTH REDDY", points: 0, floor: "3", active: true },
-            { id: "AF3832", room: "314/10", name: "SANIKA ESWAR PRASAD", points: 0, floor: "3", active: true },
-            { id: "AE1973", room: "314/11", name: "BADHA KRISHNAPRASAD", points: 0, floor: "3", active: true },
-            { id: "AF5405", room: "314/12", name: "KASAGOUNI MALLIKARJUN GOUD", points: 0, floor: "3", active: true },
-            { id: "AG1507", room: "314/14", name: "VIRAT PARIHAR", points: 0, floor: "3", active: true },
-            { id: "AD7165", room: "314/15", name: "POTLOLLA SURYA VENKAT RAM NARAYAN REDDY", points: 0, floor: "3", active: true },
-            { id: "AF2614", room: "314/16", name: "NARRA MAHESH KARTHIK", points: 0, floor: "3", active: true },
-            { id: "AF3116", room: "401/7", name: "MALLAVALLI BALAJI SRI SAI", points: 0, floor: "4", active: true },
-            { id: "AF9616", room: "401/8", name: "KOMAKULA VARSHITH", points: 0, floor: "4", active: true },
-            { id: "AD8017", room: "401/9", name: "ATHARV MADHAV ECHWAD", points: 0, floor: "4", active: true },
-            { id: "AD8728", room: "402/1", name: "OMKAR KEDAR", points: 0, floor: "4", active: true },
-            { id: "AF6488", room: "402/2", name: "MEKALA VISHRUTH", points: 0, floor: "4", active: true },
-            { id: "AD8164", room: "402/3", name: "G LOHITHAKSH VARMA", points: 0, floor: "4", active: true },
-            { id: "AE4062", room: "402/4", name: "MOHIT UJJWAL NATHANI", points: 0, floor: "4", active: true },
-            { id: "AF3413", room: "402/5", name: "PITLA NIVRUTH", points: 0, floor: "4", active: true },
-            { id: "AE7337", room: "402/6", name: "PIYUSH VIJAY MESHRAM", points: 0, floor: "4", active: true },
-            { id: "AF4516", room: "402/7", name: "M S MAHAVEER", points: 0, floor: "4", active: true },
-            { id: "AF6489", room: "402/8", name: "JABARI PRANAY", points: 0, floor: "4", active: true },
-            { id: "AF5919", room: "402/9", name: "KESUBHUKTA SHASHANK", points: 0, floor: "4", active: true },
-            { id: "AE7509", room: "402/10", name: "LAV PATEL", points: 0, floor: "4", active: true },
-            { id: "AF6031", room: "402/11", name: "BOINI VARSHITH", points: 0, floor: "4", active: true },
-            { id: "AE7889", room: "402/12", name: "NAYAN PATEL", points: 0, floor: "4", active: true },
-            { id: "AF6025", room: "402/13", name: "KOTHAPALLY SUSHANTH REDDY", points: 0, floor: "4", active: true },
-            { id: "AB5527", room: "402/14", name: "TUSHAR TAUNK", points: 0, floor: "4", active: true },
-            { id: "AF3436", room: "402/15", name: "PRADNEESH GINNE", points: 0, floor: "4", active: true },
-            { id: "AF8032", room: "402/16", name: "M.DIVYANSH REDDY", points: 0, floor: "4", active: true },
-            { id: "AG2439", room: "403/1", name: "PADALA DHEEMANTH REDDY", points: 0, floor: "4", active: true },
-            { id: "AE7933", room: "403/2", name: "BHAGAWAN SINGH RATHORE", points: 0, floor: "4", active: true },
-            { id: "AF4501", room: "403/3", name: "SEVARTHI JAIDEEP", points: 0, floor: "4", active: true },
-            { id: "AE7597", room: "403/4", name: "GAMI JAY MANSUKH", points: 0, floor: "4", active: true },
-            { id: "AE5947", room: "403/5", name: "K RUSHIKESH", points: 0, floor: "4", active: true },
-            { id: "AF4704", room: "403/6", name: "RUDHARANSH CHOUDHARY", points: 0, floor: "4", active: true },
-            { id: "AF6148", room: "403/7", name: "KESAGANI MOKSHITH", points: 0, floor: "4", active: true },
-            { id: "AD7311", room: "403/8", name: "KOTA ADIDEVA REDDY", points: 0, floor: "4", active: true },
-            { id: "AD6483", room: "403/9", name: "VAMBARELLI TRIVIKRAM SAI SWAROOP", points: 0, floor: "4", active: true },
-            { id: "AE2535", room: "403/10", name: "BHARGAVA MITHRA KOMURELLI", points: 0, floor: "4", active: true },
-            { id: "AE4708", room: "403/11", name: "BONGONI RAM KIRAN", points: 0, floor: "4", active: true },
-            { id: "AG1121", room: "403/12", name: "SUNIL JAAT", points: 0, floor: "4", active: true },
-            { id: "AF2432", room: "403/13", name: "BOLNENI HANISHWAR RAO", points: 0, floor: "4", active: true },
-            { id: "AF9823", room: "403/14", name: "TANUSH PATEL", points: 0, floor: "4", active: true },
-            { id: "AF3736", room: "403/15", name: "ASHUTOSH SAO", points: 0, floor: "4", active: true },
-            { id: "AE8223", room: "403/16", name: "VANAMPALLY SHIVANTH REDDY", points: 0, floor: "4", active: true },
-            { id: "AD2136", room: "404/1", name: "ISHAN GHOSH", points: 0, floor: "4", active: true },
-            { id: "AF9824", room: "404/2", name: "NAYAN PATEL", points: 0, floor: "4", active: true },
-            { id: "AE8522", room: "404/3", name: "KASHYAP BHARATBHAI KATHAROTIYA", points: 0, floor: "4", active: true },
-            { id: "AF9601", room: "404/4", name: "SAUMY PANKAJBHAI AKBARI", points: 0, floor: "4", active: true },
-            { id: "AF9224", room: "404/5", name: "PRADYUMNA GUNJAHALLI", points: 0, floor: "4", active: true },
-            { id: "AF9600", room: "404/6", name: "UCHIT DUDHATRA", points: 0, floor: "4", active: true },
-            { id: "AF2383", room: "404/7", name: "SAI RIKHIL BONI", points: 0, floor: "4", active: true },
-            { id: "AG2313", room: "404/9", name: "BODASU KETHAN", points: 0, floor: "4", active: true },
-            { id: "AG2161", room: "404/10", name: "GOUDA TRISHITH", points: 0, floor: "4", active: true },
-            { id: "AF2075", room: "404/11", name: "SHREYANS RAJANIBHAI SHIYANI", points: 0, floor: "4", active: true },
-            { id: "AG2486", room: "404/12", name: "HIRPARA KAUSHAL KISHORBHAI", points: 0, floor: "4", active: true },
-            { id: "AD5362", room: "404/13", name: "PANTH N PATEL", points: 0, floor: "4", active: true },
-            { id: "AG2581", room: "404/14", name: "HIRPARA MOKSH MANISHBHAI", points: 0, floor: "4", active: true },
-            { id: "AG0057", room: "404/15", name: "VED PATEL", points: 0, floor: "4", active: true },
-            { id: "AF6379", room: "405/1", name: "KRISHNAM GURU SHARAN", points: 0, floor: "4", active: true },
-            { id: "AG0877", room: "405/2", name: "AJITH", points: 0, floor: "4", active: true },
-            { id: "AG1009", room: "405/3", name: "HARSHIT UMESH JANGID", points: 0, floor: "4", active: true },
-            { id: "AG3178", room: "405/4", name: "CHANDAK HARSHIT SHAILESH", points: 0, floor: "4", active: true },
-            { id: "AG1382", room: "405/5", name: "SHREYASH MAHAJAN", points: 0, floor: "4", active: true },
-            { id: "AG3243", room: "405/6", name: "RAJJAT KUMAR MOHTA", points: 0, floor: "4", active: true },
-            { id: "AE6765", room: "405/7", name: "I L A MARUTHI VIJAY", points: 0, floor: "4", active: true },
-            { id: "AG3182", room: "405/8", name: "ARJUN CHOUDHARY", points: 0, floor: "4", active: true },
-            { id: "AF3907", room: "405/9", name: "EMMADISETTY SAI YAKSHIT", points: 0, floor: "4", active: true },
-            { id: "AG3224", room: "405/10", name: "TANISQUE PATEL", points: 0, floor: "4", active: true },
-            { id: "AE0463", room: "405/11", name: "VEJELLA NIRAV CHOWDARY", points: 0, floor: "4", active: true },
-            { id: "AG3776", room: "405/12", name: "JAGIRDAR GIRIRAJ", points: 0, floor: "4", active: true },
-            { id: "AE8576", room: "405/13", name: "PERUNTHODI JAYANTH BALAJI", points: 0, floor: "4", active: true },
-            { id: "AG4005", room: "405/14", name: "ARADHYA GUPTA", points: 0, floor: "4", active: true },
-            { id: "AF9181", room: "405/15", name: "KHAIRE TEJAS BALAJI", points: 0, floor: "4", active: true },
-            { id: "AD9931", room: "406/2", name: "TILAK SHRIRAM PUNDKAR", points: 0, floor: "4", active: true },
-            { id: "AG0593", room: "406/3", name: "KOLLU VENU SAI", points: 0, floor: "4", active: true },
-            { id: "AE7338", room: "406/4", name: "UDAY DEVCHAND DHEKWAR", points: 0, floor: "4", active: true },
-            { id: "AG1600", room: "406/5", name: "SHREERAJ PRASHANT THAKARE", points: 0, floor: "4", active: true },
-            { id: "AD8399", room: "406/6", name: "BOMDYAL HARSHAVARDHAN", points: 0, floor: "4", active: true },
-            { id: "AF2453", room: "406/7", name: "ATIKSH TAANK", points: 0, floor: "4", active: true },
-            { id: "AE5406", room: "406/8", name: "KONINTI VIGNESH GOUD", points: 0, floor: "4", active: true },
-            { id: "AF5942", room: "406/9", name: "BOLLA URVESH", points: 0, floor: "4", active: true },
-            { id: "AD4582", room: "406/10", name: "VRAJKUMAR PRAJAPATI", points: 0, floor: "4", active: true },
-            { id: "AG1107", room: "406/11", name: "YASH JAYANT ZAMRE", points: 0, floor: "4", active: true },
-            { id: "AE7405", room: "406/12", name: "VAIBHAV SANTOSH JOSHI", points: 0, floor: "4", active: true },
-            { id: "AD2510", room: "406/13", name: "LASKAR SRIKER REDDY", points: 0, floor: "4", active: true },
-            { id: "AF1084", room: "406/14", name: "GANGA VASHISHTA", points: 0, floor: "4", active: true },
-            { id: "AF9176", room: "406/15", name: "MARABOINA TRIVIKRAM", points: 0, floor: "4", active: true },
-            { id: "AF2780", room: "407/1", name: "BATTULA GOUTHAM REDDY", points: 0, floor: "4", active: true },
-            { id: "AG1774", room: "407/3", name: "K S MAHANTH", points: 0, floor: "4", active: true },
-            { id: "AG1755", room: "407/5", name: "DAKSH CHANDRESH MADHANI PATEL", points: 0, floor: "4", active: true },
-            { id: "AC2709", room: "407/6", name: "KOLE PRASANNA KUMAR", points: 0, floor: "4", active: true },
-            { id: "AF3057", room: "407/7", name: "GANDLA YUVARAJ", points: 0, floor: "4", active: true },
-            { id: "AF3554", room: "407/9", name: "U HARSHAVARDHAN", points: 0, floor: "4", active: true },
-            { id: "AE5133", room: "407/10", name: "PRIYANSH SAHU", points: 0, floor: "4", active: true },
-            { id: "AD8421", room: "407/11", name: "D. HEMANT KUMAR", points: 0, floor: "4", active: true },
-            { id: "AE5002", room: "407/13", name: "M HARSHAVARDHAN GOUD", points: 0, floor: "4", active: true },
-            { id: "AE8041", room: "407/14", name: "LANGATI JASHWITH KUMAR REDDY", points: 0, floor: "4", active: true },
-            { id: "AF4924", room: "407/16", name: "HANUMANDLA SHIVA KRISHNA", points: 0, floor: "4", active: true },
-            { id: "AE0471", room: "408/1", name: "B NIHANTH REDDY", points: 0, floor: "4", active: true },
-            { id: "AG1756", room: "408/3", name: "BHAVYA KISHOR MADHANI PATEL", points: 0, floor: "4", active: true },
-            { id: "AE8706", room: "408/4", name: "SOWMYAADISH VIKRAM REDDY", points: 0, floor: "4", active: true },
-            { id: "AF2246", room: "408/5", name: "HRIDAAY DHIRAJ PAWAR", points: 0, floor: "4", active: true },
-            { id: "AE6070", room: "408/6", name: "ERRAGOLLA MANIKANTA YADAV", points: 0, floor: "4", active: true },
-            { id: "AD8436", room: "408/8", name: "PITTALWALA MOHIT ROBIN", points: 0, floor: "4", active: true },
-            { id: "AF2608", room: "408/9", name: "ADITYA", points: 0, floor: "4", active: true },
-            { id: "AD4391", room: "408/10", name: "SHARMA SHREYASH ANUP", points: 0, floor: "4", active: true },
-            { id: "AE1813", room: "408/11", name: "RABARA AARYA CHIRAGBHAI", points: 0, floor: "4", active: true },
-            { id: "AE5807", room: "408/12", name: "REVANKAR YASH DEEPAK", points: 0, floor: "4", active: true },
-            { id: "AE4544", room: "408/13", name: "RANGAPUR LAKSH", points: 0, floor: "4", active: true },
-            { id: "AG4373", room: "408:0", name: "GOPINAMBALA ANTHARYAMI", points: 0, floor: "4", active: true },
-            { id: "AF3312", room: "408/15", name: "KANDIMALLA NAGA VANKATA SAI THAMAN", points: 0, floor: "4", active: true },
-            { id: "AE4910", room: "409/1", name: "E SAI VIGHNA VISHAL KARTHIK", points: 0, floor: "4", active: true },
-            { id: "AE1560", room: "409/2", name: "AYELA SOWMITH", points: 0, floor: "4", active: true },
-            { id: "AG2066", room: "409/3", name: "ANANY UPADHYAY", points: 0, floor: "4", active: true },
-            { id: "AD3369", room: "409/4", name: "PUNISH RAO", points: 0, floor: "4", active: true },
-            { id: "AE6970", room: "409/5", name: "RISHI RAJESHBHAI DUDHAT", points: 0, floor: "4", active: true },
-            { id: "AE9830", room: "409/6", name: "PALLE UMAMAESWARA REDDY", points: 0, floor: "4", active: true },
-            { id: "AF4845", room: "409/7", name: "KOLI SRI PADH", points: 0, floor: "4", active: true },
-            { id: "AE7957", room: "409/8", name: "SOORAM PAVANA TEJA", points: 0, floor: "4", active: true },
-            { id: "AF5542", room: "409/9", name: "SANKALP PATEL", points: 0, floor: "4", active: true },
-            { id: "AD6921", room: "409/10", name: "KANAGALA DHRUV SAI", points: 0, floor: "4", active: true },
-            { id: "AE6376", room: "409/11", name: "PARAPALLY RUTHWIK GOUD", points: 0, floor: "4", active: true },
-            { id: "AE4749", room: "409/12", name: "BONGONI MAHANTH", points: 0, floor: "4", active: true },
-            { id: "AF3529", room: "409/14", name: "BANDARI VARUN SAI", points: 0, floor: "4", active: true },
-            { id: "AE7681", room: "409/15", name: "K. EAKANATH", points: 0, floor: "4", active: true },
-            { id: "AF2306", room: "409/16", name: "D SHAURYA RAJU", points: 0, floor: "4", active: true },
-            { id: "AG0139", room: "410/1", name: "KONDETI HARSHIT", points: 0, floor: "4", active: true },
-            { id: "AE5903", room: "410/2", name: "YASHASHWI", points: 0, floor: "4", active: true },
-            { id: "AE1847", room: "410/3", name: "DEVDYOTI KHAMARI", points: 0, floor: "4", active: true },
-            { id: "AG3100", room: "410/5", name: "KUPPA PUNITH KRISHNA", points: 0, floor: "4", active: true },
-            { id: "AE4748", room: "410/6", name: "BONGONI RAM CHARAN", points: 0, floor: "4", active: true },
-            { id: "AE2416", room: "410/8", name: "PREM SINGH RAJPUROTHIT", points: 0, floor: "4", active: true },
-            { id: "AF2352", room: "410/9", name: "DANDU SUSHANTH VARMA", points: 0, floor: "4", active: true },
-            { id: "AE1303", room: "410/10", name: "SAI AWAHAN MUND", points: 0, floor: "4", active: true },
-            { id: "AG1322", room: "410/11", name: "LONKA SAI VIGNESH", points: 0, floor: "4", active: true },
-            { id: "AE8715", room: "410/12", name: "KHONGNANGTHABA KHAIDEM", points: 0, floor: "4", active: true },
-            { id: "AF2360", room: "410/13", name: "ANMOL JAKAWAR", points: 0, floor: "4", active: true },
-            { id: "AG1110", room: "410/14", name: "ABHINAV JORIGE", points: 0, floor: "4", active: true },
-            { id: "AG0489", room: "411/1", name: "RUDRA PRAKASH INGLE PATIL", points: 0, floor: "4", active: true },
-            { id: "AF7587", room: "411/1", name: "GOPATHI BHUVAN KARTHIKEYA", points: 0, floor: "4", active: true },
-            { id: "AE4503", room: "411/3", name: "CHAKKA HARSHA", points: 0, floor: "4", active: true },
-            { id: "AF9722", room: "411/4", name: "TANK NISARG GEETA", points: 0, floor: "4", active: true },
-            { id: "AF6571", room: "411/5", name: "ANIKETH REDDY", points: 0, floor: "4", active: true },
-            { id: "AF9178", room: "411/6", name: "GOVIND MANISH KUMAR", points: 0, floor: "4", active: true },
-            { id: "AF9249", room: "411/7", name: "ARRA ABHINAV", points: 0, floor: "4", active: true },
-            { id: "AD3888", room: "411/8", name: "G.SANDEEP KUMAR", points: 0, floor: "4", active: true },
-            { id: "AF4339", room: "411/9", name: "KORIGINJA VITESH", points: 0, floor: "4", active: true },
-            { id: "AG0156", room: "411/10", name: "SUMAN DAGGUPATI", points: 0, floor: "4", active: true },
-            { id: "AF9933", room: "411/11", name: "REKULAPALLY VIVEK YADAV", points: 0, floor: "4", active: true },
-            { id: "AF9904", room: "411/12", name: "CHELLURI SREEMAAN SIVA CHARAN", points: 0, floor: "4", active: true },
-            { id: "AD6486", room: "411/13", name: "SAHARSH GANTA", points: 0, floor: "4", active: true },
-            { id: "AF9828", room: "411/14", name: "ABHIRAM VEMURI", points: 0, floor: "4", active: true },
-            { id: "AF3189", room: "411/15", name: "RAM SRI CHARAN A V", points: 0, floor: "4", active: true },
-            { id: "AF2435", room: "411/16", name: "PEDDAMALLU GANGA AVINASH REDDY", points: 0, floor: "4", active: true },
-            { id: "AF8320", room: "412/1", name: "KANDULA SATHWIK REDDY", points: 0, floor: "4", active: true },
-            { id: "AG0461", room: "412/2", name: "ALLADI SHREYAS", points: 0, floor: "4", active: true },
-            { id: "AE6332", room: "412/3", name: "TANGELLAPALLY ISHANT RAJ", points: 0, floor: "4", active: true },
-            { id: "AG0557", room: "412/4", name: "GANJI RAGHAVENDRA", points: 0, floor: "4", active: true },
-            { id: "AF4939", room: "412/5", name: "PALAPARTHI SUSHANTH", points: 0, floor: "4", active: true },
-            { id: "AG0562", room: "412/6", name: "VYASABATTU VENKATRAJU", points: 0, floor: "4", active: true },
-            { id: "AE5945", room: "412/8", name: "G. BHANU SHREYAS NAIDU", points: 0, floor: "4", active: true },
-            { id: "AE6995", room: "412/9", name: "RISHIK SUNCHU", points: 0, floor: "4", active: true },
-            { id: "AF9201", room: "412/10", name: "SUDARSHANAM SRI VALLABH", points: 0, floor: "4", active: true },
-            { id: "AE7520", room: "412/11", nameaxe: "KASTURI AKHIL", points: 0, floor: "4", active: true },
-            { id: "AF9200", room: "412/12", name: "KARRE VISRUTH", points: 0, floor: "4", active: true },
-            { id: "AF3384", room: "412/13", name: "SHIVA KARTHIKEYA", points: 0, floor: "4", active: true },
-            { id: "AF9820", room: "412/14", name: "SHRIYANS", points: 0, floor: "4", active: true },
-            { id: "AF4767", room: "412/16", name: "TADAPANENI KUUSHAL", points: 0, floor: "4", active: true },
-            { id: "AF9666", room: "413/1", name: "PODDUTURI NIHITH REDDY", points: 0, floor: "4", active: true },
-            { id: "AG1540", room: "413/2", name: "KARTHIKEYA SHARMA PALAVAJVALA", points: 0, floor: "4", active: true },
-            { id: "AG3324", room: "413/3", name: "KODURI VIKAS REDDY", points: 0, floor: "4", active: true },
-            { id: "AG1531", room: "413/4", name: "SUGGUNA ADITYA KRISHNA", points: 0, floor: "4", active: true },
-            { id: "AF9227", room: "413/5", name: "GOGOORI RANDEEP REDDY", points: 0, floor: "4", active: true },
-            { id: "AG1521", room: "413/6", name: "PUJALA RAGHAVENDRA", points: 0, floor: "4", active: true },
-            { id: "AF2339", room: "413/7", name: "PAKKIRU ASHWIN REDDY", points: 0, floor: "4", active: true },
-            { id: "AD8319", room: "413/8", name: "YASH SHAILESHBHAI SARDHARA", points: 0, floor: "4", active: true },
-            { id: "AF7188", room: "413/9", name: "N RUTHVIK SAI", points: 0, floor: "4", active: true },
-            { id: "AF8741", room: "413/10", name: "G ANANTH KUMAR", points: 0, floor: "4", active: true },
-            { id: "AF9681", room: "413/11", name: "VASOYA SWET KETAN KUMAR", points: 0, floor: "4", active: true },
-            { id: "AG2222", room: "413/12", name: "DARSHAN DIPAKBHAI KATHIRIYA", points: 0, floor: "4", active: true },
-            { id: "AE5345", room: "413/13", name: "VEKARIYA MAITREY VIJAYBHAI", points: 0, floor: "4", active: true },
-            { id: "AF6475", room: "413/14", name: "AAMGOTH GOUTHAM", points: 0, floor: "4", active: true },
-            { id: "AF3667", room: "413/16", name: "SRI JAYANTH GANEDI", points: 0, floor: "4", active: true },
-            { id: "AE9208", room: "414/1", name: "P SAI PRATHIK", points: 0, floor: "4", active: true },
-            { id: "AG2442", room: "414/2", name: "KOMIRISETTY MEERA CHAITANYA", points: 0, floor: "4", active: true },
-            { id: "AF3952", room: "414/3", name: "VAKKALAKULA KHUSHAAL", points: 0, floor: "4", active: true },
-            { id: "AG2484", room: "414/4", name: "TEKULA SHIVA PRASAD REDDY", points: 0, floor: "4", active: true },
-            { id: "AD7928", room: "414/5", name: "MITAI NANDISH KUMAR", points: 0, floor: "4", active: true },
-            { id: "AD9062", room: "414/7", name: "PANTHANGI AKSHAY", points: 0, floor: "4", active: true },
-            { id: "AG2169", room: "414/8", name: "MOORABOINA DHANUNJAYA", points: 0, floor: "4", active: true },
-            { id: "AD8940", room: "414/9", name: "B MANIKANTA", points: 0, floor: "4", active: true },
-            { id: "AG2527", room: "414/10", name: "LAKSHAY SINGHAL", points: 0, floor: "4", active: true },
-            { id: "AD8343", room: "414/12", name: "KIKANI KUNJ HITESHBAI", points: 0, floor: "4", active: true },
-            { id: "AF7505", room: "414/13", name: "SHREYAS GANDHAM", points: 0, floor: "4", active: true },
-            { id: "AF9841", room: "414/14", name: "ANUGU SWASTHIK REDDY", points: 0, floor: "4", active: true },
-            { id: "AF3340", room: "414/15", name: "GUNDA GAGAN SAI", points: 0, floor: "4", active: true },
-            { id: "AF4538", room: "414/16", name: "RISHANKA JANAKB", points: 0, floor: "4", active: true }
+            { id: "AF5582", room: "301/1", name: "PATLORI VAISHWIK REDDY", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF4738", room: "301/2", name: "VIRAT PARAG AILWAR", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE6895", room: "301/4", name: "TAGALPALLEWAK ARYA PRAJWAL", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF7714", room: "301/5", name: "MANIKYAM ARYAN", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE4571", room: "301/6", name: "YEMSANI RAM VARSHITH YADAV", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF7056", room: "301/7", name: "BADKA BHAGATH", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE5050", room: "301/9", name: "ADARSH TIWARY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF5055", room: "301/11", name: "MADASTU DAYANANDA", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE8986", room: "301/12", name: "THAKUR RAGHUVENDR SINGH", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE5578", room: "301/13", name: "LOKINENI SATWIK RAO", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF2193", room: "301/14", name: "VARTHYA MAHENDHAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF8134", room: "301/15", name: "N HARSHAN", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF3735", room: "301/16", name: "CHEETI SAI SUHAAS", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AD9852", room: "302/1", name: "SRI GANESH", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF1954", room: "302/2", name: "LAVUDYA SATHVIK", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF1627", room: "302/3", name: "SHUBHAM JOSHI", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF3615", room: "302/4", name: "AARADHY RAJARAM PATIL", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9522", room: "302/5", name: "CHEBOLU MAHALAKSHMI BAVESH SARMA", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF4925", room: "302/6", name: "MADUGULA BHANU TEJA", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG1177", room: "302/7", name: "NEVIL D THUMMAR", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AG1532", room: "302/8", name: "KATUKAM CHAITRANANDAM", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF2946", room: "302/9", name: "CHALASANI NIHANT CHOWDARY", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF5271", room: "302/10", name: "B CHETAN SWAROOP REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG1123", room: "302/11", name: "POTHIREDDY PRADHAM REDDY", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE1107", room: "302/12", name: "TAKLE SANSKAR DIGAMBAR", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF2851", room: "302/13", name: "SAINATH DHANAJI KOTALAPURE", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE8368", room: "302/15", name: "GUMMADI MANOJ REDDY", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE9514", room: "303/1", name: "MADDURI NIHITH JAI VENKATA SAI", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF4246", room: "303/2", name: "NEERATI SRI AVYUKT", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG1335", room: "303/3", name: "VARSHITH MONIGARI", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF8299", room: "303/4", name: "AARSH", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE6039", room: "303/5", name: "ARNAV AJAY KULKARNI", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE4809", room: "303/6", name: "SANDEEP PATEL", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF7485", room: "303/7", name: "K SHARVANTH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG1833", room: "303/8", name: "RAMAGIRI AVANISH", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF4958", room: "303/9", name: "AYYAMOLLA ROSHAN", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AC5368", room: "303/10", name: "KONDAVENI SRI HARSHA", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF9884", room: "303/11", name: "GURRALA MANISH REDDY", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF9850", room: "303/12", name: "SIDDAMSHETTY ADITYA", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF6649", room: "303/13", name: "BADATHALA RUSHI", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9886", room: "303/14", name: "KRISHAN KUMAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG1154", room: "303/15", name: "POTLA VAMSHI KRISHNA", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE9143", room: "303/16", name: "PHANI NAGA SAI RITHVIK REDDY T", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE1860", room: "304/1", name: "SUNKARI JAYANTH", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF4423", room: "304/2", name: "BUREWAR ARNAV RAJARAM", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE4568", room: "304/3", name: "CHOLKAR PRAVASTHIK", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9738", room: "304/5", name: "A SRIKAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE5672", room: "304/6", name: "BADDAM AVINASH REDDY", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF9695", room: "304/7", name: "PIGILATI VISHNU VARDHAN", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG1726", room: "304/8", name: "JUPALLY KRISHIK", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE9278", room: "304/9", name: "PATOLLA SRI HARSHITH REDDY", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF5886", room: "304/10", name: "VIRAT SINGH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9623", room: "304/12", name: "SIDDHARTH CHAWHAN", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE5673", room: "304/13", name: "RUCHIK KUMAR PATEL", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AD7983", room: "304/14", name: "KANDADI SAKSHITH REDDY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF3732", room: "304/15", name: "CHITTI GIDDA SRI NANDHAN REDDY", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE6342", room: "304/16", name: "RUDRA KALAPP MALBHAGE", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF2716", room: "305/1", name: "G AADARSH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE3270", room: "305/2", name: ".GANNAVARAPU JOGEESWAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9561", room: "305/3", name: "BIRANCHI NARAYAN PARAMANIK", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF2878", room: "305/4", name: "GOLLAPALLY RUTHVIK GOUD", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF3291", room: "305/5", name: "DONTHI VENKATA SATHYA TEJA", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE4400", room: "305/6", name: "BANTU BHANSHIDHAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF9526", room: "305/7", name: "BODE SIVAHARSHITH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AD9534", room: "305/8", name: "LAGGALA PRASANNA VADHAN", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE4937", room: "305/9", name: "CHETAN MUDUNURI", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE0518", room: "305/10", name: "NEELI SHEETHAL", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE4855", room: "305/11", name: "YARRAM SRUJANNADH REDDY", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF9443", room: "305/12", name: "MEDURI SAI MARUTI MAHEDHAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF1274", room: "305/13", name: "KOLIPAKA RUSHI RUTHVIK", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9520", room: "305/14", name: "LAVETI DEVAMSH NARAYANA", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE4950", room: "305/15", name: "PARTH PATEL", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE1015", room: "305/16", name: "M SANYUTH", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE4906", room: "306/1", name: "MADDURI SAMPATH", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE7584", room: "306/2", name: "K LAXMI PRANEETH", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF7892", room: "306/3", name: "MALLEM SATYA VENKATA AGRATA", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF2799", room: "306/4", name: "DESU YOJITH KUMAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9376", room: "306/5", name: "GURRAM SAI SANJEEV", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AD9571", room: "306/7", name: "POGAKU DIKSHIT KUMAR", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG1942", room: "306/8", name: "NIKUNJ ANAND BAJAJ", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF2748", room: "306/9", name: "PRATHMESH SANKHALA", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF9464", room: "306/10", name: "MIRYALA SHRI CHARAN", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE5022", room: "306/11", name: "T HARISH", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9360", room: "306/12", name: "MADI ASHWITH REDDY", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AC8429", room: "306/13", name: "SABAVATH SURESH", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF9361", room: "306/14", name: "NAIKOTI MITHUN", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE5138", room: "306/15", name: "HRUDAY PATEL", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE5456", room: "306/16", name: "GADDE KARTEEK CHOWDARY", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG0423", room: "307/1", name: "SOLI SUHAS", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9517", room: "307/3", name: "PARIKSHIT EKNATH CHINCHANE", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF9334", room: "307/5", name: "VOOTUKOORU VEERANATH RUTHVIK", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE9555", room: "307/7", name: "SRI VASTHAVA G", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE9556", room: "307/8", name: "NAVADEEP G", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG1520", room: "307/9", name: "PRATHAMESH LAXMAN AILANE", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AD8786", room: "307/10", name: "SABBANI VARSHITH KUMAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE6341", room: "307/11", name: "YASH GUNDAPPA KANTE", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF9995", room: "307/12", name: "MOTHE SRIVATHSAV REDDY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF2326", room: "307/13", name: "RYAKALA BHAVESH GOUD", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF9994", room: "307/14", name: "ARADHY SHIVKUMAR BIJAMWAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF3711", room: "307/15", name: "KANKANALA SRI VIGNESH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE5021", room: "307/16", name: "THANNIR HARSHA VARDHAN", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF4824", room: "308/2", name: "INJAM YUGESH", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AG0040", room: "308/3", name: "PUTTUBOINA CHARANJEET", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE5304", room: "308/4", name: "ANMOL ANIL JAJU", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AG0042", room: "308/5", name: "BHEEMANA TEJA SAI SIVA RAYA CHOWDARY", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF2777", room: "308/6", name: "KAVYA NANJI VAID", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG0058", room: "308/7", name: "DEEPAN KUMAR SONI", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG1867", room: "308/8", name: "ABHINAY SAI N", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF5536", room: "308/9", name: "VENNA JAYANTH REDDY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF9185", room: "308/10", name: "P YAGNA SAI SHANKAR REDDY", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF2338", room: "308/11", name: "PALAVALASA ADITHYA VARDHAN", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF3037", room: "308/12", name: "HARDIK JAIN", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9566", room: "308/13", name: "RAKHOLIYA RUDRA KISHORBHAI", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9198", room: "308/14", name: "VISHRUTH BAIRAGONIWAR", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE4852", room: "308/15", name: "DASARI VARSHITH", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE8083", room: "309/1", name: "SARTHAK SAGAR ZANWAR", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE5290", room: "309/2", name: "BANDARI RITHVIK", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG0082", room: "309/3", name: "BURIGARI SIDDARTH MANI", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE0558", room: "309/4", name: "SHIVAM SANKHLA", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG0142", room: "309/5", name: "PRANAV GOVIND GHORPADE", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF4853", room: "309/6", name: "PRATEEK PATRA", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG0146", room: "309/7", name: "BELLAM KARTHIK", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AG2159", room: "309/8", name: "BALGURI SRIKAR SAGAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF5878", room: "309/9", name: "MANCHUKONDA SAI AAKARSHAN", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG0149", room: "309/10", name: "KOVVURI SHASHANK", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE5220", room: "309/11", name: "B HARSHAVARDHAN", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AG0157", room: "309/12", name: "CHINTHAKUNTA VARSHITH REDDY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE5283", room: "309/13", name: "B NITHISH YADAV", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AC5367", room: "309/14", name: "P PRASANTH KUMAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE6228", room: "309/15", name: "CHINTHA KUSHAL KUMAR REDDY", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AD8237", room: "309/16", name: "U KEETHAN GOUD", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF3407", room: "310/1", name: "AMRITANSH AGARWAL", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF5903", room: "310/2", name: "THIRUPATHI VARUN REDDY", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG0299", room: "310/3", name: "CIGUMAL BAVYESH KUSAL", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF6695", room: "310/4", name: "ALOK YADAV", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF4632", room: "310/5", name: "M S RUDRAVEER", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AD5270", room: "310/6", name: "BOLLARAM ANISH REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG0322", room: "310/7", name: "SAURYAV SANDIP KADAM", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AG1858", room: "310/8", name: "PATHAPATI JAYANTH SATYA VARMA", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG0394", room: "310/10", name: "PRATYUSH PRABHU", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE2190", room: "310/11", name: "N ADVITH", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG0371", room: "310/12", name: "PUJALA KARTHIK", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF5547", room: "310/13", name: "KAVYA ASHOK PATEL", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9885", room: "310/14", name: "RASHWA GAJANAN MUKKAWAR", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF9883", room: "310/15", name: "KAVISH SHAILESH CHITMALWAR", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF2356", room: "310/16", name: "PITTLA SHREE HARSHA", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF4802", room: "311/1", name: "ADVIK PAMMI", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AE4958", room: "311/2", name: "CH VIJAY KUMAR", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG0405", room: "311/3", name: "M ABHIRAJ", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG3133", room: "311/4", name: "THOTA SAMANYU", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AG0406", room: "311/5", name: "DIVY MILANKUMAR", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF4222", room: "311/6", name: "VITTAL SAI CHARAN", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF9742", room: "311/7", name: "LINE SAI LOKESH", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG0359", room: "311/8", name: "SUMIT KUMAR", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF7229", room: "311/9", name: "RAVULA SHRIYAN REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG0454", room: "311/10", name: "TAARAN VIJAY ZALAVADIYA", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE4812", room: "311/11", name: "VADDEPU SANJITH", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF4062", room: "311/12", name: "N SAI KARTHIK", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF2359", room: "311/13", name: "YASH JAKAWAR", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF7228", room: "311/14", name: "THIRUKOVELA ADWAITH", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF4803", room: "311/15", name: "VADALIYA DEV MITESHBHAI", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF8553", room: "311/16", name: "GAJERA VED TUSHARBHAI", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AD6299", room: "312/1", name: "VEMURI MRITHULL", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG0075", room: "312/2", name: "V ANIL", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF7232", room: "312/4", name: "SOMA ASHRITH REDDY", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG0474", room: "312/5", name: "CHHAVI RAJ", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF3434", room: "312/6", name: "UJJWAL RAJPUT", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG0554", room: "312/7", name: "BUDDE ASHWITH VARMA", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF7048", room: "312/8", name: "B ASHRITH SAI GOUD", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF2947", room: "312/9", name: "NARA THAKSHAK", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AG0553", room: "312/10", name: "ABHINAV ANAND", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF3967", room: "312/11", name: "POOLA YASHWIN REDDY", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF9218", room: "312/12", name: "ABHINAV REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF9478", room: "312/14", name: "RUTHVIK KOLLI", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE5606", room: "312/16", name: "AMIT SANTOSH AMBULGE", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AD2367", room: "313/1", name: "B SANDEP KUMAR REDDY", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE1877", room: "313/2", name: "AKULA NRUSIMHA MAYUR KARTHIK", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF9214", room: "313/3", name: "KONDADI WISHVA TEJA", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE4542", room: "313/4", name: "SHAURYA PAWANKUMAR BHOSALE", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF3311", room: "313/5", name: "BIRELLY DHANUSH", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF9203", room: "313/7", name: "VISHAL", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG3268", room: "313/8", name: "NAMAN BOTHRA", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE9603", room: "313/9", name: "PRABHU SINGH", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF9199", room: "313/10", name: "ARJUN DEEPAK MAHAJAN", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AF3696", room: "313/11", name: "ARIHANT KUMAR", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AG0984", room: "313/12", name: "JAINIL ANKIT KACHHADIA", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AE5063", room: "313/13", name: "HARSHEEL PATEL", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AG0161", room: "313/14", name: "THADUVAYI SUDHESH GUPTTA", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AE6907", room: "313/15", name: "NEELESH KUMAWAT", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF9254", room: "313/16", name: "JAY PRAVIN SOMANI", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AE6240", room: "314/1", name: "DEV PATEL", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AD8306", room: "314/2", name: "TANISHQ PATEL", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AG2440", room: "314/3", name: "T.BHUWANA CHANDRA", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AF5198", room: "314/4", name: "SHREYASH RADHESHYAM SHAHAGANTWAR", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AG1042", room: "314/5", name: "HARDIK AMIT CHOPRA", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AF7054", room: "314/6", name: "RHYTHM MANOJBHAI PANSURIYA", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AG1039", room: "314/7", name: "GODDETI ANIKETH", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AE8151", room: "314/9", name: "KUMMATI TRISHANTH REDDY", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF3832", room: "314/10", name: "SANIKA ESWAR PRASAD", points: 0, floor: "3", active: true, class: "X", section: "C" },
+            { id: "AE1973", room: "314/11", name: "BADHA KRISHNAPRASAD", points: 0, floor: "3", active: true, class: "IX", section: "B" },
+            { id: "AF5405", room: "314/12", name: "KASAGOUNI MALLIKARJUN GOUD", points: 0, floor: "3", active: true, class: "X", section: "A" },
+            { id: "AG1507", room: "314/14", name: "VIRAT PARIHAR", points: 0, floor: "3", active: true, class: "IX", section: "C" },
+            { id: "AD7165", room: "314/15", name: "POTLOLLA SURYA VENKAT RAM NARAYAN REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
+            { id: "AF2614", room: "314/16", name: "NARRA MAHESH KARTHIK", points: 0, floor: "3", active: true, class: "IX", section: "A" },
+            { id: "AF3116", room: "401/7", name: "MALLAVALLI BALAJI SRI SAI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF9616", room: "401/8", name: "KOMAKULA VARSHITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AD8017", room: "401/9", name: "ATHARV MADHAV ECHWAD", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD8728", room: "402/1", name: "OMKAR KEDAR", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF6488", room: "402/2", name: "MEKALA VISHRUTH", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AD8164", room: "402/3", name: "G LOHITHAKSH VARMA", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE4062", room: "402/4", name: "MOHIT UJJWAL NATHANI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF3413", room: "402/5", name: "PITLA NIVRUTH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE7337", room: "402/6", name: "PIYUSH VIJAY MESHRAM", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF4516", room: "402/7", name: "M S MAHAVEER", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF6489", room: "402/8", name: "JABARI PRANAY", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF5919", room: "402/9", name: "KESUBHUKTA SHASHANK", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE7509", room: "402/10", name: "LAV PATEL", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF6031", room: "402/11", name: "BOINI VARSHITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE7889", room: "402/12", name: "NAYAN PATEL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF6025", room: "402/13", name: "KOTHAPALLY SUSHANTH REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AB5527", room: "402/14", name: "TUSHAR TAUNK", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF3436", room: "402/15", name: "PRADNEESH GINNE", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF8032", room: "402/16", name: "M.DIVYANSH REDDY", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG2439", room: "403/1", name: "PADALA DHEEMANTH REDDY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE7933", room: "403/2", name: "BHAGAWAN SINGH RATHORE", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF4501", room: "403/3", name: "SEVARTHI JAIDEEP", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE7597", room: "403/4", name: "GAMI JAY MANSUKH", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE5947", room: "403/5", name: "K RUSHIKESH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF4704", room: "403/6", name: "RUDHARANSH CHOUDHARY", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF6148", room: "403/7", name: "KESAGANI MOKSHITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AD7311", room: "403/8", name: "KOTA ADIDEVA REDDY", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD6483", room: "403/9", name: "VAMBARELLI TRIVIKRAM SAI SWAROOP", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE2535", room: "403/10", name: "BHARGAVA MITHRA KOMURELLI", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE4708", room: "403/11", name: "BONGONI RAM KIRAN", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG1121", room: "403/12", name: "SUNIL JAAT", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF2432", room: "403/13", name: "BOLNENI HANISHWAR RAO", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF9823", room: "403/14", name: "TANUSH PATEL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF3736", room: "403/15", name: "ASHUTOSH SAO", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE8223", room: "403/16", name: "VANAMPALLY SHIVANTH REDDY", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AD2136", room: "404/1", name: "ISHAN GHOSH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF9824", room: "404/2", name: "NAYAN PATEL", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE8522", room: "404/3", name: "KASHYAP BHARATBHAI KATHAROTIYA", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF9601", room: "404/4", name: "SAUMY PANKAJBHAI AKBARI", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF9224", room: "404/5", name: "PRADYUMNA GUNJAHALLI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF9600", room: "404/6", name: "UCHIT DUDHATRA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF2383", room: "404/7", name: "SAI RIKHIL BONI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG2313", room: "404/9", name: "BODASU KETHAN", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG2161", room: "404/10", name: "GOUDA TRISHITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF2075", room: "404/11", name: "SHREYANS RAJANIBHAI SHIYANI", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG2486", room: "404/12", name: "HIRPARA KAUSHAL KISHORBHAI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD5362", room: "404/13", name: "PANTH N PATEL", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AG2581", room: "404/14", name: "HIRPARA MOKSH MANISHBHAI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG0057", room: "404/15", name: "VED PATEL", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF6379", room: "405/1", name: "KRISHNAM GURU SHARAN", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG0877", room: "405/2", name: "AJITH", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG1009", room: "405/3", name: "HARSHIT UMESH JANGID", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AG3178", room: "405/4", name: "CHANDAK HARSHIT SHAILESH", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AG1382", room: "405/5", name: "SHREYASH MAHAJAN", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG3243", room: "405/6", name: "RAJJAT KUMAR MOHTA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE6765", room: "405/7", name: "I L A MARUTHI VIJAY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG3182", room: "405/8", name: "ARJUN CHOUDHARY", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF3907", room: "405/9", name: "EMMADISETTY SAI YAKSHIT", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AG3224", room: "405/10", name: "TANISQUE PATEL", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE0463", room: "405/11", name: "VEJELLA NIRAV CHOWDARY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG3776", room: "405/12", name: "JAGIRDAR GIRIRAJ", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE8576", room: "405/13", name: "PERUNTHODI JAYANTH BALAJI", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG4005", room: "405/14", name: "ARADHYA GUPTA", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF9181", room: "405/15", name: "KHAIRE TEJAS BALAJI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD9931", room: "406/2", name: "TILAK SHRIRAM PUNDKAR", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AG0593", room: "406/3", name: "KOLLU VENU SAI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE7338", room: "406/4", name: "UDAY DEVCHAND DHEKWAR", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG1600", room: "406/5", name: "SHREERAJ PRASHANT THAKARE", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AD8399", room: "406/6", name: "BOMDYAL HARSHAVARDHAN", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF2453", room: "406/7", name: "ATIKSH TAANK", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE5406", room: "406/8", name: "KONINTI VIGNESH GOUD", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF5942", room: "406/9", name: "BOLLA URVESH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AD4582", room: "406/10", name: "VRAJKUMAR PRAJAPATI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG1107", room: "406/11", name: "YASH JAYANT ZAMRE", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE7405", room: "406/12", name: "VAIBHAV SANTOSH JOSHI", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD2510", room: "406/13", name: "LASKAR SRIKER REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF1084", room: "406/14", name: "GANGA VASHISHTA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF9176", room: "406/15", name: "MARABOINA TRIVIKRAM", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF2780", room: "407/1", name: "BATTULA GOUTHAM REDDY", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG1774", room: "407/3", name: "K S MAHANTH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG1755", room: "407/5", name: "DAKSH CHANDRESH MADHANI PATEL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AC2709", room: "407/6", name: "KOLE PRASANNA KUMAR", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF3057", room: "407/7", name: "GANDLA YUVARAJ", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF3554", room: "407/9", name: "U HARSHAVARDHAN", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE5133", room: "407/10", name: "PRIYANSH SAHU", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AD8421", room: "407/11", name: "D. HEMANT KUMAR", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE5002", room: "407/13", name: "M HARSHAVARDHAN GOUD", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AE8041", room: "407/14", name: "LANGATI JASHWITH KUMAR REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF4924", room: "407/16", name: "HANUMANDLA SHIVA KRISHNA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE0471", room: "408/1", name: "B NIHANTH REDDY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG1756", room: "408/3", name: "BHAVYA KISHOR MADHANI PATEL", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE8706", room: "408/4", name: "SOWMYAADISH VIKRAM REDDY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF2246", room: "408/5", name: "HRIDAAY DHIRAJ PAWAR", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AE6070", room: "408/6", name: "ERRAGOLLA MANIKANTA YADAV", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD8436", room: "408/8", name: "PITTALWALA MOHIT ROBIN", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF2608", room: "408/9", name: "ADITYA", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AD4391", room: "408/10", name: "SHARMA SHREYASH ANUP", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE1813", room: "408/11", name: "RABARA AARYA CHIRAGBHAI", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE5807", room: "408/12", name: "REVANKAR YASH DEEPAK", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AE4544", room: "408/13", name: "RANGAPUR LAKSH", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AG4373", room: "408:0", name: "GOPINAMBALA ANTHARYAMI", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF3312", room: "408/15", name: "KANDIMALLA NAGA VANKATA SAI THAMAN", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE4910", room: "409/1", name: "E SAI VIGHNA VISHAL KARTHIK", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE1560", room: "409/2", name: "AYELA SOWMITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG2066", room: "409/3", name: "ANANY UPADHYAY", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD3369", room: "409/4", name: "PUNISH RAO", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE6970", room: "409/5", name: "RISHI RAJESHBHAI DUDHAT", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE9830", room: "409/6", name: "PALLE UMAMAESWARA REDDY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF4845", room: "409/7", name: "KOLI SRI PADH", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE7957", room: "409/8", name: "SOORAM PAVANA TEJA", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF5542", room: "409/9", name: "SANKALP PATEL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD6921", room: "409/10", name: "KANAGALA DHRUV SAI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE6376", room: "409/11", name: "PARAPALLY RUTHWIK GOUD", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE4749", room: "409/12", name: "BONGONI MAHANTH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF3529", room: "409/14", name: "BANDARI VARUN SAI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE7681", room: "409/15", name: "K. EAKANATH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF2306", room: "409/16", name: "D SHAURYA RAJU", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG0139", room: "410/1", name: "KONDETI HARSHIT", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE5903", room: "410/2", name: "YASHASHWI", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE1847", room: "410/3", name: "DEVDYOTI KHAMARI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG3100", room: "410/5", name: "KUPPA PUNITH KRISHNA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE4748", room: "410/6", name: "BONGONI RAM CHARAN", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE2416", room: "410/8", name: "PREM SINGH RAJPUROTHIT", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF2352", room: "410/9", name: "DANDU SUSHANTH VARMA", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE1303", room: "410/10", name: "SAI AWAHAN MUND", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AG1322", room: "410/11", name: "LONKA SAI VIGNESH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE8715", room: "410/12", name: "KHONGNANGTHABA KHAIDEM", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF2360", room: "410/13", name: "ANMOL JAKAWAR", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG1110", room: "410/14", name: "ABHINAV JORIGE", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG0489", room: "411/1", name: "RUDRA PRAKASH INGLE PATIL", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF7587", room: "411/1", name: "GOPATHI BHUVAN KARTHIKEYA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AE4503", room: "411/3", name: "CHAKKA HARSHA", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF9722", room: "411/4", name: "TANK NISARG GEETA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF6571", room: "411/5", name: "ANIKETH REDDY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF9178", room: "411/6", name: "GOVIND MANISH KUMAR", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF9249", room: "411/7", name: "ARRA ABHINAV", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD3888", room: "411/8", name: "G.SANDEEP KUMAR", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF4339", room: "411/9", name: "KORIGINJA VITESH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG0156", room: "411/10", name: "SUMAN DAGGUPATI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF9933", room: "411/11", name: "REKULAPALLY VIVEK YADAV", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF9904", room: "411/12", name: "CHELLURI SREEMAAN SIVA CHARAN", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD6486", room: "411/13", name: "SAHARSH GANTA", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF9828", room: "411/14", name: "ABHIRAM VEMURI", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF3189", room: "411/15", name: "RAM SRI CHARAN A V", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF2435", room: "411/16", name: "PEDDAMALLU GANGA AVINASH REDDY", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF8320", room: "412/1", name: "KANDULA SATHWIK REDDY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG0461", room: "412/2", name: "ALLADI SHREYAS", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AE6332", room: "412/3", name: "TANGELLAPALLY ISHANT RAJ", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AG0557", room: "412/4", name: "GANJI RAGHAVENDRA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF4939", room: "412/5", name: "PALAPARTHI SUSHANTH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG0562", room: "412/6", name: "VYASABATTU VENKATRAJU", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AE5945", room: "412/8", name: "G. BHANU SHREYAS NAIDU", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AE6995", room: "412/9", name: "RISHIK SUNCHU", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF9201", room: "412/10", name: "SUDARSHANAM SRI VALLABH", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AE7520", room: "412/11", nameaxe: "KASTURI AKHIL", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF9200", room: "412/12", name: "KARRE VISRUTH", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF3384", room: "412/13", name: "SHIVA KARTHIKEYA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF9820", room: "412/14", name: "SHRIYANS", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF4767", room: "412/16", name: "TADAPANENI KUUSHAL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF9666", room: "413/1", name: "PODDUTURI NIHITH REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AG1540", room: "413/2", name: "KARTHIKEYA SHARMA PALAVAJVALA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AG3324", room: "413/3", name: "KODURI VIKAS REDDY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG1531", room: "413/4", name: "SUGGUNA ADITYA KRISHNA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF9227", room: "413/5", name: "GOGOORI RANDEEP REDDY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG1521", room: "413/6", name: "PUJALA RAGHAVENDRA", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AF2339", room: "413/7", name: "PAKKIRU ASHWIN REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD8319", room: "413/8", name: "YASH SHAILESHBHAI SARDHARA", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF7188", room: "413/9", name: "N RUTHVIK SAI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF8741", room: "413/10", name: "G ANANTH KUMAR", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF9681", room: "413/11", name: "VASOYA SWET KETAN KUMAR", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG2222", room: "413/12", name: "DARSHAN DIPAKBHAI KATHIRIYA", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AE5345", room: "413/13", name: "VEKARIYA MAITREY VIJAYBHAI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF6475", room: "413/14", name: "AAMGOTH GOUTHAM", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF3667", room: "413/16", name: "SRI JAYANTH GANEDI", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AE9208", room: "414/1", name: "P SAI PRATHIK", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AG2442", room: "414/2", name: "KOMIRISETTY MEERA CHAITANYA", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AF3952", room: "414/3", name: "VAKKALAKULA KHUSHAAL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG2484", room: "414/4", name: "TEKULA SHIVA PRASAD REDDY", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AD7928", room: "414/5", name: "MITAI NANDISH KUMAR", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AD9062", room: "414/7", name: "PANTHANGI AKSHAY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AG2169", room: "414/8", name: "MOORABOINA DHANUNJAYA", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AD8940", room: "414/9", name: "B MANIKANTA", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            { id: "AG2527", room: "414/10", name: "LAKSHAY SINGHAL", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AD8343", room: "414/12", name: "KIKANI KUNJ HITESHBAI", points: 0, floor: "4", active: true, class: "IX", section: "C" },
+            { id: "AF7505", room: "414/13", name: "SHREYAS GANDHAM", points: 0, floor: "4", active: true, class: "X", section: "B" },
+            { id: "AF9841", room: "414/14", name: "ANUGU SWASTHIK REDDY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
+            { id: "AF3340", room: "414/15", name: "GUNDA GAGAN SAI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF4538", room: "414/16", name: "RISHANKA JANAKB", points: 0, floor: "4", active: true, class: "IX", section: "B" }
         ];
 
        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -1120,11 +1124,12 @@ function loadStudentsFromFirebase() {
                 ]);
 
                 // If no students in Firebase, use default data and save to Firebase
-                if (studentsData.length === 0) {
+                if (studentsData.length === 0 || Object.keys(studentsData).length === 0) { // Added check for empty object
                     students = allStudents;
                     await saveStudentsToFirebase(students);
                 } else {
-                    students = studentsData;
+                    // Convert object to array if Firebase returns an object (common for Firebase lists)
+                    students = Array.isArray(studentsData) ? studentsData : Object.values(studentsData);
                 }
 
                 // Set history
@@ -1256,7 +1261,7 @@ function loadStudentsFromFirebase() {
                     document.getElementById('searchResultsPoints').innerHTML = '';
                     document.getElementById('searchQueryPoints').value = '';
                     refreshRankings();
-                    refreshResponses();
+                    refreshResponses(); // Call refreshResponses to update history table
                 } catch (error) {
                     console.error("Error updating points:", error);
                     updateMessage.classList.remove('alert-success');
@@ -1305,8 +1310,9 @@ function loadStudentsFromFirebase() {
 
             // Search functionality
             handleSearch('searchQueryPoints', 'searchResultsPoints');
-            handleSearch('searchQueryRankings', 'searchResultsRankings');
-            
+            document.getElementById('searchQueryRankings').addEventListener('input', refreshRankings); // Directly call refreshRankings for rankings search
+            document.getElementById('searchQueryHistory').addEventListener('input', filterResponses); // New: History search
+
             // Refresh buttons
             document.getElementById('refreshRankings').addEventListener('click', refreshRankings);
             document.getElementById('gradeFilter').addEventListener('change', refreshRankings);
@@ -1317,59 +1323,69 @@ function loadStudentsFromFirebase() {
         function handleSearch(inputId, resultsId) {
             document.getElementById(inputId).addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
-                const results = document.getElementById(resultsId);
-                results.innerHTML = '';
                 
-                if (query) {
-                    const filteredStudents = students.filter(student => {
-    // Add null checks for all properties
-    const name = student.name ? student.name.toLowerCase() : '';
-    const id = student.id ? student.id.toLowerCase() : '';
-    const room = student.room ? student.room.toLowerCase() : '';
-    const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-    
-    const query = this.value.toLowerCase().trim();
-    
-    return name.includes(query) || 
-           id.includes(query) || 
-           room.includes(query) || 
-           floor.includes(query);
-});
-                    if (filteredStudents.length) {
-                        filteredStudents.forEach(student => {
-                            const studentCard = document.createElement('div');
-                            studentCard.className = 'col-md-6 mb-3';
-                            studentCard.innerHTML = `
-                                <div class="card student-card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <h5 class="card-title">${student.name}</h5>
-                                            <span class="points-badge ${student.points >= 0 ? 'positive-points' : 'negative-points'}">
-                                                ${student.points > 0 ? '+' : ''}${student.points} pts
-                                            </span>
-                                        </div>
-                                        <p class="card-text mb-1">
-                                            <i class="fas fa-id-card"></i> ${student.id} 
-                                            | <i class="fas fa-door-open"></i> ${student.room}
-                                            | <i class="fas fa-layer-group"></i> ${student.floor} Floor
-                                        </p>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" 
-                                                name="${inputId === 'searchQueryPoints' ? 'selectedStudents' : 'selectedRankings'}" 
-                                                value="${student.id}" 
-                                                id="${inputId}_${student.id}">
-                                            <label class="form-check-label" for="${inputId}_${student.id}">
-                                                Select student
-                                            </label>
+                if (inputId === 'searchQueryPoints') {
+                    const results = document.getElementById(resultsId);
+                    results.innerHTML = ''; // Clear previous search results for points tab
+
+                    if (query) {
+                        const filteredStudentsForPoints = students.filter(student => {
+                            const name = student.name ? student.name.toLowerCase() : '';
+                            const id = student.id ? student.id.toLowerCase() : '';
+                            const room = student.room ? student.room.toLowerCase() : '';
+                            const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+                            const studentClass = student.class ? student.class.toLowerCase() : '';
+                            const section = student.section ? student.section.toLowerCase() : '';
+                            
+                            return name.includes(query) || 
+                                   id.includes(query) || 
+                                   room.includes(query) || 
+                                   floor.includes(query) ||
+                                   studentClass.includes(query) ||
+                                   section.includes(query);
+                        });
+
+                        if (filteredStudentsForPoints.length) {
+                            filteredStudentsForPoints.forEach(student => {
+                                const studentCard = document.createElement('div');
+                                studentCard.className = 'col-md-6 mb-3';
+                                studentCard.innerHTML = `
+                                    <div class="card student-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <h5 class="card-title">${student.name}</h5>
+                                                <span class="points-badge ${student.points >= 0 ? 'positive-points' : 'negative-points'}">
+                                                    ${student.points > 0 ? '+' : ''}${student.points} pts
+                                                </span>
+                                            </div>
+                                            <p class="card-text mb-1">
+                                                <i class="fas fa-id-card"></i> ${student.id} 
+                                                | <i class="fas fa-door-open"></i> ${student.room}
+                                                | <i class="fas fa-layer-group"></i> ${student.floor} Floor
+                                                ${student.class ? `| <i class="fas fa-chalkboard"></i> Class: ${student.class}` : ''}
+                                                ${student.section ? `| <i class="fas fa-users"></i> Section: ${student.section}` : ''}
+                                            </p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                    name="selectedStudents" 
+                                                    value="${student.id}" 
+                                                    id="${inputId}_${student.id}">
+                                                <label class="form-check-label" for="${inputId}_${student.id}">
+                                                    Select student
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
-                            results.appendChild(studentCard);
-                        });
-                    } else {
-                        results.innerHTML = '<div class="col-12"><div class="alert alert-info">No students found matching your search.</div></div>';
+                                `;
+                                results.appendChild(studentCard);
+                            });
+                        } else {
+                            results.innerHTML = '<div class="col-12"><div class="alert alert-info">No students found matching your search.</div></div>';
+                        }
                     }
+                } else if (inputId === 'searchQueryRankings') {
+                    // This part is now handled directly by refreshRankings via the event listener
+                    // No need for separate logic here for rankings search
                 }
             });
         }
@@ -1379,29 +1395,57 @@ function loadStudentsFromFirebase() {
             const rankingsTable = document.getElementById('rankingsTable');
             const gradeFilter = document.getElementById('gradeFilter').value;
             const floorFilter = document.getElementById('floorFilter').value;
+            const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
+
+            let studentsToDisplay = [...students];
+
+            // Apply search filter first
+            if (searchQueryRankings) {
+                studentsToDisplay = studentsToDisplay.filter(student => {
+                    const name = student.name ? student.name.toLowerCase() : '';
+                    const id = student.id ? student.id.toLowerCase() : '';
+                    const room = student.room ? student.room.toLowerCase() : '';
+                    const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+                    const studentClass = student.class ? student.class.toLowerCase() : '';
+                    const section = student.section ? student.section.toLowerCase() : '';
+                    
+                    return name.includes(searchQueryRankings) || 
+                           id.includes(searchQueryRankings) || 
+                           room.includes(searchQueryRankings) || 
+                           floor.includes(searchQueryRankings) ||
+                           studentClass.includes(searchQueryRankings) ||
+                           section.includes(searchQueryRankings);
+                });
+            }
             
-            let sortedStudents = [...students].sort((a, b) => b.points - a.points);
+            let sortedStudents = studentsToDisplay.sort((a, b) => b.points - a.points);
 
             // Assign grades based on ranking
             sortedStudents.forEach((student, index) => {
                 if (index < 10) student.assignedGrade = 'A+';
                 else if (index < 40) student.assignedGrade = 'A'
-                                else if (index < 100) student.assignedGrade = 'B';
+                else if (index < 100) student.assignedGrade = 'B';
                 else if (index < 150) student.assignedGrade = 'C';
                 else student.assignedGrade = 'D';
             });
 
-            // Apply filters
+            // Apply grade filter
             if (gradeFilter !== 'all') {
                 sortedStudents = sortedStudents.filter(s => s.assignedGrade === gradeFilter);
             }
             
+            // Apply floor filter
             if (floorFilter !== 'all') {
                 sortedStudents = sortedStudents.filter(s => s.floor === floorFilter);
             }
 
             rankingsTable.innerHTML = '';
             
+            if (sortedStudents.length === 0) {
+                rankingsTable.innerHTML = '<tr><td colspan="10" class="text-center">No students found matching your criteria.</td></tr>';
+                return;
+            }
+
             sortedStudents.forEach((student, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1425,8 +1469,8 @@ function loadStudentsFromFirebase() {
                             value="${student.remark || ''}" 
                             onchange="updateRemark('${student.id}', this.value)">
                     </td>
-                    <td>${student.class}</td>
-                    <td>${student.section}</td>
+                    <td>${student.class || ''}</td>
+                    <td>${student.section || ''}</td>
                 `;
                 rankingsTable.appendChild(row);
             });
@@ -1444,12 +1488,29 @@ function loadStudentsFromFirebase() {
             }
         }
 
-        // Refresh responses table
-        function refreshResponses() {
+        // Filter and refresh responses table
+        function filterResponses() {
             const responseTable = document.getElementById('responseTable');
+            const searchQueryHistory = document.getElementById('searchQueryHistory').value.toLowerCase().trim();
+            
+            let filteredHistory = [...responseHistory];
+
+            if (searchQueryHistory) {
+                filteredHistory = filteredHistory.filter(entry => {
+                    const name = entry.name ? entry.name.toLowerCase() : '';
+                    const studentId = entry.studentId ? entry.studentId.toLowerCase() : '';
+                    return name.includes(searchQueryHistory) || studentId.includes(searchQueryHistory);
+                });
+            }
+
             responseTable.innerHTML = '';
             
-            responseHistory.forEach(entry => {
+            if (filteredHistory.length === 0) {
+                responseTable.innerHTML = '<tr><td colspan="6" class="text-center">No history records found matching your search.</td></tr>';
+                return;
+            }
+
+            filteredHistory.forEach(entry => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${entry.date}</td>
@@ -1465,11 +1526,16 @@ function loadStudentsFromFirebase() {
             });
         }
 
+        // Override original refreshResponses to call filterResponses
+        function refreshResponses() {
+            filterResponses(); // Call filterResponses to apply search filter
+        }
+
         // Export to Excel
         function exportToExcel() {
             const wb = XLSX.utils.book_new();
             const wsData = [
-                ['Rank', 'Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark'],
+                ['Rank', 'Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark', 'Class', 'Section'],
                 ...students
                     .sort((a, b) => b.points - a.points)
                     .map((student, index) => [
@@ -1480,7 +1546,9 @@ function loadStudentsFromFirebase() {
                         student.floor,
                         student.points,
                         student.assignedGrade || '',
-                        student.remark || ''
+                        student.remark || '',
+                        student.class || '', // Added to export
+                        student.section || '' // Added to export
                     ])
             ];
             
