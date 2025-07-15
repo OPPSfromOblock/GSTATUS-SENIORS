@@ -1423,8 +1423,8 @@ function loadStudentsFromFirebase() {
             // Assign grades based on ranking
             sortedStudents.forEach((student, index) => {
                 if (index < 10) student.assignedGrade = 'A+';
-                else if (index < 40) student.assignedGrade = 'A'
-                else if (index < 100) student.assignedGrade = 'B';
+                else if (index < 50) student.assignedGrade = 'A'
+                else if (index < 80) student.assignedGrade = 'B';
                 else if (index < 150) student.assignedGrade = 'C';
                 else student.assignedGrade = 'D';
             });
