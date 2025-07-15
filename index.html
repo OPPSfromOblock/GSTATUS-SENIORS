@@ -1390,91 +1390,91 @@ function loadStudentsFromFirebase() {
             });
         }
 
-        // Refresh rankings table
         function refreshRankings() {
-            const rankingsTable = document.getElementById('rankingsTable');
-            const gradeFilter = document.getElementById('gradeFilter').value;
-            const floorFilter = document.getElementById('floorFilter').value;
-            const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
+    const rankingsTable = document.getElementById('rankingsTable');
+    const gradeFilter = document.getElementById('gradeFilter').value;
+    const floorFilter = document.getElementById('floorFilter').value;
+    const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
 
-            let studentsToDisplay = [...students];
+    // First, sort all students by points to assign grades properly
+    let allStudentsSorted = [...students].sort((a, b) => b.points - a.points);
 
-            // Apply search filter first
-            if (searchQueryRankings) {
-                studentsToDisplay = studentsToDisplay.filter(student => {
-                    const name = student.name ? student.name.toLowerCase() : '';
-                    const id = student.id ? student.id.toLowerCase() : '';
-                    const room = student.room ? student.room.toLowerCase() : '';
-                    const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-                    const studentClass = student.class ? student.class.toLowerCase() : '';
-                    const section = student.section ? student.section.toLowerCase() : '';
-                    
-                    return name.includes(searchQueryRankings) || 
-                           id.includes(searchQueryRankings) || 
-                           room.includes(searchQueryRankings) || 
-                           floor.includes(searchQueryRankings) ||
-                           studentClass.includes(searchQueryRankings) ||
-                           section.includes(searchQueryRankings);
-                });
-            }
+    // Assign grades based on ranking across ALL students
+    allStudentsSorted.forEach((student, index) => {
+        if (index < 10) student.assignedGrade = 'A+';
+        else if (index < 50) student.assignedGrade = 'A';
+        else if (index < 80) student.assignedGrade = 'B';
+        else if (index < 150) student.assignedGrade = 'C';
+        else student.assignedGrade = 'D';
+    });
+
+    // Now apply filters to the graded students
+    let studentsToDisplay = [...allStudentsSorted];
+
+    // Apply search filter
+    if (searchQueryRankings) {
+        studentsToDisplay = studentsToDisplay.filter(student => {
+            const name = student.name ? student.name.toLowerCase() : '';
+            const id = student.id ? student.id.toLowerCase() : '';
+            const room = student.room ? student.room.toLowerCase() : '';
+            const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+            const studentClass = student.class ? student.class.toLowerCase() : '';
+            const section = student.section ? student.section.toLowerCase() : '';
             
-            let sortedStudents = studentsToDisplay.sort((a, b) => b.points - a.points);
+            return name.includes(searchQueryRankings) || 
+                   id.includes(searchQueryRankings) || 
+                   room.includes(searchQueryRankings) || 
+                   floor.includes(searchQueryRankings) ||
+                   studentClass.includes(searchQueryRankings) ||
+                   section.includes(searchQueryRankings);
+        });
+    }
+    
+    // Apply grade filter
+    if (gradeFilter !== 'all') {
+        studentsToDisplay = studentsToDisplay.filter(s => s.assignedGrade === gradeFilter);
+    }
+    
+    // Apply floor filter
+    if (floorFilter !== 'all') {
+        studentsToDisplay = studentsToDisplay.filter(s => s.floor === floorFilter);
+    }
 
-            // Assign grades based on ranking
-            sortedStudents.forEach((student, index) => {
-                if (index < 10) student.assignedGrade = 'A+';
-                else if (index < 50) student.assignedGrade = 'A'
-                else if (index < 80) student.assignedGrade = 'B';
-                else if (index < 150) student.assignedGrade = 'C';
-                else student.assignedGrade = 'D';
-            });
+    rankingsTable.innerHTML = '';
+    
+    if (studentsToDisplay.length === 0) {
+        rankingsTable.innerHTML = '<tr><td colspan="10" class="text-center">No students found matching your criteria.</td></tr>';
+        return;
+    }
 
-            // Apply grade filter
-            if (gradeFilter !== 'all') {
-                sortedStudents = sortedStudents.filter(s => s.assignedGrade === gradeFilter);
-            }
-            
-            // Apply floor filter
-            if (floorFilter !== 'all') {
-                sortedStudents = sortedStudents.filter(s => s.floor === floorFilter);
-            }
-
-            rankingsTable.innerHTML = '';
-            
-            if (sortedStudents.length === 0) {
-                rankingsTable.innerHTML = '<tr><td colspan="10" class="text-center">No students found matching your criteria.</td></tr>';
-                return;
-            }
-
-            sortedStudents.forEach((student, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${student.id}</td>
-                    <td>${student.name}</td>
-                    <td>${student.room}</td>
-                    <td>${student.floor}</td>
-                   
-                  <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
-                        ${student.points > 0 ? '+' : ''}${student.points}
-                    </td>
-                   
-                    <td>
-                        <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
-                            ${student.assignedGrade}
-                        </span>
-                    </td>
-                    <td>
-                        <input type="text" class="remark-input" 
-                            value="${student.remark || ''}" 
-                            onchange="updateRemark('${student.id}', this.value)">
-                    </td>
-                    <td>${student.class || ''}</td>
-                    <td>${student.section || ''}</td>
-                `;
-                rankingsTable.appendChild(row);
-            });
-        }
+    // Now display the filtered students with their original rankings
+    studentsToDisplay.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${allStudentsSorted.findIndex(s => s.id === student.id) + 1}</td>
+            <td>${student.id}</td>
+            <td>${student.name}</td>
+            <td>${student.room}</td>
+            <td>${student.floor}</td>
+            <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
+                ${student.points > 0 ? '+' : ''}${student.points}
+            </td>
+            <td>
+                <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
+                    ${student.assignedGrade}
+                </span>
+            </td>
+            <td>
+                <input type="text" class="remark-input" 
+                    value="${student.remark || ''}" 
+                    onchange="updateRemark('${student.id}', this.value)">
+            </td>
+            <td>${student.class || ''}</td>
+            <td>${student.section || ''}</td>
+        `;
+        rankingsTable.appendChild(row);
+    });
+}
 
         // Get badge class based on grade
         function getGradeBadgeClass(grade) {
