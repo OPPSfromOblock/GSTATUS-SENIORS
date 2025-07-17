@@ -1,17 +1,18 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gurukul Points Management - GSTATUS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS library for XLSX parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gurukul Points Management - GSTATUS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- SheetJS library for XLSX parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<style>
         :root {
             --primary-color: #3498db;
             --secondary-color: #2c3e50;
@@ -299,298 +300,307 @@
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
-
-    <div class="container">
-        <h1 class="mb-4">
-            <i class="fas fa-star"></i> Gurukul Points Management System <i class="fas fa-star"></i>
-        </h1>
-
-        <!-- Tabs Navigation -->
-        <ul class="nav nav-tabs" id="gurukulTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="home-tab" data-bs-toggle="tab" href="#home" role="tab">
-                    <i class="fas fa-home"></i> Home
+<div class="loading-overlay" id="loadingOverlay">
+<div class="spinner"></div>
+</div>
+<div class="container">
+<h1 class="mb-4">
+<i class="fas fa-star"></i> Gurukul Points Management System <i class="fas fa-star"></i>
+</h1>
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs" id="gurukulTabs" role="tablist">
+<li class="nav-item" role="presentation">
+<a class="nav-link active" data-bs-toggle="tab" href="#home" id="home-tab" role="tab">
+<i class="fas fa-home"></i> Home
                 </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="administration-tab" data-bs-toggle="tab" href="#administration" role="tab">
-                    <i class="fas fa-user-edit"></i> Administration
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#administration" id="administration-tab" role="tab">
+<i class="fas fa-user-edit"></i> Administration
                 </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="rankings-tab" data-bs-toggle="tab" href="#rankings" role="tab">
-                    <i class="fas fa-trophy"></i> Rankings
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#rankings" id="rankings-tab" role="tab">
+<i class="fas fa-trophy"></i> Rankings
                 </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="responses-tab" data-bs-toggle="tab" href="#responses" role="tab">
-                    <i class="fas fa-history"></i> History
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#responses" id="responses-tab" role="tab">
+<i class="fas fa-history"></i> History
                 </a>
-            </li>
-        </ul>
-
-        <!-- Tab Content -->
-        <div class="tab-content">
-            <!-- Home Tab -->
-            <div class="tab-pane fade show active" id="home" role="tabpanel">
-                <div class="greeting">
-                    <i class="fas fa-hands-praying"></i> Jay Swaminarayan <i class="fas fa-hands-praying"></i>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="system-status">
-                            <i class="fas fa-check-circle"></i>
-                            <div>
-                                <h4>System Status</h4>
-                                <p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
-                                <p class="mb-0"><strong>Version:</strong> 2.0</p>
-                                <p class="mb-0"><strong>Last Updated:</strong> Today</p>
-                                <p class="mb-0"><strong>Database:</strong> <span id="dbStatus" class="badge bg-success">Connected</span></p>
+</li>
+</ul>
+<!-- Tab Content -->
+<div class="tab-content">
+<!-- Home Tab -->
+<div class="tab-pane fade show active" id="home" role="tabpanel">
+<div class="greeting">
+<i class="fas fa-hands-praying"></i> Jay Swaminarayan <i class="fas fa-hands-praying"></i>
+</div>
+<div class="row">
+<div class="col-md-6">
+<div class="system-status">
+<i class="fas fa-check-circle"></i>
+<div>
+<h4>System Status</h4>
+<p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+<p class="mb-0"><strong>Version:</strong> 2.0</p>
+<p class="mb-0"><strong>Last Updated:</strong> Today</p>
+<p class="mb-0"><strong>Database:</strong> <span class="badge bg-success" id="dbStatus">Connected</span></p>
+</div>
+</div>
+</div>
+<div class="col-md-6">
+<div class="card">
+<div class="card-header">
+<i class="fas fa-info-circle"></i> Quick Stats
                             </div>
+<div class="card-body">
+<div class="row">
+<div class="col-6">
+<div class="text-center mb-3">
+<h3 class="text-primary" id="totalStudents">0</h3>
+<p class="mb-0">Total Students</p>
+</div>
+</div>
+<div class="col-6">
+<div class="text-center mb-3">
+<h3 class="text-success" id="activeStudents">0</h3>
+<p class="mb-0">Active Students</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card mt-4">
+<div class="card-header">
+<i class="fas fa-bullhorn"></i> Announcements
+                    </div>
+<div class="card-body">
+<div class="alert alert-info">
+<i class="fas fa-info-circle"></i> Next room cleaning competition will be held on Friday.
                         </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="fas fa-info-circle"></i> Quick Stats
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="text-center mb-3">
-                                            <h3 class="text-primary" id="totalStudents">0</h3>
-                                            <p class="mb-0">Total Students</p>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="text-center mb-3">
-                                            <h3 class="text-success" id="activeStudents">0</h3>
-                                            <p class="mb-0">Active Students</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+<div class="alert alert-warning">
+<i class="fas fa-exclamation-triangle"></i> Please ensure all students follow the dress code.
                         </div>
+</div>
+</div>
+</div>
+<!-- Administration Tab -->
+<div class="tab-pane fade" id="administration" role="tabpanel">
+<h3><i class="fas fa-user-edit"></i> Student Management</h3>
+<div class="card mb-4">
+<div class="card-header">
+<i class="fas fa-search"></i> Search Students
                     </div>
-                </div>
-                
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <i class="fas fa-bullhorn"></i> Announcements
+<div class="card-body">
+<div class="search-container">
+<input class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+<i class="fas fa-search search-icon"></i>
+</div>
+<div class="mb-3 row" id="searchResultsPoints"></div>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<i class="fas fa-plus-circle"></i> Update Points
                     </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> Next room cleaning competition will be held on Friday.
-                        </div>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> Please ensure all students follow the dress code.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Administration Tab -->
-            <div class="tab-pane fade" id="administration" role="tabpanel">
-                <h3><i class="fas fa-user-edit"></i> Student Management</h3>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-search"></i> Search Students
-                    </div>
-                    <div class="card-body">
-                        <div class="search-container">
-                            <input type="text" class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, room, class, or section...">
-                            <i class="fas fa-search search-icon"></i>
-                        </div>
-                        <div id="searchResultsPoints" class="mb-3 row"></div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-plus-circle"></i> Update Points
-                    </div>
-                    <div class="card-body">
-                        <form id="pointsForm">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="action-section">
-                                        <h4><i class="fas fa-thumbs-up text-success"></i> Positive Actions</h4>
-                                        <select name="positiveAction" class="form-select mb-3" id="positiveAction">
-                                            <option value="">Select a positive action</option>
-                                            <option value="5">Participation in competition (+5)</option>
-                                            <option value="5">Helping others (+5)</option>
-                                            <option value="10">Room cleaning competition 1st (+10)</option>
-                                            <option value="7">Room cleaning competition 2nd (+7)</option>
-                                            <option value="5">Room cleaning competition 3rd (+5)</option>
-                                            <option value="15">Winners in competition (+15)</option>
-                                            <option value="10">Good discipline (+10)</option>
-                                            <option value="exam">According to percentage (exam)</option>
-                                        </select>
-                                        <div class="exam-input" id="examPercentage">
-                                            <label for="percentageInput" class="form-label">Enter Exam Percentage</label>
-                                            <input type="number" class="form-control" id="percentageInput" placeholder="e.g., 85" min="0" max="100">
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="action-section">
-                                        <h4><i class="fas fa-thumbs-down text-danger"></i> Negative Actions</h4>
-                                        <select name="negativeAction" class="form-select mb-3">
-                                            <option value="">Select a negative action</option>
-                                            <option value="-5">No Dress code (-5)</option>
-                                            <option value="-3">Incomplete homework (-3)</option>
-                                            <option value="-3">Late from playing bell (-3)</option>
-                                            <option value="-10">Absent to school (-10)</option>
-                                            <option value="-7">No room cleaning (-7)</option>
-                                            <option value="-10">Late for prayer (-10)</option>
-                                            <option value="-10">Fighting (-10)</option>
-                                            <option value="-5">Indiscipline in study hour (-5)</option>
-                                            <option value="-5">Roaming outside (-5)</option>
-                                            <option value="-10">Not speaking in English (-10)</option>
-                                            <option value="-10">Late for pooja (-10)</option>
-                                            <option value="-3">Talking in studying (-3)</option>
-                                            <option value="-10">No discipline (-10)</option>
-                                            <option value="-5">Speaking Bad words (-5)</option>
-                                            <option value="-10">Disobeying in-charges (-10)</option>
-                                            <option value="-20">Damaging gurukul properties (-20)</option>
-                                            <option value="-3">No pooja equipment (-3)</option>
-                                            <option value="-3">No cupboard cleaning (-3)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="text-center mt-3">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save"></i> Update Points
+<div class="card-body">
+<form id="pointsForm">
+<div class="row">
+<div class="col-md-6">
+<div class="action-section">
+<h4><i class="fas fa-thumbs-up text-success"></i> Positive Actions</h4>
+<select class="form-select mb-3" id="positiveAction" name="positiveAction">
+<option value="">Select a positive action</option>
+<option value="5">Participation in competition (+5)</option>
+<option value="5">Helping others (+5)</option>
+<option value="10">Room cleaning competition 1st (+10)</option>
+<option value="7">Room cleaning competition 2nd (+7)</option>
+<option value="5">Room cleaning competition 3rd (+5)</option>
+<option value="15">Winners in competition (+15)</option>
+<option value="10">Good discipline (+10)</option>
+<option value="exam">According to percentage (exam)</option>
+</select>
+<div class="exam-input" id="examPercentage">
+<label class="form-label" for="percentageInput">Enter Exam Percentage</label>
+<input class="form-control" id="percentageInput" max="100" min="0" placeholder="e.g., 85" type="number"/>
+</div>
+</div>
+</div>
+<div class="col-md-6">
+<div class="action-section">
+<h4><i class="fas fa-thumbs-down text-danger"></i> Negative Actions</h4>
+<select class="form-select mb-3" name="negativeAction">
+<option value="">Select a negative action</option>
+<option value="-5">No Dress code (-5)</option>
+<option value="-3">Incomplete homework (-3)</option>
+<option value="-3">Late from playing bell (-3)</option>
+<option value="-10">Absent to school (-10)</option>
+<option value="-7">No room cleaning (-7)</option>
+<option value="-10">Late for prayer (-10)</option>
+<option value="-10">Fighting (-10)</option>
+<option value="-5">Indiscipline in study hour (-5)</option>
+<option value="-5">Roaming outside (-5)</option>
+<option value="-10">Not speaking in English (-10)</option>
+<option value="-10">Late for pooja (-10)</option>
+<option value="-3">Talking in studying (-3)</option>
+<option value="-10">No discipline (-10)</option>
+<option value="-5">Speaking Bad words (-5)</option>
+<option value="-10">Disobeying in-charges (-10)</option>
+<option value="-20">Damaging gurukul properties (-20)</option>
+<option value="-3">No pooja equipment (-3)</option>
+<option value="-3">No cupboard cleaning (-3)</option>
+</select>
+</div>
+</div>
+</div>
+<div class="text-center mt-3">
+<button class="btn btn-primary btn-lg" type="submit">
+<i class="fas fa-save"></i> Update Points
                                 </button>
-                            </div>
-                        </form>
-                        <div class="update-message alert alert-success mt-3" id="updateMessage"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Rankings Tab -->
-            <div class="tab-pane fade" id="rankings" role="tabpanel">
-                <h3><i class="fas fa-trophy"></i> Student Rankings</h3>
-                
-                <div class="filter-section">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="search-container">
-                                <input type="text" class="form-control" id="searchQueryRankings" placeholder="Search students...">
-                                <i class="fas fa-search search-icon"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="gradeFilter" class="form-label">Filter by Grade</label>
-                            <select class="form-select" id="gradeFilter">
-                                <option value="all">All Grades</option>
-                                <option value="A+">A+</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="floorFilter" class="form-label">Filter by Floor</label>
-                            <select class="form-select" id="floorFilter">
-                                <option value="all">All Floors</option>
-                                <option value="1">1st Floor</option>
-                                <option value="2">2nd Floor</option>
-                                <option value="3">3rd Floor</option>
-                                <option value="4">4th Floor</option>
-                                <option value="5">5th Floor</option>
-                                <option value="6">6th Floor</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="text-end mt-3">
-                        <button class="btn btn-primary" id="refreshRankings">
-                            <i class="fas fa-sync-alt"></i> Refresh Rankings
+</div>
+</form>
+<div class="update-message alert alert-success mt-3" id="updateMessage"></div>
+</div>
+</div>
+</div>
+<!-- Rankings Tab -->
+<div class="tab-pane fade" id="rankings" role="tabpanel">
+<h3><i class="fas fa-trophy"></i> Student Rankings</h3>
+<div class="filter-section">
+<div class="row">
+<div class="col-md-4">
+<div class="search-container">
+<input class="form-control" id="searchQueryRankings" placeholder="Search students..." type="text"/>
+<i class="fas fa-search search-icon"></i>
+</div>
+</div>
+<div class="col-md-4">
+<label class="form-label" for="gradeFilter">Filter by Grade</label>
+<select class="form-select" id="gradeFilter">
+<option value="all">All Grades</option>
+<option value="1f-A+">1st Floor A+</option>
+<option value="1f-A">1st Floor A</option>
+<option value="2f-A+">2nd Floor A+</option>
+<option value="2f-A">2nd Floor A</option>
+<option value="3f-A+">3rd Floor A+</option>
+<option value="3f-A">3rd Floor A</option>
+<option value="4f-A+">4th Floor A+</option>
+<option value="4f-A">4th Floor A</option>
+<option value="5f-A+">5th Floor A+</option>
+<option value="5f-A">5th Floor A</option>
+<option value="6f-A+">6th Floor A+</option>
+<option value="6f-A">6th Floor A</option>
+<option value="E">E-Rank</option>
+</select>
+</div>
+<div class="col-md-4">
+<label class="form-label" for="floorFilter">Filter by Floor</label>
+<select class="form-select" id="floorFilter">
+<option value="all">All Floors</option>
+<option value="1">1st Floor</option>
+<option value="2">2nd Floor</option>
+<option value="3">3rd Floor</option>
+<option value="4">4th Floor</option>
+<option value="5">5th Floor</option>
+<option value="6">6th Floor</option>
+</select>
+</div>
+</div>
+<div class="text-end mt-3">
+<button class="btn btn-primary" id="refreshRankings">
+<i class="fas fa-sync-alt"></i> Refresh Rankings
                         </button>
-                        <button class="btn btn-success ms-2" id="exportRankings">
-                            <i class="fas fa-file-excel"></i> Export to Excel
+<button class="btn btn-success ms-2" id="exportRankings">
+<i class="fas fa-file-excel"></i> Export to Excel
                         </button>
-                    </div>
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Rank</th>
-                                <th>Student ID</th>
-                                <th>Name</th>
-                                <th>Room</th>
-                                <th>Floor</th>
-                                <th>Points</th>
-                                <th>Grade</th>
-                                <th>Remark</th>
-                                <th>Class</th>
-                                <th>Section</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rankingsTable"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Responses Tab -->
-            <div class="tab-pane fade" id="responses" role="tabpanel">
-                <h3><i class="fas fa-history"></i> Points History</h3>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <i class="fas fa-list"></i> Recent Activity
+</div>
+</div>
+<div class="table-responsive">
+<table class="table table-hover table-bordered">
+<thead class="table-dark">
+<tr>
+<th>Rank</th>
+<th>Student ID</th>
+<th>Name</th>
+<th>Room</th>
+<th>Floor</th>
+<th>Points</th>
+<th>Grade</th>
+<th>Remark</th>
+<th>Class</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody id="rankingsTable"></tbody>
+</table>
+</div>
+<div class="table-responsive">
+<h4 class="mt-5"><i class="fas fa-exclamation-circle text-danger"></i> E - Rankings (Most Negative Points)</h4>
+<div class="table-responsive">
+<table class="table table-hover table-bordered">
+<thead class="table-danger">
+<tr>
+<th>E-Rank</th>
+<th>Student ID</th>
+<th>Name</th>
+<th>Room</th>
+<th>Floor</th>
+<th>Points</th>
+<th>Class</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody id="eRankingsTable"></tbody>
+</table>
+</div>
+</div></div>
+<!-- Responses Tab -->
+<div class="tab-pane fade" id="responses" role="tabpanel">
+<h3><i class="fas fa-history"></i> Points History</h3>
+<div class="card mb-4">
+<div class="card-header">
+<div class="row">
+<div class="col-md-6">
+<i class="fas fa-list"></i> Recent Activity
                             </div>
-                            <div class="col-md-6 text-end">
-                                <button class="btn btn-sm btn-danger" id="clearHistory">
-                                    <i class="fas fa-trash"></i> Clear History
+<div class="col-md-6 text-end">
+<button class="btn btn-sm btn-danger" id="clearHistory">
+<i class="fas fa-trash"></i> Clear History
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="search-container">
-                            <input type="text" class="form-control" id="searchQueryHistory" placeholder="Search history by student name or ID...">
-                            <i class="fas fa-search search-icon"></i>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-secondary">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                        <th>Student ID</th>
-                                        <th>Name</th>
-                                        <th>Action</th>
-                                        <th>Points Changed</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="responseTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+</div>
+</div>
+</div>
+<div class="card-body">
+<div class="search-container">
+<input class="form-control" id="searchQueryHistory" placeholder="Search history by student name or ID..." type="text"/>
+<i class="fas fa-search search-icon"></i>
+</div>
+<div class="table-responsive">
+<table class="table table-hover">
+<thead class="table-secondary">
+<tr>
+<th>Date</th>
+<th>Time</th>
+<th>Student ID</th>
+<th>Name</th>
+<th>Action</th>
+<th>Points Changed</th>
+</tr>
+</thead>
+<tbody id="responseTable"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
         // Default student data - ADD CLASS AND SECTION HERE FOR EACH STUDENT
         const allStudents = [
             { id: "AF5582", room: "301/1", name: "PATLORI VAISHWIK REDDY", points: 0, floor: "3", active: true, class: "X", section: "A" },
@@ -797,7 +807,7 @@
             { id: "AG1507", room: "314/14", name: "VIRAT PARIHAR", points: 0, floor: "3", active: true, class: "IX", section: "C" },
             { id: "AD7165", room: "314/15", name: "POTLOLLA SURYA VENKAT RAM NARAYAN REDDY", points: 0, floor: "3", active: true, class: "X", section: "B" },
             { id: "AF2614", room: "314/16", name: "NARRA MAHESH KARTHIK", points: 0, floor: "3", active: true, class: "IX", section: "A" },
-            { id: "AF3116", room: "401/7", name: "MALLAVALLI BALAJI SRI SAI", points: 0, floor: "4", active: true, class: "X", section: "C" },
+            { id: "AF3116", room: "401/7", name: "MALLAVALLI BALAJI SRI SAI", points: 1000, floor: "4", active: true, class: "X", section: "C" }, // MODIFIED: Points set to 1000 for demonstration
             { id: "AF9616", room: "401/8", name: "KOMAKULA VARSHITH", points: 0, floor: "4", active: true, class: "IX", section: "B" },
             { id: "AD8017", room: "401/9", name: "ATHARV MADHAV ECHWAD", points: 0, floor: "4", active: true, class: "X", section: "A" },
             { id: "AD8728", room: "402/1", name: "OMKAR KEDAR", points: 0, floor: "4", active: true, class: "IX", section: "C" },
@@ -990,7 +1000,7 @@
        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 // Verify your config matches what's in Firebase console
 
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyBiTPLulk06W8vtKMC6jM8dJpjBcD_Pp84",
   authDomain: "g-status-of-abhinav.firebaseapp.com",
   databaseURL: "https://g-status-of-abhinav-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -1391,28 +1401,57 @@ function loadStudentsFromFirebase() {
         }
 function refreshRankings() {
     const rankingsTable = document.getElementById('rankingsTable');
+    const eRankingsTable = document.getElementById('eRankingsTable'); // Get E-Rankings table
     const gradeFilter = document.getElementById('gradeFilter').value;
     const floorFilter = document.getElementById('floorFilter').value;
     const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
 
-    // First, sort all students by points to assign grades properly
-    let allStudentsSorted = [...students].sort((a, b) => b.points - a.points);
+    // Create a copy of students to work with
+    let studentsToProcess = [...students];
 
-    // Assign grades based on ranking across ALL students
-    allStudentsSorted.forEach((student, index) => {
-        if (index < 10) student.assignedGrade = 'A+';
-        else if (index < 50) student.assignedGrade = 'A';
-        else if (index < 80) student.assignedGrade = 'B';
-        else if (index < 150) student.assignedGrade = 'C';
-        else student.assignedGrade = 'D';
+    // Assign 'E' grade to students with negative points first
+    studentsToProcess.forEach(student => {
+        if (student.points < 0) {
+            student.assignedGrade = 'E';
+        } else {
+            // Reset assignedGrade for non-negative students to re-evaluate
+            student.assignedGrade = '';
+        }
     });
 
-    // Now apply filters to the graded students
-    let studentsToDisplay = [...allStudentsSorted];
+    // Filter out students with negative points for the main rankings
+    let positiveStudents = studentsToProcess.filter(s => s.points >= 0);
+    let negativeStudents = studentsToProcess.filter(s => s.points < 0);
 
-    // Apply search filter
+    // Sort positive students for grade assignment (only if not already 'E')
+    positiveStudents.sort((a, b) => b.points - a.points);
+
+    // Assign grades for positive students based on ranking per floor
+    const floors = ['1', '2', '3', '4', '5', '6'];
+    floors.forEach(floor => {
+        const floorPositiveStudents = positiveStudents.filter(s => s.floor === floor);
+        floorPositiveStudents.forEach((student, index) => {
+            if (student.assignedGrade !== 'E') { // Only assign if not already 'E'
+                if (index < Math.floor(floorPositiveStudents.length * 0.1)) {
+                    student.assignedGrade = `${floor}f-A+`;
+                } else if (index < Math.floor(floorPositiveStudents.length * 0.3)) {
+                    student.assignedGrade = `${floor}f-A`;
+                } else if (index < Math.floor(floorPositiveStudents.length * 0.6)) {
+                    student.assignedGrade = `${floor}f-B`;
+                } else if (index < Math.floor(floorPositiveStudents.length * 0.8)) {
+                    student.assignedGrade = `${floor}f-C`;
+                } else {
+                    student.assignedGrade = `${floor}f-D`;
+                }
+            }
+        });
+    });
+
+    // Apply filters to the positive students for the main rankings table
+    let studentsToDisplayMain = [...positiveStudents];
+    
     if (searchQueryRankings) {
-        studentsToDisplay = studentsToDisplay.filter(student => {
+        studentsToDisplayMain = studentsToDisplayMain.filter(student => {
             const name = student.name ? student.name.toLowerCase() : '';
             const id = student.id ? student.id.toLowerCase() : '';
             const room = student.room ? student.room.toLowerCase() : '';
@@ -1429,62 +1468,82 @@ function refreshRankings() {
         });
     }
     
-    // Apply grade filter
     if (gradeFilter !== 'all') {
-        studentsToDisplay = studentsToDisplay.filter(s => s.assignedGrade === gradeFilter);
+        studentsToDisplayMain = studentsToDisplayMain.filter(s => s.assignedGrade === gradeFilter);
     }
     
-    // Apply floor filter
     if (floorFilter !== 'all') {
-        studentsToDisplay = studentsToDisplay.filter(s => s.floor === floorFilter);
+        studentsToDisplayMain = studentsToDisplayMain.filter(s => s.floor === floorFilter);
     }
 
+    // Sort negative students for E-Rankings (most negative first)
+    negativeStudents.sort((a, b) => a.points - b.points);
+
+    // Render Main Rankings Table
     rankingsTable.innerHTML = '';
-    
-    if (studentsToDisplay.length === 0) {
+    if (studentsToDisplayMain.length === 0) {
         rankingsTable.innerHTML = '<tr><td colspan="10" class="text-center">No students found matching your criteria.</td></tr>';
-        return;
+    } else {
+        studentsToDisplayMain.forEach((student, index) => {
+            const row = document.createElement('tr');
+            const displayRank = index + 1;
+            row.innerHTML = `
+                <td>${displayRank}</td>
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.room}</td>
+                <td>${student.floor}</td>
+                <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
+                    ${student.points > 0 ? '+' : ''}${student.points}
+                </td>
+                <td>
+                    <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
+                        ${student.assignedGrade}
+                    </span>
+                </td>
+                <td>
+                    <input type="text" class="remark-input" 
+                        value="${student.remark || ''}" 
+                        onchange="updateRemark('${student.id}', this.value)">
+                </td>
+                <td>${student.class || ''}</td>
+                <td>${student.section || ''}</td>
+            `;
+            rankingsTable.appendChild(row);
+        });
     }
 
-    // Now display the filtered students with their original rankings
-    studentsToDisplay.forEach((student, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${allStudentsSorted.findIndex(s => s.id === student.id) + 1}</td>
-            <td>${student.id}</td>
-            <td>${student.name}</td>
-            <td>${student.room}</td>
-            <td>${student.floor}</td>
-            <td class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
-                ${student.points > 0 ? '+' : ''}${student.points}
-            </td>
-            <td>
-                <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
-                    ${student.assignedGrade}
-                </span>
-            </td>
-            <td>
-                <input type="text" class="remark-input" 
-                    value="${student.remark || ''}" 
-                    onchange="updateRemark('${student.id}', this.value)">
-            </td>
-            <td>${student.class || ''}</td>
-            <td>${student.section || ''}</td>
-        `;
-        rankingsTable.appendChild(row);
-    });
+    // Render E-Rankings Table
+    eRankingsTable.innerHTML = '';
+    if (negativeStudents.length === 0) {
+        eRankingsTable.innerHTML = '<tr><td colspan="8" class="text-center">No students with negative points.</td></tr>';
+    } else {
+        negativeStudents.forEach((student, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.room}</td>
+                <td>${student.floor}</td>
+                <td class="text-danger fw-bold">${student.points}</td>
+                <td>${student.class || ''}</td>
+                <td>${student.section || ''}</td>
+            `;
+            eRankingsTable.appendChild(row);
+        });
+    }
 }
 
         // Get badge class based on grade
         function getGradeBadgeClass(grade) {
-            switch(grade) {
-                case 'A+': return 'bg-success';
-                case 'A': return 'bg-primary';
-                case 'B': return 'bg-info';
-                case 'C': return 'bg-warning';
-                case 'D': return 'bg-danger';
-                default: return 'bg-secondary';
-            }
+            if (grade.includes('A+')) return 'bg-success';
+            if (grade.includes('A')) return 'bg-primary';
+            if (grade.includes('B')) return 'bg-info';
+            if (grade.includes('C')) return 'bg-warning';
+            if (grade.includes('D')) return 'bg-secondary';
+            if (grade.includes('E')) return 'bg-danger'; // Added for E-Rank
+            return 'bg-secondary';
         }
 
         // Filter and refresh responses table
@@ -1537,64 +1596,107 @@ function refreshRankings() {
                 ['Rank', 'Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark', 'Class', 'Section'],
                 ...students
                     .sort((a, b) => b.points - a.points)
-                    .map((student, index) => [
-                        index + 1,
-                        student.id,
-                        student.name,
-                        student.room,
-                        student.floor,
-                        student.points,
-                        student.assignedGrade || '',
-                        student.remark || '',
-                        student.class || '', // Added to export
-                        student.section || '' // Added to export
-                    ])
+                    .map((student, index) => {
+                        // Re-calculate assignedGrade for export based on the current sorted list
+                        let assignedGradeForExport;
+                        if (student.points < 0) {
+                            assignedGradeForExport = 'E';
+                        } else if (index < 10) {
+                            assignedGradeForExport = 'A+';
+                        } else if (index < 50) {
+                            assignedGradeForExport = 'A';
+                        } else if (index < 80) {
+                            assignedGradeForExport = 'B';
+                        } else if (index < 150) {
+                            assignedGradeForExport = 'C';
+                        } else {
+                            assignedGradeForExport = 'D';
+                        }
+
+                        return [
+                            index + 1,
+                            student.id,
+                            student.name,
+                            student.room,
+                            student.floor,
+                            student.points,
+                            assignedGradeForExport, // Use the re-calculated grade for export
+                            student.remark || '',
+                            student.class || '',
+                            student.section || ''
+                        ];
+                    })
             ];
             
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Student Rankings');
+            XLSX.utils.book_append_sheet(wb, ws, 'Gurukul_Points_Rankings.xlsx');
             XLSX.writeFile(wb, 'Gurukul_Points_Rankings.xlsx');
         }
 
+        // Check user role and modify UI
+        function checkUserRole() {
+          const role = localStorage.getItem("userRole");
+          if (role === "incharge") {
+            // Hide admin-only tabs for incharge
+            document.getElementById("rankings-tab").style.display = "none";
+            document.getElementById("responses-tab").style.display = "none";
+          }
+        }
+
         // Start the application when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        document.addEventListener('DOMContentLoaded', function() {
+          checkUserRole();
+          initializeApp();
+        });
     </script>
-
-    <!-- Simple Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">Admin Login</h5>
-          </div>
-          <div class="modal-body">
-            <form id="loginForm">
-              <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" required>
-              </div>
-              <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Login</button>
-            </form>
-            <div id="loginError" class="mt-2 text-danger" style="display: none;">Invalid credentials.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      const validUsername = "admin";
-      const validPassword = "gurukul123";
+<!-- Simple Login Modal -->
+<div aria-hidden="true" aria-labelledby="loginModalLabel" class="modal fade" id="loginModal" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title" id="loginModalLabel">Admin Login</h5>
+</div>
+<div class="modal-body">
+<form id="loginForm">
+<div class="mb-3">
+<label class="form-label" for="username">Username</label>
+<input class="form-control" id="username" required="" type="text"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="password">Password</label>
+<input class="form-control" id="password" required="" type="password"/>
+</div>
+<div class="mb-3">
+<label class="form-label" for="userType">User Type</label>
+<select class="form-select" id="userType" required>
+  <option value="">Select user type</option>
+  <option value="admin">Admin</option>
+  <option value="incharge">Incharge</option>
+</select>
+</div>
+<button class="btn btn-primary w-100" type="submit">Login</button>
+</form>
+<div class="mt-2 text-danger" id="loginError" style="display: none;">Invalid credentials.</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+      const validUsers = {
+        admin: { password: "gurukul123", role: "admin" },
+        incharge: { password: "gurukul", role: "incharge" }
+      };
 
       document.getElementById("loginForm").addEventListener("submit", function(event) {
         event.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
-        if (username === validUsername && password === validPassword) {
+        const userType = document.getElementById("userType").value;
+        
+        if (userType && validUsers[userType] && 
+            password === validUsers[userType].password) {
           localStorage.setItem("authenticated", "true");
+          localStorage.setItem("userRole", userType);
           location.reload();
         } else {
           document.getElementById("loginError").style.display = "block";
@@ -1607,7 +1709,8 @@ function refreshRankings() {
           loginModal.show();
         }
       };
-    </script>
     
+</script>
+
 </body>
 </html>
