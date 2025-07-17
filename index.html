@@ -1705,7 +1705,10 @@ function refreshRankings() {
 
       window.onload = function () {
         if (!localStorage.getItem("authenticated")) {
-          const loginModal = new bootstrap.Modal(document.getElementById("loginModal"));
+          const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), {
+            backdrop: 'static', // Prevents closing when clicking outside
+            keyboard: false     // Prevents closing with the escape key
+          });
           loginModal.show();
         }
       };
