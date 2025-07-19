@@ -391,6 +391,11 @@
 <i class="fas fa-users-cog"></i> Student Management
                 </a>
 </li>
+<li class="nav-item" role="presentation">
+    <a class="nav-link" data-bs-toggle="tab" href="#individual-data" id="individual-data-tab" role="tab">
+        <i class="fas fa-user"></i> Individual Data
+    </a>
+</li>
 </ul>
 <!-- Tab Content -->
 <div class="tab-content">
@@ -910,6 +915,63 @@
         </div>
     </div>
 </div>
+
+<!-- Individual Data Tab -->
+<div class="tab-pane fade" id="individual-data" role="tabpanel">
+    <h3><i class="fas fa-user"></i> Student Individual Data</h3>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-search"></i> Search Student
+        </div>
+        <div class="card-body">
+            <div class="search-container">
+                <input class="form-control" id="searchQueryIndividualData" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="mb-3 row" id="searchResultsIndividualData"></div>
+        </div>
+    </div>
+
+    <div class="card mt-4" id="individualStudentDetailsCard" style="display: none;">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i> Student Details
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Student ID:</strong> <span id="displayStudentId"></span></p>
+                    <p><strong>Name:</strong> <span id="displayStudentName"></span></p>
+                    <p><strong>Class:</strong> <span id="displayStudentClass"></span></p>
+                    <p><strong>Section:</strong> <span id="displayStudentSection"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Room:</strong> <span id="displayStudentRoom"></span></p>
+                    <p><strong>Floor:</strong> <span id="displayStudentFloor"></span></p>
+                    <p><strong>Current Points:</strong> <span id="displayStudentPoints"></span></p>
+                    <p><strong>Remark:</strong> <span id="displayStudentRemark"></span></p>
+                </div>
+            </div>
+            <h5 class="mt-4">Points History for this Student:</h5>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>Points Changed</th>
+                            <th>Modified By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="individualStudentHistoryTable">
+                        <!-- History will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 </div>
 </div>
@@ -1779,6 +1841,7 @@ function loadStudentsFromFirebase() {
             document.getElementById('searchQueryRankings').addEventListener('input', refreshRankings); // Directly call refreshRankings for rankings search
             document.getElementById('searchQueryHistory').addEventListener('input', filterResponses); // New: History search
             document.getElementById('searchQueryStudentManagement').addEventListener('input', renderStudentManagementTable); // Student Management search
+            handleSearch('searchQueryIndividualData', 'searchResultsIndividualData', 'selectedStudentIndividualData', true); // New: Individual Data search
 
             // Batch Discipline Tab Event Listeners
             document.getElementById('searchQueryBatchDiscipline').addEventListener('input', renderBatchDisciplineTable);
@@ -1853,6 +1916,13 @@ function loadStudentsFromFirebase() {
 
             // NEW: Rank Changer Modal Submission
             document.getElementById('rankChangerForm').addEventListener('submit', submitRankChange);
+
+            // Individual Data Tab Event Listener to clear search results when activated
+            document.getElementById('individual-data-tab').addEventListener('shown.bs.tab', function () {
+                document.getElementById('searchQueryIndividualData').value = '';
+                document.getElementById('searchResultsIndividualData').innerHTML = '';
+                document.getElementById('individualStudentDetailsCard').style.display = 'none';
+            });
         }
 
         // Helper function to parse class-section query
@@ -1872,11 +1942,16 @@ function loadStudentsFromFirebase() {
         }
 
         // Handle search functionality
-        function handleSearch(inputId, resultsId, checkboxName) {
+        function handleSearch(inputId, resultsId, checkboxName, isSingleSelect = false) {
             document.getElementById(inputId).addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
                 const results = document.getElementById(resultsId);
                 results.innerHTML = ''; // Clear previous search results
+
+                // Hide individual student details card if it's the individual data tab
+                if (inputId === 'searchQueryIndividualData') {
+                    document.getElementById('individualStudentDetailsCard').style.display = 'none';
+                }
 
                 if (query) {
                     const { classQuery, sectionQuery } = parseClassSectionQuery(query);
@@ -1935,10 +2010,11 @@ function loadStudentsFromFirebase() {
                                             ${student.section ? `| <i class="fas fa-users"></i> Section: ${student.section}` : ''}
                                         </p>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
+                                            <input class="form-check-input" type="${isSingleSelect ? 'radio' : 'checkbox'}"
                                                 name="${checkboxName}"
                                                 value="${student.id}"
-                                                id="${inputId}_${student.id}">
+                                                id="${inputId}_${student.id}"
+                                                ${isSingleSelect ? `onclick="displayIndividualStudentData('${student.id}')"` : ''}>
                                             <label class="form-check-label" for="${inputId}_${student.id}">
                                                 Select student
                                             </label>
@@ -3044,6 +3120,54 @@ function refreshRankings() {
             return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
         }
 
+        // New function to display individual student data
+        function displayIndividualStudentData(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
+                document.getElementById('individualStudentDetailsCard').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('displayStudentId').textContent = student.id;
+            document.getElementById('displayStudentName').textContent = student.name;
+            document.getElementById('displayStudentClass').textContent = student.class || 'N/A';
+            document.getElementById('displayStudentSection').textContent = student.section || 'N/A';
+            document.getElementById('displayStudentRoom').textContent = student.room;
+            document.getElementById('displayStudentFloor').textContent = student.floor;
+            document.getElementById('displayStudentPoints').textContent = student.points;
+            document.getElementById('displayStudentRemark').textContent = student.remark || 'N/A';
+
+            const individualStudentHistoryTable = document.getElementById('individualStudentHistoryTable');
+            individualStudentHistoryTable.innerHTML = '';
+
+            const studentHistory = responseHistory.filter(entry => entry.studentId === studentId)
+                                                .sort((a, b) => {
+                                                    const dateA = new Date(`${a.date.split('/').reverse().join('-')}T${a.time}`);
+                                                    const dateB = new Date(`${b.date.split('/').reverse().join('-')}T${b.time}`);
+                                                    return dateB - dateA; // Sort by most recent first
+                                                });
+
+            if (studentHistory.length === 0) {
+                individualStudentHistoryTable.innerHTML = '<tr><td colspan="5" class="text-center">No history found for this student.</td></tr>';
+            } else {
+                studentHistory.forEach(entry => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${entry.date}</td>
+                        <td>${entry.time}</td>
+                        <td>${entry.action}</td>
+                        <td class="${entry.pointsChanged >= 0 ? 'text-success' : 'text-danger'}">
+                            ${entry.pointsChanged > 0 ? '+' : ''}${entry.pointsChanged}
+                        </td>
+                        <td>${entry.modifiedBy || 'N/A'}</td>
+                    `;
+                    individualStudentHistoryTable.appendChild(row);
+                });
+            }
+
+            document.getElementById('individualStudentDetailsCard').style.display = 'block';
+        }
+
 
         // Check user role and modify UI
         function checkUserRole() {
@@ -3057,6 +3181,7 @@ function refreshRankings() {
             // Show discipline related tabs
             document.getElementById("discipline-review-tab").style.display = "";
             document.getElementById("batch-discipline-tab").style.display = "";
+            document.getElementById("individual-data-tab").style.display = ""; // Show for incharge/teacher
           }
         }
 
