@@ -523,16 +523,21 @@
     <label class="form-label" for="adminSelector">Modified By (Admin):</label>
     <select class="form-select" id="adminSelector" required>
         <option value="">Select Admin</option>
-        <option value="Ranveer Sir">Ranveer Sir</option>
-        <option value="Manish Sir">Manish Sir</option>
-        <option value="Vasnath Sir">Vasnath Sir</option>
-        <option value="Anirudh Sir">Anirudh Sir</option>
-        <option value="Harish Sir">Harish Sir</option>
-        <option value="Chakradhar Sir">Chakradhar Sir</option>
-        <option value="Aman Sir">Aman Sir</option>
-        <option value="Rohit Sir">Rohit Sir</option>
-        <option value="Testing admin">Testing admin</option>
+        <option value="Soma Shankar Sir">Ranveer Sir</option>
+        <option value="Vinay Sir">Manish Sir</option>
+        <option value="Prasad Sir">Vasnath Sir</option>
+        <option value="Vamshi Sir">Anirudh Sir</option>
+        <option value="Rajeev Sir">Harish Sir</option>
+        <option value="Balaji Sir">Chakradhar Sir</option>
+        <option value="Gauri Shanker Sir">Aman Sir</option>
+        <option value="Sunil Sir">Rohit Sir</option>
+        <option value="Sunil Sir">Testing admin</option>
     </select>
+</div>
+<!-- NEW: Admin Name (Teacher Only) field -->
+<div class="mb-3" id="teacherAdminNameField" style="display: none;">
+    <label class="form-label" for="teacherAdminName">Admin Name (Teacher Only):</label>
+    <input type="text" class="form-control" id="teacherAdminName" placeholder="Enter your name"/>
 </div>
 <div class="text-center mt-3">
 <button class="btn btn-primary btn-lg" type="submit">
@@ -943,15 +948,14 @@
             <label class="form-label" for="rankChangeAdminSelector">Modified By (Admin):</label>
             <select class="form-select" id="rankChangeAdminSelector" required>
                 <option value="">Select Admin</option>
-        <option value="Ranveer Sir">Ranveer Sir</option>
-        <option value="Manish Sir">Manish Sir</option>
-        <option value="Vasnath Sir">Vasnath Sir</option>
-        <option value="Anirudh Sir">Anirudh Sir</option>
-        <option value="Harish Sir">Harish Sir</option>
-        <option value="Chakradhar Sir">Chakradhar Sir</option>
-        <option value="Aman Sir">Aman Sir</option>
-        <option value="Rohit Sir">Rohit Sir</option>
-        <option value="Testing admin">Testing admin</option>
+                <option value="Soma Shankar Sir">Soma Shankar Sir</option>
+                <option value="Vinay Sir">Vinay Sir</option>
+                <option value="Prasad Sir">Prasad Sir</option>
+                <option value="Vamshi Sir">Vamshi Sir</option>
+                <option value="Rajeev Sir">Rajeev Sir</option>
+                <option value="Balaji Sir">Balaji Sir</option>
+                <option value="Gauri Shanker Sir">Gauri Shanker Sir</option>
+                <option value="Sunil Sir">Sunil Sir</option>
             </select>
           </div>
           <div class="text-center mt-3">
@@ -1555,7 +1559,8 @@ function loadStudentsFromFirebase() {
                 const positiveAction = document.getElementById('positiveAction').value;
                 const negativeAction = document.querySelector('[name="negativeAction"]').value;
                 const percentageInput = document.getElementById('percentageInput').value;
-                const adminModifier = document.getElementById('adminSelector').value; // NEW: Get selected admin
+                let adminModifier = document.getElementById('adminSelector').value; // Get selected admin
+                const teacherAdminName = document.getElementById('teacherAdminName').value.trim(); // NEW: Get teacher admin name
                 const updateMessage = document.getElementById('updateMessage');
 
                 if (!selectedStudentIds.length) {
@@ -1567,15 +1572,30 @@ function loadStudentsFromFirebase() {
                     return;
                 }
 
-                // NEW: Validate admin selection
-                if (!adminModifier) {
-                    updateMessage.classList.remove('alert-success');
-                    updateMessage.classList.add('alert-danger');
-                    updateMessage.textContent = 'Please select who is modifying the points.';
-                    updateMessage.style.display = 'block';
-                    setTimeout(() => updateMessage.style.display = 'none', 3000);
-                    return;
+                // Determine the actual modifier based on user type and input
+                const currentUserRole = localStorage.getItem("userRole");
+                if (currentUserRole === "teacher") {
+                    if (!teacherAdminName) {
+                        updateMessage.classList.remove('alert-success');
+                        updateMessage.classList.add('alert-danger');
+                        updateMessage.textContent = 'Please enter your name in the "Admin Name (Teacher Only)" field.';
+                        updateMessage.style.display = 'block';
+                        setTimeout(() => updateMessage.style.display = 'none', 3000);
+                        return;
+                    }
+                    adminModifier = teacherAdminName; // Use teacher's entered name
+                } else {
+                    // For admin/incharge, adminSelector is already required by HTML
+                    if (!adminModifier) {
+                        updateMessage.classList.remove('alert-success');
+                        updateMessage.classList.add('alert-danger');
+                        updateMessage.textContent = 'Please select who is modifying the points.';
+                        updateMessage.style.display = 'block';
+                        setTimeout(() => updateMessage.style.display = 'none', 3000);
+                        return;
+                    }
                 }
+
 
                 let points = 0;
                 let actionText = '';
@@ -1633,7 +1653,7 @@ function loadStudentsFromFirebase() {
                                 name: student.name,
                                 action: actionText,
                                 pointsChanged: points,
-                                modifiedBy: adminModifier // NEW: Add modifiedBy to history
+                                modifiedBy: adminModifier // Use the determined adminModifier
                             });
                         }
                     });
@@ -2872,6 +2892,36 @@ function refreshRankings() {
             // Show discipline related tabs
             document.getElementById("discipline-review-tab").style.display = "";
             document.getElementById("batch-discipline-tab").style.display = "";
+
+            // NEW: Show/hide admin name fields based on role
+            if (role === "teacher") {
+                document.getElementById("adminSelector").removeAttribute("required"); // Make dropdown optional for teachers
+                document.getElementById("adminSelector").style.display = "none"; // Hide dropdown for teachers
+                document.querySelector('label[for="adminSelector"]').style.display = "none"; // Hide label for dropdown
+                document.getElementById("teacherAdminNameField").style.display = "block"; // Show teacher name field
+                document.getElementById("teacherAdminName").setAttribute("required", "true"); // Make teacher name field required
+            } else { // incharge
+                document.getElementById("adminSelector").setAttribute("required", "true"); // Ensure dropdown is required for incharge
+                document.getElementById("adminSelector").style.display = "block"; // Show dropdown for incharge
+                document.querySelector('label[for="adminSelector"]').style.display = "block"; // Show label for dropdown
+                document.getElementById("teacherAdminNameField").style.display = "none"; // Hide teacher name field
+                document.getElementById("teacherAdminName").removeAttribute("required"); // Make teacher name field not required
+            }
+
+          } else { // admin
+            // Show all tabs for admin
+            document.getElementById("rankings-tab").style.display = "";
+            document.getElementById("responses-tab").style.display = "";
+            document.getElementById("student-management-tab").style.display = "";
+            document.getElementById("discipline-review-tab").style.display = "";
+            document.getElementById("batch-discipline-tab").style.display = "";
+
+            // Ensure admin selector is visible and required for admin
+            document.getElementById("adminSelector").setAttribute("required", "true");
+            document.getElementById("adminSelector").style.display = "block";
+            document.querySelector('label[for="adminSelector"]').style.display = "block";
+            document.getElementById("teacherAdminNameField").style.display = "none";
+            document.getElementById("teacherAdminName").removeAttribute("required");
           }
         }
 
