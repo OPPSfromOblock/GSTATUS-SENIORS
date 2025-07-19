@@ -459,7 +459,7 @@
                     </div>
 <div class="card-body">
 <div class="search-container">
-<input class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+<input class="form-control" id="searchQueryPoints" placeholder="Search by name, ID, floor, room, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
 <i class="fas fa-search search-icon"></i>
 </div>
 <div class="mb-3 row" id="searchResultsPoints"></div>
@@ -558,7 +558,7 @@
         </div>
         <div class="card-body">
             <div class="search-container">
-                <input class="form-control" id="searchQueryDiscipline" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+                <input class="form-control" id="searchQueryDiscipline" placeholder="Search by name, ID, floor, room, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
                 <i class="fas fa-search search-icon"></i>
             </div>
             <div class="mb-3 row" id="searchResultsDiscipline"></div>
@@ -606,7 +606,7 @@
         </div>
         <div class="card-body">
             <div class="search-container">
-                <input class="form-control" id="searchQueryBatchDiscipline" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+                <input class="form-control" id="searchQueryBatchDiscipline" placeholder="Search by name, ID, floor, room, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
                 <i class="fas fa-search search-icon"></i>
             </div>
             <div class="mb-3 row">
@@ -681,7 +681,7 @@
 <div class="row">
 <div class="col-md-4">
 <div class="search-container">
-<input class="form-control" id="searchQueryRankings" placeholder="Search students..." type="text"/>
+<input class="form-control" id="searchQueryRankings" placeholder="Search students by name, ID, floor, room, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
 <i class="fas fa-search search-icon"></i>
 </div>
 </div>
@@ -760,6 +760,7 @@
 <th>Points</th>
 <th>Class</th>
 <th>Section</th>
+<th>Actions</th> <!-- NEW: Actions column for Rank Changer -->
 </tr>
 </thead>
 <tbody id="eRankingsTable"></tbody>
@@ -799,7 +800,7 @@
 </div>
 <div class="card-body">
 <div class="search-container">
-<input class="form-control" id="searchQueryHistory" placeholder="Search history by student name or ID..." type="text"/>
+<input class="form-control" id="searchQueryHistory" placeholder="Search history by student name, ID, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
 <i class="fas fa-search search-icon"></i>
 </div>
 <div class="table-responsive">
@@ -881,7 +882,7 @@
         </div>
         <div class="card-body">
             <div class="search-container mb-3">
-                <input class="form-control" id="searchQueryStudentManagement" placeholder="Search by name, ID, room, floor, class, or section..." type="text"/>
+                <input class="form-control" id="searchQueryStudentManagement" placeholder="Search by name, ID, room, floor, class, or section (e.g., X-A for Class X, Section A)..." type="text"/>
                 <i class="fas fa-search search-icon"></i>
             </div>
             <div class="table-responsive">
@@ -1854,6 +1855,22 @@ function loadStudentsFromFirebase() {
             document.getElementById('rankChangerForm').addEventListener('submit', submitRankChange);
         }
 
+        // Helper function to parse class-section query
+        function parseClassSectionQuery(query) {
+            let classQuery = '';
+            let sectionQuery = '';
+            const parts = query.split('-');
+            if (parts.length === 2) {
+                classQuery = parts[0].trim();
+                sectionQuery = parts[1].trim();
+            } else {
+                // If no hyphen, assume the whole query might be a class or section
+                classQuery = query;
+                sectionQuery = query;
+            }
+            return { classQuery, sectionQuery };
+        }
+
         // Handle search functionality
         function handleSearch(inputId, resultsId, checkboxName) {
             document.getElementById(inputId).addEventListener('input', function() {
@@ -1862,6 +1879,8 @@ function loadStudentsFromFirebase() {
                 results.innerHTML = ''; // Clear previous search results
 
                 if (query) {
+                    const { classQuery, sectionQuery } = parseClassSectionQuery(query);
+
                     const filteredStudents = students.filter(student => {
                         const name = student.name ? student.name.toLowerCase() : '';
                         const id = student.id ? student.id.toLowerCase() : '';
@@ -1870,12 +1889,29 @@ function loadStudentsFromFirebase() {
                         const studentClass = student.class ? student.class.toLowerCase() : '';
                         const section = student.section ? student.section.toLowerCase() : '';
 
-                        return name.includes(query) ||
-                               id.includes(query) ||
-                               room.includes(query) ||
-                               floor.includes(query) ||
-                               studentClass.includes(query) ||
-                               section.includes(query);
+                        let matches = false;
+
+                        // Check for direct matches first
+                        if (name.includes(query) || id.includes(query) || room.includes(query) || floor.includes(query)) {
+                            matches = true;
+                        }
+
+                        // Check for class and section specific match
+                        if (classQuery && sectionQuery) {
+                            if (studentClass === classQuery && section === sectionQuery) {
+                                matches = true;
+                            }
+                        } else if (classQuery) { // If only class is provided (e.g., "X")
+                            if (studentClass.includes(classQuery)) {
+                                matches = true;
+                            }
+                        } else if (sectionQuery) { // If only section is provided (e.g., "A")
+                             if (section.includes(sectionQuery)) {
+                                matches = true;
+                            }
+                        }
+                        
+                        return matches;
                     });
 
                     if (filteredStudents.length) {
@@ -1925,6 +1961,8 @@ function refreshRankings() {
     const gradeFilter = document.getElementById('gradeFilter').value;
     const floorFilter = document.getElementById('floorFilter').value; // Get the floor filter value
     const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
+    const { classQuery, sectionQuery } = parseClassSectionQuery(searchQueryRankings);
+
 
     // Create a copy of students to work with
     let studentsToProcess = [...students];
@@ -1983,12 +2021,25 @@ function refreshRankings() {
             const studentClass = student.class ? student.class.toLowerCase() : '';
             const section = student.section ? student.section.toLowerCase() : '';
 
-            return name.includes(searchQueryRankings) ||
-                   id.includes(searchQueryRankings) ||
-                   room.includes(searchQueryRankings) ||
-                   floor.includes(searchQueryRankings) ||
-                   studentClass.includes(searchQueryRankings) ||
-                   section.includes(searchQueryRankings);
+            let matchesSearch = false;
+            if (name.includes(searchQueryRankings) || id.includes(searchQueryRankings) || room.includes(searchQueryRankings) || floor.includes(searchQueryRankings)) {
+                matchesSearch = true;
+            }
+
+            if (classQuery && sectionQuery) {
+                if (studentClass === classQuery && section === sectionQuery) {
+                    matchesSearch = true;
+                }
+            } else if (classQuery) {
+                if (studentClass.includes(classQuery)) {
+                    matchesSearch = true;
+                }
+            } else if (sectionQuery) {
+                if (section.includes(sectionQuery)) {
+                    matchesSearch = true;
+                }
+            }
+            return matchesSearch;
         });
     }
 
@@ -2022,12 +2073,25 @@ function refreshRankings() {
             const studentClass = student.class ? student.class.toLowerCase() : '';
             const section = student.section ? student.section.toLowerCase() : '';
 
-            return name.includes(searchQueryRankings) ||
-                   id.includes(searchQueryRankings) ||
-                   room.includes(searchQueryRankings) ||
-                   floor.includes(searchQueryRankings) ||
-                   studentClass.includes(searchQueryRankings) ||
-                   section.includes(searchQueryRankings);
+            let matchesSearch = false;
+            if (name.includes(searchQueryRankings) || id.includes(searchQueryRankings) || room.includes(searchQueryRankings) || floor.includes(searchQueryRankings)) {
+                matchesSearch = true;
+            }
+
+            if (classQuery && sectionQuery) {
+                if (studentClass === classQuery && section === sectionQuery) {
+                    matchesSearch = true;
+                }
+            } else if (classQuery) {
+                if (studentClass.includes(classQuery)) {
+                    matchesSearch = true;
+                }
+            } else if (sectionQuery) {
+                if (section.includes(sectionQuery)) {
+                    matchesSearch = true;
+                }
+            }
+            return matchesSearch;
         });
     }
     // Sort E-Rank students by points (ascending, most negative first)
@@ -2094,7 +2158,7 @@ function refreshRankings() {
     // Render E-Rankings Table
     eRankingsTable.innerHTML = '';
     if (studentsToDisplayERank.length === 0) {
-        eRankingsTable.innerHTML = '<tr><td colspan="8" class="text-center">No students with negative points.</td></tr>';
+        eRankingsTable.innerHTML = '<tr><td colspan="9" class="text-center">No students with negative points.</td></tr>'; // Updated colspan
     } else {
         studentsToDisplayERank.forEach((student, index) => {
             const row = document.createElement('tr');
@@ -2107,8 +2171,21 @@ function refreshRankings() {
                 <td class="text-danger fw-bold">${student.points}</td>
                 <td>${student.class || ''}</td>
                 <td>${student.section || ''}</td>
+                <td>
+                    <button class="btn btn-sm btn-info change-e-rank-btn" data-id="${student.id}">
+                        <i class="fas fa-exchange-alt"></i> Change Rank
+                    </button>
+                </td>
             `;
             eRankingsTable.appendChild(row);
+        });
+
+        // Attach event listeners to the new "Change E-Rank" buttons
+        document.querySelectorAll('.change-e-rank-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const studentId = this.dataset.id;
+                openRankChangeModal(studentId, true); // Pass a flag to indicate E-Rank
+            });
         });
     }
 }
@@ -2128,6 +2205,8 @@ function refreshRankings() {
         function filterResponses(selectedFloor = 'all', selectedDate = '') { // Added parameters
             const responseTable = document.getElementById('responseTable');
             const searchQueryHistory = document.getElementById('searchQueryHistory').value.toLowerCase().trim();
+            const { classQuery, sectionQuery } = parseClassSectionQuery(searchQueryHistory);
+
 
             let filteredHistory = [...responseHistory];
 
@@ -2135,7 +2214,29 @@ function refreshRankings() {
                 filteredHistory = filteredHistory.filter(entry => {
                     const name = entry.name ? entry.name.toLowerCase() : '';
                     const studentId = entry.studentId ? entry.studentId.toLowerCase() : '';
-                    return name.includes(searchQueryHistory) || studentId.includes(searchQueryHistory);
+                    const student = students.find(s => s.id === entry.studentId);
+                    const studentClass = student ? student.class.toLowerCase() : '';
+                    const section = student ? student.section.toLowerCase() : '';
+
+                    let matchesSearch = false;
+                    if (name.includes(searchQueryHistory) || studentId.includes(searchQueryHistory)) {
+                        matchesSearch = true;
+                    }
+
+                    if (classQuery && sectionQuery) {
+                        if (studentClass === classQuery && section === sectionQuery) {
+                            matchesSearch = true;
+                        }
+                    } else if (classQuery) {
+                        if (studentClass.includes(classQuery)) {
+                            matchesSearch = true;
+                        }
+                    } else if (sectionQuery) {
+                        if (section.includes(sectionQuery)) {
+                            matchesSearch = true;
+                        }
+                    }
+                    return matchesSearch;
                 });
             }
 
@@ -2330,6 +2431,8 @@ function refreshRankings() {
             const tableBody = document.getElementById('studentManagementTable');
             const paginationContainer = document.getElementById('studentManagementPagination');
             const searchQuery = document.getElementById('searchQueryStudentManagement').value.toLowerCase().trim();
+            const { classQuery, sectionQuery } = parseClassSectionQuery(searchQuery);
+
 
             let filteredStudents = students.filter(student => {
                 const name = student.name ? student.name.toLowerCase() : '';
@@ -2339,12 +2442,25 @@ function refreshRankings() {
                 const studentClass = student.class ? student.class.toLowerCase() : '';
                 const section = student.section ? student.section.toLowerCase() : '';
 
-                return name.includes(searchQuery) ||
-                       id.includes(searchQuery) ||
-                       room.includes(searchQuery) ||
-                       floor.includes(searchQuery) ||
-                       studentClass.includes(query) ||
-                       section.includes(query);
+                let matchesSearch = false;
+                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
+                    matchesSearch = true;
+                }
+
+                if (classQuery && sectionQuery) {
+                    if (studentClass === classQuery && section === sectionQuery) {
+                        matchesSearch = true;
+                    }
+                } else if (classQuery) {
+                    if (studentClass.includes(classQuery)) {
+                        matchesSearch = true;
+                    }
+                } else if (sectionQuery) {
+                    if (section.includes(sectionQuery)) {
+                        matchesSearch = true;
+                    }
+                }
+                return matchesSearch;
             });
 
             // Sort students alphabetically by name for consistent display
@@ -2483,6 +2599,8 @@ function refreshRankings() {
             const tableBody = document.getElementById('batchDisciplineTable');
             const paginationContainer = document.getElementById('batchDisciplinePagination');
             const searchQuery = document.getElementById('searchQueryBatchDiscipline').value.toLowerCase().trim();
+            const { classQuery, sectionQuery } = parseClassSectionQuery(searchQuery);
+
             const floorFilter = document.getElementById('batchDisciplineFloorFilter').value;
             const classFilter = document.getElementById('batchDisciplineClassFilter').value.toLowerCase().trim();
             const sectionFilter = document.getElementById('batchDisciplineSectionFilter').value.toLowerCase().trim();
@@ -2495,18 +2613,30 @@ function refreshRankings() {
                 const studentClass = student.class ? student.class.toLowerCase() : '';
                 const section = student.section ? student.section.toLowerCase() : '';
 
-                const matchesSearch = name.includes(searchQuery) ||
-                                      id.includes(searchQuery) ||
-                                      room.includes(searchQuery) ||
-                                      floor.includes(searchQuery) ||
-                                      studentClass.includes(searchQuery) ||
-                                      section.includes(searchQuery);
+                let matchesSearch = false;
+                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
+                    matchesSearch = true;
+                }
+
+                if (classQuery && sectionQuery) {
+                    if (studentClass === classQuery && section === sectionQuery) {
+                        matchesSearch = true;
+                    }
+                } else if (classQuery) {
+                    if (studentClass.includes(classQuery)) {
+                        matchesSearch = true;
+                    }
+                } else if (sectionQuery) {
+                    if (section.includes(sectionQuery)) {
+                        matchesSearch = true;
+                    }
+                }
 
                 const matchesFloor = floorFilter === 'all' || floor === floorFilter;
-                const matchesClass = !classFilter || studentClass.includes(classFilter);
-                const matchesSection = !sectionFilter || section.includes(sectionFilter);
+                const matchesClassFilter = !classFilter || studentClass.includes(classFilter);
+                const matchesSectionFilter = !sectionFilter || section.includes(sectionFilter);
 
-                return matchesSearch && matchesFloor && matchesClass && matchesSection;
+                return matchesSearch && matchesFloor && matchesClassFilter && matchesSectionFilter;
             });
 
             filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
@@ -2660,7 +2790,7 @@ function refreshRankings() {
                 const newRating = selectedRatingInput ? parseInt(selectedRatingInput.value) : null;
 
                 // Only process if a new rating is selected and it's different from a potential previous one
-                // Or if it's a new rating being applied
+                // or if it's a new rating being applied
                 if (newRating !== null) {
                     const pointsAwarded = newRating * 3;
                     const actionText = `Batch Discipline Review (${newRating} stars)`;
@@ -2737,7 +2867,7 @@ function refreshRankings() {
         }
 
         // NEW: Rank Changer Functions
-        function openRankChangeModal(studentId) {
+        function openRankChangeModal(studentId, isERank = false) { // Added isERank parameter
             const student = students.find(s => s.id === studentId);
             if (!student) {
                 alert('Student not found!');
@@ -2748,6 +2878,20 @@ function refreshRankings() {
             document.getElementById('rankChangeStudentName').value = student.name;
             document.getElementById('rankChangeCurrentPoints').value = student.points;
             document.getElementById('rankChangeCurrentGrade').value = student.assignedGrade || 'N/A'; // Display current grade
+
+            // Adjust label for E-Rank
+            const newRankInputLabel = document.querySelector('label[for="newRankInput"]');
+            if (isERank) {
+                newRankInputLabel.textContent = 'Desired New Rank (within E-Rank or to positive):';
+                // You might want to set a different min/max for newRankInput or provide different instructions
+                document.getElementById('newRankInput').min = ''; // Allow negative ranks if desired
+            } else {
+                newRankInputLabel.textContent = 'Desired New Rank (within floor):';
+                document.getElementById('newRankInput').min = '1';
+            }
+
+            // Store isERank in a data attribute on the form or modal for submitRankChange to use
+            document.getElementById('rankChangerForm').dataset.isERank = isERank;
 
             // Clear previous messages
             const rankChangerMessage = document.getElementById('rankChangerMessage');
@@ -2763,10 +2907,11 @@ function refreshRankings() {
             const newDesiredRank = parseInt(document.getElementById('newRankInput').value);
             const adminModifier = document.getElementById('rankChangeAdminSelector').value;
             const rankChangerMessage = document.getElementById('rankChangerMessage');
+            const isERank = document.getElementById('rankChangerForm').dataset.isERank === 'true'; // Retrieve the flag
 
-            if (isNaN(newDesiredRank) || newDesiredRank < 1) {
+            if (isNaN(newDesiredRank)) { // Removed newDesiredRank < 1 check for E-Rank flexibility
                 rankChangerMessage.className = 'mt-3 alert alert-danger';
-                rankChangerMessage.textContent = 'Please enter a valid positive rank.';
+                rankChangerMessage.textContent = 'Please enter a valid rank.';
                 rankChangerMessage.style.display = 'block';
                 return;
             }
@@ -2787,29 +2932,53 @@ function refreshRankings() {
             }
 
             const oldPoints = studentToUpdate.points;
-            const oldRank = getStudentRank(studentToUpdate); // Helper to get current rank
-
-            // Get all students on the same floor with positive points
-            const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
-            floorStudents.sort((a, b) => b.points - a.points); // Sort by points descending
+            const oldRank = getStudentRank(studentToUpdate, isERank); // Pass isERank to getStudentRank
 
             let targetPoints = 0;
-            if (newDesiredRank <= floorStudents.length) {
-                // If the desired rank is within the current number of students on the floor
-                targetPoints = floorStudents[newDesiredRank - 1].points;
-                // If the target rank is the same as the student's current rank, no change needed
-                if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
-                    rankChangerMessage.className = 'mt-3 alert alert-info';
-                    rankChangerMessage.textContent = `Student is already at rank ${newDesiredRank} on their floor. No change needed.`;
-                    rankChangerMessage.style.display = 'block';
-                    return;
+            let actionDescription = '';
+
+            if (isERank) {
+                // Logic for E-Rank students
+                // Get all students on the same floor with negative points (E-Rank)
+                const floorERankStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points < 0);
+                floorERankStudents.sort((a, b) => a.points - b.points); // Sort by points ascending (most negative first)
+
+                if (newDesiredRank <= floorERankStudents.length) {
+                    // If the desired rank is within the current number of E-Rank students on the floor
+                    targetPoints = floorERankStudents[newDesiredRank - 1].points;
+                    // If the target rank is the same as the student's current rank, no change needed
+                    if (studentToUpdate.id === floorERankStudents[newDesiredRank - 1].id) {
+                        rankChangerMessage.className = 'mt-3 alert alert-info';
+                        rankChangerMessage.textContent = `Student is already at E-Rank ${newDesiredRank} on their floor. No change needed.`;
+                        rankChangerMessage.style.display = 'block';
+                        return;
+                    }
+                } else {
+                    // If desired rank is higher than current number of E-Rank students on floor,
+                    // this implies moving them to a less negative (or even positive) score.
+                    // Set points to be just above the least negative E-Rank student's points (or 0 if no E-Rank students)
+                    targetPoints = floorERankStudents.length > 0 ? floorERankStudents[floorERankStudents.length - 1].points + 1 : 0;
                 }
+                actionDescription = `E-Rank Change (from E-Rank ${oldRank} to E-Rank ${newDesiredRank})`;
+
             } else {
-                // If desired rank is higher than current number of students on floor,
-                // set points to be just below the last student's points (or a default if no students)
-                targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
-                // Ensure targetPoints doesn't go below 0 if we're trying to rank a positive student
-                targetPoints = Math.max(0, targetPoints);
+                // Existing logic for positive rank students
+                const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
+                floorStudents.sort((a, b) => b.points - a.points); // Sort by points descending
+
+                if (newDesiredRank <= floorStudents.length) {
+                    targetPoints = floorStudents[newDesiredRank - 1].points;
+                    if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
+                        rankChangerMessage.className = 'mt-3 alert alert-info';
+                        rankChangerMessage.textContent = `Student is already at rank ${newDesiredRank} on their floor. No change needed.`;
+                        rankChangerMessage.style.display = 'block';
+                        return;
+                    }
+                } else {
+                    targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
+                    targetPoints = Math.max(0, targetPoints);
+                }
+                actionDescription = `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`;
             }
 
             const pointsAdjustment = targetPoints - oldPoints;
@@ -2825,7 +2994,7 @@ function refreshRankings() {
                 time,
                 studentId: studentToUpdate.id,
                 name: studentToUpdate.name,
-                action: `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`,
+                action: actionDescription,
                 pointsChanged: pointsAdjustment,
                 oldPoints: oldPoints,
                 newPoints: studentToUpdate.points,
@@ -2861,10 +3030,17 @@ function refreshRankings() {
         }
 
         // Helper function to get a student's current rank within their floor
-        function getStudentRank(student) {
-            const floorStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
-            floorStudents.sort((a, b) => b.points - a.points);
-            const rankIndex = floorStudents.findIndex(s => s.id === student.id);
+        function getStudentRank(student, isERank = false) {
+            let relevantStudents;
+            if (isERank) {
+                relevantStudents = students.filter(s => s.floor === student.floor && s.points < 0);
+                relevantStudents.sort((a, b) => a.points - b.points); // Sort ascending for E-Rank
+            } else {
+                relevantStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
+                relevantStudents.sort((a, b) => b.points - a.points); // Sort descending for normal rank
+            }
+
+            const rankIndex = relevantStudents.findIndex(s => s.id === student.id);
             return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
         }
 
