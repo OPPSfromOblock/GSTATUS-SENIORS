@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -23,17 +22,17 @@
             --dark-bg: #343a40;
             --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
+
         body {
             background-color: var(--light-bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .container {
             margin-top: 20px;
             max-width: 1200px;
         }
-        
+
         .tab-content {
             padding: 25px;
             background-color: white;
@@ -43,11 +42,11 @@
             border-radius: 0 0 8px 8px;
             box-shadow: var(--card-shadow);
         }
-        
+
         .nav-tabs {
             border-bottom: 2px solid var(--primary-color);
         }
-        
+
         .nav-tabs .nav-link {
             color: var(--secondary-color);
             font-weight: 500;
@@ -55,31 +54,31 @@
             padding: 12px 20px;
             transition: all 0.3s;
         }
-        
+
         .nav-tabs .nav-link:hover {
             color: var(--primary-color);
             background-color: rgba(52, 152, 219, 0.1);
         }
-        
+
         .nav-tabs .nav-link.active {
             color: white;
             background-color: var(--primary-color);
             border: none;
             border-radius: 4px 4px 0 0;
         }
-        
+
         h1, h2, h3, h4 {
             color: var(--secondary-color);
             font-weight: 600;
         }
-        
+
         h1 {
             margin-bottom: 30px;
             text-align: center;
             color: var(--primary-color);
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
-        
+
         .card {
             border: none;
             border-radius: 8px;
@@ -87,84 +86,84 @@
             margin-bottom: 20px;
             transition: transform 0.3s;
         }
-        
+
         .card:hover {
             transform: translateY(-5px);
         }
-        
+
         .card-header {
             background-color: var(--primary-color);
             color: white;
             font-weight: 600;
             border-radius: 8px 8px 0 0 !important;
         }
-        
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
+
         .btn-primary:hover {
             background-color: #2980b9;
             border-color: #2980b9;
         }
-        
+
         .btn-success {
             background-color: var(--success-color);
             border-color: var(--success-color);
         }
-        
+
         .btn-danger {
             background-color: var(--danger-color);
             border-color: var(--danger-color);
         }
-        
+
         .table {
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         .table th {
             background-color: var(--secondary-color);
             color: white;
             font-weight: 500;
         }
-        
+
         .table tr:nth-child(even) {
             background-color: rgba(0, 0, 0, 0.02);
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
-        
+
         .form-control, .form-select {
             border-radius: 4px;
             padding: 10px;
             border: 1px solid #ced4da;
         }
-        
+
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
         }
-        
+
         .exam-input {
             display: none;
             margin-top: 10px;
         }
-        
+
         .update-message {
             display: none;
             margin-top: 10px;
             border-radius: 4px;
         }
-        
+
         .search-container {
             position: relative;
             margin-bottom: 20px;
         }
-        
+
         .search-icon {
             position: absolute;
             top: 50%;
@@ -172,56 +171,56 @@
             transform: translateY(-50%);
             color: #6c757d;
         }
-        
+
         .student-card {
             border-left: 4px solid var(--primary-color);
             transition: all 0.3s;
         }
-        
+
         .student-card:hover {
-            transform: translateY(5px);
+            transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .points-badge {
             font-size: 1rem;
             padding: 5px 10px;
             border-radius: 50px;
         }
-        
+
         .positive-points {
             background-color: rgba(39, 174, 96, 0.2);
             color: var(--success-color);
         }
-        
+
         .negative-points {
             background-color: rgba(231, 76, 60, 0.2);
             color: var(--danger-color);
         }
-        
+
         .status-badge {
             font-size: 0.8rem;
             padding: 3px 8px;
             border-radius: 4px;
         }
-        
+
         .active-status {
             background-color: rgba(39, 174, 96, 0.2);
             color: var(--success-color);
         }
-        
+
         .inactive-status {
             background-color: rgba(231, 76, 60, 0.2);
             color: var(--danger-color);
         }
-        
+
         .action-section {
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        
+
         .filter-section {
             background-color: white;
             padding: 15px;
@@ -229,7 +228,7 @@
             box-shadow: var(--card-shadow);
             margin-bottom: 20px;
         }
-        
+
         .system-status {
             display: flex;
             align-items: center;
@@ -240,29 +239,29 @@
             box-shadow: var(--card-shadow);
             margin-bottom: 20px;
         }
-        
+
         .system-status i {
             font-size: 2rem;
             margin-right: 15px;
             color: var(--success-color);
         }
-        
+
         .greeting {
             font-size: 1.5rem;
             color: var(--secondary-color);
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .tab-pane {
             animation: fadeIn 0.5s ease;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        
+
         .remark-input {
             min-width: 150px;
             border-radius: 4px;
@@ -297,6 +296,54 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Styles for editable table cells */
+        .editable-cell {
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .editable-cell:hover {
+            background-color: #f0f0f0;
+        }
+
+        .editable-cell input {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 3px;
+        }
+
+        /* Compact pagination styles */
+        .pagination .page-item .page-link {
+            padding: 0.3rem 0.6rem; /* Smaller padding */
+            font-size: 0.85rem; /* Smaller font size */
+        }
+        .pagination {
+            margin-bottom: 0; /* Remove extra margin */
+        }
+
+        /* Star rating styles */
+        .star-rating {
+            display: inline-block;
+            font-size: 2rem;
+            direction: rtl; /* Right-to-left for star selection */
+        }
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            color: #ccc;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input[type="radio"]:checked ~ label {
+            color: #f39c12; /* Warning color for stars */
+        }
     </style>
 </head>
 <body>
@@ -320,13 +367,28 @@
                 </a>
 </li>
 <li class="nav-item" role="presentation">
-<a class="nav-link" data-bs-toggle="tab" href="#rankings" id="rankings-tab" role="tab">
+<a class="nav-link" data-bs-toggle="tab" href="#discipline-review" id="discipline-review-tab" role="tab">
+<i class="fas fa-star-half-alt"></i> Discipline Review
+                </a>
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#batch-discipline" id="batch-discipline-tab" role="tab">
+<i class="fas fa-clipboard-list"></i> Batch Discipline
+                </a>
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#rankings" id="rankings-tab" role="role">
 <i class="fas fa-trophy"></i> Rankings
                 </a>
 </li>
 <li class="nav-item" role="presentation">
 <a class="nav-link" data-bs-toggle="tab" href="#responses" id="responses-tab" role="tab">
 <i class="fas fa-history"></i> History
+                </a>
+</li>
+<li class="nav-item" role="presentation">
+<a class="nav-link" data-bs-toggle="tab" href="#student-management" id="student-management-tab" role="tab">
+<i class="fas fa-users-cog"></i> Student Management
                 </a>
 </li>
 </ul>
@@ -403,7 +465,7 @@
 <div class="mb-3 row" id="searchResultsPoints"></div>
 </div>
 </div>
-<div class="card">
+<div class="card mb-4">
 <div class="card-header">
 <i class="fas fa-plus-circle"></i> Update Points
                     </div>
@@ -457,6 +519,20 @@
 </div>
 </div>
 </div>
+<div class="mb-3">
+    <label class="form-label" for="adminSelector">Modified By (Admin):</label>
+    <select class="form-select" id="adminSelector" required>
+        <option value="">Select Admin</option>
+        <option value="Soma Shankar Sir">Soma Shankar Sir</option>
+        <option value="Vinay Sir">Vinay Sir</option>
+        <option value="Prasad Sir">Prasad Sir</option>
+        <option value="Vamshi Sir">Vamshi Sir</option>
+        <option value="Rajeev Sir">Rajeev Sir</option>
+        <option value="Balaji Sir">Balaji Sir</option>
+        <option value="Gauri Shanker Sir">Gauri Shanker Sir</option>
+        <option value="Sunil Sir">Sunil Sir</option>
+    </select>
+</div>
 <div class="text-center mt-3">
 <button class="btn btn-primary btn-lg" type="submit">
 <i class="fas fa-save"></i> Update Points
@@ -467,6 +543,132 @@
 </div>
 </div>
 </div>
+
+<!-- Discipline Review Tab -->
+<div class="tab-pane fade" id="discipline-review" role="tabpanel">
+    <h3><i class="fas fa-star-half-alt"></i> Discipline Review</h3>
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-user-check"></i> Select Student(s) for Review
+        </div>
+        <div class="card-body">
+            <div class="search-container">
+                <input class="form-control" id="searchQueryDiscipline" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="mb-3 row" id="searchResultsDiscipline"></div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="fas fa-star"></i> Assign Discipline Rating
+        </div>
+        <div class="card-body">
+            <form id="disciplineReviewForm">
+                <div class="mb-3">
+                    <label class="form-label">Discipline Rating (1-10 Stars):</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star10" name="rating" value="10" /><label for="star10" title="10 stars">&#9733;</label>
+                        <input type="radio" id="star9" name="rating" value="9" /><label for="star9" title="9 stars">&#9733;</label>
+                        <input type="radio" id="star8" name="rating" value="8" /><label for="star8" title="8 stars">&#9733;</label>
+                        <input type="radio" id="star7" name="rating" value="7" /><label for="star7" title="7 stars">&#9733;</label>
+                        <input type="radio" id="star6" name="rating" value="6" /><label for="star6" title="6 stars">&#9733;</label>
+                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="5 stars">&#9733;</label>
+                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">&#9733;</label>
+                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">&#9733;</label>
+                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">&#9733;</label>
+                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">&#9733;</label>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary btn-lg" type="submit">
+                        <i class="fas fa-check-circle"></i> Submit Discipline Review
+                    </button>
+                </div>
+            </form>
+            <div class="update-message alert mt-3" id="disciplineUpdateMessage"></div>
+        </div>
+    </div>
+</div>
+
+<!-- New Batch Discipline Tab -->
+<div class="tab-pane fade" id="batch-discipline" role="tabpanel">
+    <h3><i class="fas fa-clipboard-list"></i> Batch Discipline Review</h3>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-search"></i> Search Students for Batch Review
+        </div>
+        <div class="card-body">
+            <div class="search-container">
+                <input class="form-control" id="searchQueryBatchDiscipline" placeholder="Search by name, ID, floor, room, class, or section..." type="text"/>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="mb-3 row">
+                <div class="col-md-4">
+                    <label class="form-label" for="batchDisciplineFloorFilter">Filter by Floor</label>
+                    <select class="form-select" id="batchDisciplineFloorFilter">
+                        <option value="all">All Floors</option>
+                        <option value="1">1st Floor</option>
+                        <option value="2">2nd Floor</option>
+                        <option value="3">3rd Floor</option>
+                        <option value="4">4th Floor</option>
+                        <option value="5">5th Floor</option>
+                        <option value="6">6th Floor</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="batchDisciplineClassFilter">Filter by Class</label>
+                    <input type="text" class="form-control" id="batchDisciplineClassFilter" placeholder="e.g., X, IX">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="batchDisciplineSectionFilter">Filter by Section</label>
+                    <input type="text" class="form-control" id="batchDisciplineSectionFilter" placeholder="e.g., A, B">
+                </div>
+            </div>
+            <div class="text-end mb-3">
+                <button class="btn btn-secondary" id="resetBatchDisciplineFilters">Reset Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-users"></i> All Students for Discipline Rating
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Room</th>
+                            <th>Floor</th>
+                            <th>Class</th>
+                            <th>Section</th>
+                            <th>Current Points</th>
+                            <th>Discipline Rating (1-10 Stars)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchDisciplineTable">
+                        <!-- Student data with star ratings will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" id="batchDisciplinePagination"></ul>
+            </nav>
+            <div class="text-center mt-4">
+                <button class="btn btn-primary btn-lg" id="saveBatchDisciplineRatings">
+                    <i class="fas fa-save"></i> Save All Ratings
+                </button>
+            </div>
+            <div class="update-message alert mt-3" id="batchDisciplineUpdateMessage"></div>
+        </div>
+    </div>
+</div>
+
 <!-- Rankings Tab -->
 <div class="tab-pane fade" id="rankings" role="tabpanel">
 <h3><i class="fas fa-trophy"></i> Student Rankings</h3>
@@ -484,8 +686,8 @@
 <option value="all">All Grades</option>
 <option value="1f-A+">1st Floor A+</option>
 <option value="1f-A">1st Floor A</option>
-<option value="2f-A+">2nd Floor A+</option>
-<option value="2f-A">2nd Floor A</option>
+<option value="2f-A+">2f-A+</option>
+<option value="2f-A">2f-A</option>
 <option value="3f-A+">3rd Floor A+</option>
 <option value="3f-A">3rd Floor A</option>
 <option value="4f-A+">4th Floor A+</option>
@@ -493,7 +695,7 @@
 <option value="5f-A+">5th Floor A+</option>
 <option value="5f-A">5th Floor A</option>
 <option value="6f-A+">6th Floor A+</option>
-<option value="6f-A">6th Floor A</option>
+<option value="6f-A">6f-A</option>
 <option value="E">E-Rank</option>
 </select>
 </div>
@@ -533,6 +735,7 @@
 <th>Remark</th>
 <th>Class</th>
 <th>Section</th>
+<th>Actions</th> <!-- NEW: Actions column for Rank Changer -->
 </tr>
 </thead>
 <tbody id="rankingsTable"></tbody>
@@ -560,18 +763,33 @@
 </div></div>
 <!-- Responses Tab -->
 <div class="tab-pane fade" id="responses" role="tabpanel">
-<h3><i class="fas fa-history"></i> Points History</h3>
+<h3 class="mb-4"><i class="fas fa-history"></i> Points History</h3>
+                
+                <div class="filter-container">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="historyFloorFilter" class="form-label">Filter by Floor:</label>
+                            <select id="historyFloorFilter" class="form-select">
+                                <option value="all">All Floors</option>
+                                <option value="3">3rd Floor</option>
+                                <option value="5">5th Floor</option>
+                                <option value="6">6th Floor</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dateFilter" class="form-label">Filter by Date:</label>
+                            <input type="date" id="dateFilter" class="form-control">
+                        </div>
+                    </div>
+                    <button id="applyHistoryFilters" class="btn btn-primary">Apply Filters</button>
+                    <button id="resetHistoryFilters" class="btn btn-secondary ms-2">Reset</button>
+                </div>
 <div class="card mb-4">
 <div class="card-header">
 <div class="row">
 <div class="col-md-6">
 <i class="fas fa-list"></i> Recent Activity
                             </div>
-<div class="col-md-6 text-end">
-<button class="btn btn-sm btn-danger" id="clearHistory">
-<i class="fas fa-trash"></i> Clear History
-                                </button>
-</div>
 </div>
 </div>
 <div class="card-body">
@@ -589,6 +807,8 @@
 <th>Name</th>
 <th>Action</th>
 <th>Points Changed</th>
+<th>Floor</th>
+<th>Modified By</th> <!-- NEW: Added Modified By column header -->
 </tr>
 </thead>
 <tbody id="responseTable"></tbody>
@@ -597,9 +817,178 @@
 </div>
 </div>
 </div>
+
+<!-- Student Management Tab -->
+<div class="tab-pane fade" id="student-management" role="tabpanel">
+    <h3><i class="fas fa-users-cog"></i> Student Management</h3>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user-plus"></i> Add New Student
+        </div>
+        <div class="card-body">
+            <form id="addStudentForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="newStudentId" class="form-label">Student ID</label>
+                        <input type="text" class="form-control" id="newStudentId" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label for="newStudentName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="newStudentName" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="newStudentRoom" class="form-label">Room</label>
+                        <input type="text" class="form-control" id="newStudentRoom" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="newStudentFloor" class="form-label">Floor</label>
+                        <select class="form-select" id="newStudentFloor" required>
+                            <option value="">Select Floor</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                            <option value="6">6th Floor</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="newStudentClass" class="form-label">Class</label>
+                        <input type="text" class="form-control" id="newStudentClass">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="newStudentSection" class="form-label">Section</label>
+                        <input type="text" class="form-control" id="newStudentSection">
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Student</button>
+                    </div>
+                </div>
+            </form>
+            <div class="mt-3 alert" id="addStudentMessage" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-list"></i> Manage Existing Students
+        </div>
+        <div class="card-body">
+            <div class="search-container mb-3">
+                <input class="form-control" id="searchQueryStudentManagement" placeholder="Search by name, ID, room, floor, class, or section..." type="text"/>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Room</th>
+                            <th>Floor</th>
+                            <th>Class</th>
+                            <th>Section</th>
+                            <th>Points</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentManagementTable">
+                        <!-- Student data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" id="studentManagementPagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
 </div>
 </div>
+
+<!-- Rank Changer Modal -->
+<div class="modal fade" id="rankChangerModal" tabindex="-1" aria-labelledby="rankChangerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rankChangerModalLabel">Change Student Rank</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="rankChangerForm">
+          <div class="mb-3">
+            <label for="rankChangeStudentId" class="form-label">Student ID:</label>
+            <input type="text" class="form-control" id="rankChangeStudentId" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="rankChangeStudentName" class="form-label">Student Name:</label>
+            <input type="text" class="form-control" id="rankChangeStudentName" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="rankChangeCurrentPoints" class="form-label">Current Points:</label>
+            <input type="text" class="form-control" id="rankChangeCurrentPoints" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="rankChangeCurrentGrade" class="form-label">Current Grade:</label>
+            <input type="text" class="form-control" id="rankChangeCurrentGrade" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="newRankInput" class="form-label">Desired New Rank (within floor):</label>
+            <input type="number" class="form-control" id="newRankInput" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="rankChangeAdminSelector">Modified By (Admin):</label>
+            <select class="form-select" id="rankChangeAdminSelector" required>
+                <option value="">Select Admin</option>
+                <option value="Soma Shankar Sir">Soma Shankar Sir</option>
+                <option value="Vinay Sir">Vinay Sir</option>
+                <option value="Prasad Sir">Prasad Sir</option>
+                <option value="Vamshi Sir">Vamshi Sir</option>
+                <option value="Rajeev Sir">Rajeev Sir</option>
+                <option value="Balaji Sir">Balaji Sir</option>
+                <option value="Gauri Shanker Sir">Gauri Shanker Sir</option>
+                <option value="Sunil Sir">Sunil Sir</option>
+            </select>
+          </div>
+          <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-exchange-alt"></i> Change Rank</button>
+          </div>
+        </form>
+        <div class="update-message alert mt-3" id="rankChangerMessage"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality for History Tab
+            const historyFloorFilter = document.getElementById('historyFloorFilter'); // Changed ID
+            const dateFilter = document.getElementById('dateFilter');
+            const applyHistoryFiltersBtn = document.getElementById('applyHistoryFilters'); // Changed ID
+            const resetHistoryFiltersBtn = document.getElementById('resetHistoryFilters'); // Changed ID
+            
+            applyHistoryFiltersBtn.addEventListener('click', function() {
+                const selectedFloor = historyFloorFilter.value; // Use new ID
+                const selectedDate = dateFilter.value;
+                
+                // Re-filter the responseHistory based on selected filters
+                filterResponses(selectedFloor, selectedDate);
+            });
+            
+            resetHistoryFiltersBtn.addEventListener('click', function() {
+                historyFloorFilter.value = 'all'; // Use new ID
+                dateFilter.value = '';
+                
+                // Reset filters and re-render all history
+                filterResponses();
+            });
+        });
+    </script>
 <script>
         // Default student data - ADD CLASS AND SECTION HERE FOR EACH STUDENT
         const allStudents = [
@@ -863,7 +1252,7 @@
             { id: "AG1382", room: "405/5", name: "SHREYASH MAHAJAN", points: 0, floor: "4", active: true, class: "IX", section: "A" },
             { id: "AG3243", room: "405/6", name: "RAJJAT KUMAR MOHTA", points: 0, floor: "4", active: true, class: "X", section: "C" },
             { id: "AE6765", room: "405/7", name: "I L A MARUTHI VIJAY", points: 0, floor: "4", active: true, class: "IX", section: "B" },
-            { id: "AG3182", room: "405/8", name: "ARJUN CHOUDHARY", points: 0, floor: "4", active: true, class: "X", section: "A" },
+            { id: "AG3182", room: "405/8", name: "ARJUN CHOUDHARY", points: 0, floor: "4", active: true, class : "X", section: "A" },
             { id: "AF3907", room: "405/9", name: "EMMADISETTY SAI YAKSHIT", points: 0, floor: "4", active: true, class: "IX", section: "C" },
             { id: "AG3224", room: "405/10", name: "TANISQUE PATEL", points: 0, floor: "4", active: true, class: "X", section: "B" },
             { id: "AE0463", room: "405/11", name: "VEJELLA NIRAV CHOWDARY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
@@ -994,13 +1383,9 @@
             { id: "AF7505", room: "414/13", name: "SHREYAS GANDHAM", points: 0, floor: "4", active: true, class: "X", section: "B" },
             { id: "AF9841", room: "414/14", name: "ANUGU SWASTHIK REDDY", points: 0, floor: "4", active: true, class: "IX", section: "A" },
             { id: "AF3340", room: "414/15", name: "GUNDA GAGAN SAI", points: 0, floor: "4", active: true, class: "X", section: "C" },
-            { id: "AF4538", room: "414/16", name: "RISHANKA JANAKB", points: 0, floor: "4", active: true, class: "IX", section: "B" }
+            { id: "AF4538", room: "414/16", name: "RISHANKA JANAKB", points: 0, floor: "4", active: true, class: "IX", section: "B" },
+            
         ];
-
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// Verify your config matches what's in Firebase console
-
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAsFiadkeL-__gF_Lb5VY2iap4DlatkaX4",
   authDomain: "senior-data-researchinnovation.firebaseapp.com",
@@ -1009,9 +1394,8 @@ const firebaseConfig = {
   storageBucket: "senior-data-researchinnovation.firebasestorage.app",
   messagingSenderId: "587116206951",
   appId: "1:587116206951:web:ddf6db02ecd19a63cf2dc2",
-  measurementId: "G-8E23BREM8V"
+  measurementId: "G-97JXW80ZLY"
 };
-        
       // Initialize Firebase
 let firebaseApp;
 try {
@@ -1023,20 +1407,23 @@ try {
   alert("Failed to connect to database. Please check your internet connection and try again.");
 }
 
+
 // Modify your loadStudentsFromFirebase function:
 function loadStudentsFromFirebase() {
   showLoading();
   return database.ref('students').once('value')
     .then(snapshot => {
       if (!snapshot.exists()) {
-        console.log("No data available, using default students");
-        return allStudents;
+        console.log("No data available in Firebase, using default students.");
+        return allStudents; // Fallback to default students
       }
-      return snapshot.val();
+      const data = snapshot.val();
+      // Firebase might return an object if keys are non-numeric. Convert to array if needed.
+      return Array.isArray(data) ? data : Object.values(data);
     })
     .catch(error => {
-      console.error("Error loading students:", error);
-      // Fall back to default data if offline
+      console.error("Error loading students from Firebase:", error);
+      // Fall back to default data if there's an error
       return allStudents;
     })
     .finally(() => {
@@ -1050,6 +1437,8 @@ function loadStudentsFromFirebase() {
 
         // DOM elements
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const rankChangerModal = new bootstrap.Modal(document.getElementById('rankChangerModal'));
+
 
         // Show loading spinner
         function showLoading() {
@@ -1076,22 +1465,6 @@ function loadStudentsFromFirebase() {
                 });
         }
 
-        // Load students from Firebase
-        function loadStudentsFromFirebase() {
-            showLoading();
-            return database.ref('students').once('value')
-                .then(snapshot => {
-                    const data = snapshot.val();
-                    hideLoading();
-                    return data || [];
-                })
-                .catch(error => {
-                    console.error("Error loading students:", error);
-                    hideLoading();
-                    return [];
-                });
-        }
-
         // Save history to Firebase
         function saveHistoryToFirebase(history) {
             showLoading();
@@ -1114,12 +1487,12 @@ function loadStudentsFromFirebase() {
                 .then(snapshot => {
                     const data = snapshot.val();
                     hideLoading();
-                    return data || [];
+                    return data || []; // Fallback to empty array if no history
                 })
                 .catch(error => {
                     console.error("Error loading history:", error);
                     hideLoading();
-                    return [];
+                    return []; // Fallback to empty array on error
                 });
         }
 
@@ -1127,28 +1500,27 @@ function loadStudentsFromFirebase() {
         async function initializeApp() {
             try {
                 showLoading();
-                
-                // Load data from Firebase
-                const [studentsData, historyData] = await Promise.all([
-                    loadStudentsFromFirebase(),
-                    loadHistoryFromFirebase()
-                ]);
 
-                // If no students in Firebase, use default data and save to Firebase
-                if (studentsData.length === 0 || Object.keys(studentsData).length === 0) { // Added check for empty object
+                // Load data from Firebase
+                const studentsData = await loadStudentsFromFirebase();
+                const historyData = await loadHistoryFromFirebase();
+
+                // Assign loaded data
+                students = studentsData;
+                responseHistory = historyData;
+
+                // If students array is empty after loading (e.g., first run or Firebase empty),
+                // use default students and save them to Firebase.
+                if (students.length === 0) {
+                    console.log("Students array is empty, populating with default data and saving to Firebase.");
                     students = allStudents;
                     await saveStudentsToFirebase(students);
-                } else {
-                    // Convert object to array if Firebase returns an object (common for Firebase lists)
-                    students = Array.isArray(studentsData) ? studentsData : Object.values(studentsData);
                 }
-
-                // Set history
-                responseHistory = historyData;
 
                 // Update UI
                 refreshRankings();
                 refreshResponses();
+                renderStudentManagementTable(); // Render the new student management table
                 document.getElementById('totalStudents').textContent = students.length;
                 document.getElementById('activeStudents').textContent = students.filter(s => s.active).length;
                 document.getElementById('dbStatus').textContent = 'Connected';
@@ -1156,11 +1528,12 @@ function loadStudentsFromFirebase() {
 
                 // Initialize event listeners
                 initializeEventListeners();
-                
+
             } catch (error) {
                 console.error("Error initializing app:", error);
                 document.getElementById('dbStatus').textContent = 'Disconnected';
                 document.getElementById('dbStatus').className = 'badge bg-danger';
+                alert("Failed to load data. Displaying default student data. Please check your internet connection.");
             } finally {
                 hideLoading();
             }
@@ -1176,10 +1549,11 @@ function loadStudentsFromFirebase() {
             // Points form submission
             document.getElementById('pointsForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const selectedStudentIds = Array.from(document.querySelectorAll('input[name="selectedStudents"]:checked')).map(input => input.value);
+                const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsPoints input[name="selectedStudents"]:checked')).map(input => input.value);
                 const positiveAction = document.getElementById('positiveAction').value;
                 const negativeAction = document.querySelector('[name="negativeAction"]').value;
                 const percentageInput = document.getElementById('percentageInput').value;
+                const adminModifier = document.getElementById('adminSelector').value; // NEW: Get selected admin
                 const updateMessage = document.getElementById('updateMessage');
 
                 if (!selectedStudentIds.length) {
@@ -1191,9 +1565,19 @@ function loadStudentsFromFirebase() {
                     return;
                 }
 
+                // NEW: Validate admin selection
+                if (!adminModifier) {
+                    updateMessage.classList.remove('alert-success');
+                    updateMessage.classList.add('alert-danger');
+                    updateMessage.textContent = 'Please select who is modifying the points.';
+                    updateMessage.style.display = 'block';
+                    setTimeout(() => updateMessage.style.display = 'none', 3000);
+                    return;
+                }
+
                 let points = 0;
                 let actionText = '';
-                
+
                 if (positiveAction && negativeAction) {
                     updateMessage.classList.remove('alert-success');
                     updateMessage.classList.add('alert-danger');
@@ -1246,7 +1630,8 @@ function loadStudentsFromFirebase() {
                                 studentId,
                                 name: student.name,
                                 action: actionText,
-                                pointsChanged: points
+                                pointsChanged: points,
+                                modifiedBy: adminModifier // NEW: Add modifiedBy to history
                             });
                         }
                     });
@@ -1260,7 +1645,7 @@ function loadStudentsFromFirebase() {
                     updateMessage.classList.remove('alert-danger');
                     updateMessage.classList.add('alert-success');
                     updateMessage.innerHTML = `
-                        <i class="fas fa-check-circle"></i> Points updated for ${selectedStudentIds.length} student(s): 
+                        <i class="fas fa-check-circle"></i> Points updated for ${selectedStudentIds.length} student(s):
                         <strong>${points > 0 ? '+' : ''}${points} points</strong> each for "${actionText}".
                     `;
                     updateMessage.style.display = 'block';
@@ -1283,6 +1668,84 @@ function loadStudentsFromFirebase() {
                 }
             });
 
+            // Discipline Review form submission
+            document.getElementById('disciplineReviewForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsDiscipline input[name="selectedStudentsDiscipline"]:checked')).map(input => input.value);
+                const rating = document.querySelector('input[name="rating"]:checked');
+                const disciplineUpdateMessage = document.getElementById('disciplineUpdateMessage');
+
+                if (!selectedStudentIds.length) {
+                    disciplineUpdateMessage.classList.remove('alert-success');
+                    disciplineUpdateMessage.classList.add('alert-danger');
+                    disciplineUpdateMessage.textContent = 'Please select at least one student for discipline review.';
+                    disciplineUpdateMessage.style.display = 'block';
+                    setTimeout(() => disciplineUpdateMessage.style.display = 'none', 3000);
+                    return;
+                }
+
+                if (!rating) {
+                    disciplineUpdateMessage.classList.remove('alert-success');
+                    disciplineUpdateMessage.classList.add('alert-danger');
+                    disciplineUpdateMessage.textContent = 'Please select a star rating.';
+                    disciplineUpdateMessage.style.display = 'block';
+                    setTimeout(() => disciplineUpdateMessage.style.display = 'none', 3000);
+                    return;
+                }
+
+                const pointsAwarded = parseInt(rating.value) * 3;
+                const actionText = `Discipline Review (${rating.value} stars)`;
+
+                const now = new Date();
+                const date = now.toLocaleDateString('en-GB');
+                const time = now.toLocaleTimeString('en-GB');
+
+                try {
+                    selectedStudentIds.forEach(studentId => {
+                        const student = students.find(s => s.id === studentId);
+                        if (student) {
+                            student.points += pointsAwarded;
+                            responseHistory.unshift({
+                                date,
+                                time,
+                                studentId,
+                                name: student.name,
+                                action: actionText,
+                                pointsChanged: pointsAwarded
+                            });
+                        }
+                    });
+
+                    await Promise.all([
+                        saveStudentsToFirebase(students),
+                        saveHistoryToFirebase(responseHistory)
+                    ]);
+
+                    disciplineUpdateMessage.classList.remove('alert-danger');
+                    disciplineUpdateMessage.classList.add('alert-success');
+                    disciplineUpdateMessage.innerHTML = `
+                        <i class="fas fa-check-circle"></i> Discipline points updated for ${selectedStudentIds.length} student(s):
+                        <strong>+${pointsAwarded} points</strong> each for "${actionText}".
+                    `;
+                    disciplineUpdateMessage.style.display = 'block';
+                    setTimeout(() => disciplineUpdateMessage.style.display = 'none', 5000);
+
+                    document.getElementById('disciplineReviewForm').reset();
+                    document.getElementById('searchResultsDiscipline').innerHTML = '';
+                    document.getElementById('searchQueryDiscipline').value = '';
+                    refreshRankings();
+                    refreshResponses();
+                } catch (error) {
+                    console.error("Error updating discipline points:", error);
+                    disciplineUpdateMessage.classList.remove('alert-success');
+                    disciplineUpdateMessage.classList.add('alert-danger');
+                    disciplineUpdateMessage.textContent = 'Error updating discipline points. Please try again.';
+                    disciplineUpdateMessage.style.display = 'block';
+                    setTimeout(() => disciplineUpdateMessage.style.display = 'none', 5000);
+                }
+            });
+
+
             // Update remark function
             window.updateRemark = async function(studentId, newRemark) {
                 const student = students.find(s => s.id === studentId);
@@ -1295,162 +1758,211 @@ function loadStudentsFromFirebase() {
                     }
                 }
             };
-
-            // Clear history
-            document.getElementById('clearHistory').addEventListener('click', async function() {
-                if (confirm('Are you sure you want to clear all history records? This cannot be undone.')) {
-                    try {
-                        responseHistory = [];
-                        await saveHistoryToFirebase(responseHistory);
-                        refreshResponses();
-                        
-                        const updateMessage = document.getElementById('updateMessage');
-                        updateMessage.classList.remove('alert-danger');
-                        updateMessage.classList.add('alert-success');
-                        updateMessage.innerHTML = '<i class="fas fa-check-circle"></i> History records cleared successfully.';
-                        updateMessage.style.display = 'block';
-                        setTimeout(() => updateMessage.style.display = 'none', 3000);
-                    } catch (error) {
-                        console.error("Error clearing history:", error);
-                    }
-                }
-            });
-
             // Export to Excel
             document.getElementById('exportRankings').addEventListener('click', exportToExcel);
 
             // Search functionality
-            handleSearch('searchQueryPoints', 'searchResultsPoints');
+            handleSearch('searchQueryPoints', 'searchResultsPoints', 'selectedStudents');
+            handleSearch('searchQueryDiscipline', 'searchResultsDiscipline', 'selectedStudentsDiscipline'); // New search for discipline review
             document.getElementById('searchQueryRankings').addEventListener('input', refreshRankings); // Directly call refreshRankings for rankings search
             document.getElementById('searchQueryHistory').addEventListener('input', filterResponses); // New: History search
+            document.getElementById('searchQueryStudentManagement').addEventListener('input', renderStudentManagementTable); // Student Management search
+
+            // Batch Discipline Tab Event Listeners
+            document.getElementById('searchQueryBatchDiscipline').addEventListener('input', renderBatchDisciplineTable);
+            document.getElementById('batchDisciplineFloorFilter').addEventListener('change', renderBatchDisciplineTable);
+            document.getElementById('batchDisciplineClassFilter').addEventListener('input', renderBatchDisciplineTable);
+            document.getElementById('batchDisciplineSectionFilter').addEventListener('input', renderBatchDisciplineTable);
+            document.getElementById('resetBatchDisciplineFilters').addEventListener('click', function() {
+                document.getElementById('searchQueryBatchDiscipline').value = '';
+                document.getElementById('batchDisciplineFloorFilter').value = 'all';
+                document.getElementById('batchDisciplineClassFilter').value = '';
+                document.getElementById('batchDisciplineSectionFilter').value = '';
+                renderBatchDisciplineTable();
+            });
+            document.getElementById('saveBatchDisciplineRatings').addEventListener('click', saveBatchDisciplineRatings);
+            // Ensure the batch discipline tab renders when activated
+            document.getElementById('batch-discipline-tab').addEventListener('shown.bs.tab', renderBatchDisciplineTable);
+
 
             // Refresh buttons
             document.getElementById('refreshRankings').addEventListener('click', refreshRankings);
             document.getElementById('gradeFilter').addEventListener('change', refreshRankings);
             document.getElementById('floorFilter').addEventListener('change', refreshRankings);
+
+            // Student Management Tab Event Listeners
+            document.getElementById('addStudentForm').addEventListener('submit', addStudent);
+            // Event delegation for delete and update buttons in student management table
+            document.getElementById('studentManagementTable').addEventListener('click', async function(event) {
+                if (event.target.classList.contains('delete-student-btn')) {
+                    const studentId = event.target.dataset.id;
+                    if (confirm(`Are you sure you want to delete student with ID: ${studentId}?`)) {
+                        await deleteStudent(studentId);
+                    }
+                }
+            });
+
+            // Event delegation for inline editing
+            document.getElementById('studentManagementTable').addEventListener('dblclick', function(event) {
+                const target = event.target;
+                if (target.classList.contains('editable-cell') && target.dataset.field) {
+                    const studentId = target.closest('tr').dataset.id;
+                    const field = target.dataset.field;
+                    const originalValue = target.textContent.trim();
+
+                    // Create an input field
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = originalValue;
+                    input.className = 'form-control form-control-sm';
+
+                    // Replace the cell content with the input field
+                    target.innerHTML = '';
+                    target.appendChild(input);
+                    input.focus();
+
+                    // Save changes on blur or enter key
+                    const saveChanges = async () => {
+                        const newValue = input.value.trim();
+                        if (newValue !== originalValue) {
+                            await updateStudentDetails(studentId, field, newValue);
+                        }
+                        target.textContent = newValue; // Restore text content
+                    };
+
+                    input.addEventListener('blur', saveChanges);
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            input.blur(); // Trigger blur to save changes
+                        }
+                    });
+                }
+            });
+
+            // NEW: Rank Changer Modal Submission
+            document.getElementById('rankChangerForm').addEventListener('submit', submitRankChange);
         }
 
         // Handle search functionality
-        function handleSearch(inputId, resultsId) {
+        function handleSearch(inputId, resultsId, checkboxName) {
             document.getElementById(inputId).addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
-                
-                if (inputId === 'searchQueryPoints') {
-                    const results = document.getElementById(resultsId);
-                    results.innerHTML = ''; // Clear previous search results for points tab
+                const results = document.getElementById(resultsId);
+                results.innerHTML = ''; // Clear previous search results
 
-                    if (query) {
-                        const filteredStudentsForPoints = students.filter(student => {
-                            const name = student.name ? student.name.toLowerCase() : '';
-                            const id = student.id ? student.id.toLowerCase() : '';
-                            const room = student.room ? student.room.toLowerCase() : '';
-                            const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-                            const studentClass = student.class ? student.class.toLowerCase() : '';
-                            const section = student.section ? student.section.toLowerCase() : '';
-                            
-                            return name.includes(query) || 
-                                   id.includes(query) || 
-                                   room.includes(query) || 
-                                   floor.includes(query) ||
-                                   studentClass.includes(query) ||
-                                   section.includes(query);
-                        });
+                if (query) {
+                    const filteredStudents = students.filter(student => {
+                        const name = student.name ? student.name.toLowerCase() : '';
+                        const id = student.id ? student.id.toLowerCase() : '';
+                        const room = student.room ? student.room.toLowerCase() : '';
+                        const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+                        const studentClass = student.class ? student.class.toLowerCase() : '';
+                        const section = student.section ? student.section.toLowerCase() : '';
 
-                        if (filteredStudentsForPoints.length) {
-                            filteredStudentsForPoints.forEach(student => {
-                                const studentCard = document.createElement('div');
-                                studentCard.className = 'col-md-6 mb-3';
-                                studentCard.innerHTML = `
-                                    <div class="card student-card">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between">
-                                                <h5 class="card-title">${student.name}</h5>
-                                                <span class="points-badge ${student.points >= 0 ? 'positive-points' : 'negative-points'}">
-                                                    ${student.points > 0 ? '+' : ''}${student.points} pts
-                                                </span>
-                                            </div>
-                                            <p class="card-text mb-1">
-                                                <i class="fas fa-id-card"></i> ${student.id} 
-                                                | <i class="fas fa-door-open"></i> ${student.room}
-                                                | <i class="fas fa-layer-group"></i> ${student.floor} Floor
-                                                ${student.class ? `| <i class="fas fa-chalkboard"></i> Class: ${student.class}` : ''}
-                                                ${student.section ? `| <i class="fas fa-users"></i> Section: ${student.section}` : ''}
-                                            </p>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" 
-                                                    name="selectedStudents" 
-                                                    value="${student.id}" 
-                                                    id="${inputId}_${student.id}">
-                                                <label class="form-check-label" for="${inputId}_${student.id}">
-                                                    Select student
-                                                </label>
-                                            </div>
+                        return name.includes(query) ||
+                               id.includes(query) ||
+                               room.includes(query) ||
+                               floor.includes(query) ||
+                               studentClass.includes(query) ||
+                               section.includes(query);
+                    });
+
+                    if (filteredStudents.length) {
+                        filteredStudents.forEach(student => {
+                            const studentCard = document.createElement('div');
+                            studentCard.className = 'col-md-6 mb-3';
+                            studentCard.innerHTML = `
+                                <div class="card student-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="card-title">${student.name}</h5>
+                                            <span class="points-badge ${student.points >= 0 ? 'positive-points' : 'negative-points'}">
+                                                ${student.points > 0 ? '+' : ''}${student.points} pts
+                                            </span>
+                                        </div>
+                                        <p class="card-text mb-1">
+                                            <i class="fas fa-id-card"></i> ${student.id}
+                                            | <i class="fas fa-door-open"></i> ${student.room}
+                                            | <i class="fas fa-layer-group"></i> ${student.floor} Floor
+                                            ${student.class ? `| <i class="fas fa-chalkboard"></i> Class: ${student.class}` : ''}
+                                            ${student.section ? `| <i class="fas fa-users"></i> Section: ${student.section}` : ''}
+                                        </p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                name="${checkboxName}"
+                                                value="${student.id}"
+                                                id="${inputId}_${student.id}">
+                                            <label class="form-check-label" for="${inputId}_${student.id}">
+                                                Select student
+                                            </label>
                                         </div>
                                     </div>
-                                `;
-                                results.appendChild(studentCard);
-                            });
-                        } else {
-                            results.innerHTML = '<div class="col-12"><div class="alert alert-info">No students found matching your search.</div></div>';
-                        }
+                                </div>
+                            `;
+                            results.appendChild(studentCard);
+                        });
+                    } else {
+                        results.innerHTML = '<div class="col-12"><div class="alert alert-info">No students found matching your search.</div></div>';
                     }
-                } else if (inputId === 'searchQueryRankings') {
-                    // This part is now handled directly by refreshRankings via the event listener
-                    // No need for separate logic here for rankings search
                 }
             });
         }
+
 function refreshRankings() {
     const rankingsTable = document.getElementById('rankingsTable');
     const eRankingsTable = document.getElementById('eRankingsTable'); // Get E-Rankings table
     const gradeFilter = document.getElementById('gradeFilter').value;
-    const floorFilter = document.getElementById('floorFilter').value;
+    const floorFilter = document.getElementById('floorFilter').value; // Get the floor filter value
     const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
 
     // Create a copy of students to work with
     let studentsToProcess = [...students];
 
-    // Assign 'E' grade to students with negative points first
-    studentsToProcess.forEach(student => {
-        if (student.points < 0) {
-            student.assignedGrade = 'E';
-        } else {
-            // Reset assignedGrade for non-negative students to re-evaluate
-            student.assignedGrade = '';
-        }
-    });
-
-    // Filter out students with negative points for the main rankings
+    // Separate students into positive and negative points
     let positiveStudents = studentsToProcess.filter(s => s.points >= 0);
     let negativeStudents = studentsToProcess.filter(s => s.points < 0);
 
-    // Sort positive students for grade assignment (only if not already 'E')
-    positiveStudents.sort((a, b) => b.points - a.points);
+    // Assign 'E' grade to all negative students
+    negativeStudents.forEach(student => {
+        student.assignedGrade = 'E';
+    });
 
-    // Assign grades for positive students based on ranking per floor
-    const floors = ['1', '2', '3', '4', '5', '6'];
+    // Group positive students by floor and sort them within their floors
+    const studentsByFloor = {};
+    const floors = ['1', '2', '3', '4', '5', '6']; // Define all possible floors
     floors.forEach(floor => {
-        const floorPositiveStudents = positiveStudents.filter(s => s.floor === floor);
-        floorPositiveStudents.forEach((student, index) => {
-            if (student.assignedGrade !== 'E') { // Only assign if not already 'E'
-                if (index < Math.floor(floorPositiveStudents.length * 0.1)) {
-                    student.assignedGrade = `${floor}f-A+`;
-                } else if (index < Math.floor(floorPositiveStudents.length * 0.3)) {
-                    student.assignedGrade = `${floor}f-A`;
-                } else if (index < Math.floor(floorPositiveStudents.length * 0.6)) {
-                    student.assignedGrade = `${floor}f-B`;
-                } else if (index < Math.floor(floorPositiveStudents.length * 0.8)) {
-                    student.assignedGrade = `${floor}f-C`;
-                } else {
-                    student.assignedGrade = `${floor}f-D`;
-                }
+        studentsByFloor[floor] = positiveStudents.filter(s => s.floor === floor).sort((a, b) => b.points - a.points);
+    });
+
+    // Assign grades based on rank within each floor
+    floors.forEach(floor => {
+        const floorStudents = studentsByFloor[floor];
+        const totalStudentsOnFloor = floorStudents.length;
+
+        floorStudents.forEach((student, index) => {
+            const rank = index + 1; // 1-based rank within the floor
+            const percentageRank = (rank / totalStudentsOnFloor) * 100;
+
+            if (percentageRank <= 5) { // Top 5%
+                student.assignedGrade = `${floor}f-A+`;
+            } else if (percentageRank <= 20) { // Next 15% (cumulative up to 20%)
+                student.assignedGrade = `${floor}f-A`;
+            } else if (percentageRank <= 50) { // Next 30% (cumulative up to 50%)
+                student.assignedGrade = `${floor}f-B`;
+            } else if (percentageRank <= 75) { // Next 25% (cumulative up to 75%)
+                student.assignedGrade = `${floor}f-C`;
+            } else { // Remaining 25%
+                student.assignedGrade = `${floor}f-D`;
             }
         });
     });
 
-    // Apply filters to the positive students for the main rankings table
-    let studentsToDisplayMain = [...positiveStudents];
-    
+    // Combine all students back, maintaining E-Rank and then positive students
+    let allRankedStudents = [...negativeStudents, ...positiveStudents];
+
+    // Apply filters to the combined list for display in the main rankings table
+    let studentsToDisplayMain = allRankedStudents.filter(student => student.points >= 0); // Only show positive students in main table
+
     if (searchQueryRankings) {
         studentsToDisplayMain = studentsToDisplayMain.filter(student => {
             const name = student.name ? student.name.toLowerCase() : '';
@@ -1459,37 +1971,78 @@ function refreshRankings() {
             const floor = student.floor ? student.floor.toString().toLowerCase() : '';
             const studentClass = student.class ? student.class.toLowerCase() : '';
             const section = student.section ? student.section.toLowerCase() : '';
-            
-            return name.includes(searchQueryRankings) || 
-                   id.includes(searchQueryRankings) || 
-                   room.includes(searchQueryRankings) || 
+
+            return name.includes(searchQueryRankings) ||
+                   id.includes(searchQueryRankings) ||
+                   room.includes(searchQueryRankings) ||
                    floor.includes(searchQueryRankings) ||
                    studentClass.includes(searchQueryRankings) ||
                    section.includes(searchQueryRankings);
         });
     }
-    
+
     if (gradeFilter !== 'all') {
         studentsToDisplayMain = studentsToDisplayMain.filter(s => s.assignedGrade === gradeFilter);
     }
-    
+
     if (floorFilter !== 'all') {
         studentsToDisplayMain = studentsToDisplayMain.filter(s => s.floor === floorFilter);
     }
 
-    // Sort negative students for E-Rankings (most negative first)
-    negativeStudents.sort((a, b) => a.points - b.points);
+    // Sort students to display in the main table by floor, then by points (descending)
+    studentsToDisplayMain.sort((a, b) => {
+        if (a.floor !== b.floor) {
+            return a.floor - b.floor; // Sort by floor ascending
+        }
+        return b.points - a.points; // Then by points descending
+    });
+
+    // Prepare E-Rank students for their table
+    let studentsToDisplayERank = negativeStudents;
+    if (floorFilter !== 'all') {
+        studentsToDisplayERank = studentsToDisplayERank.filter(s => s.floor === floorFilter);
+    }
+    if (searchQueryRankings) {
+        studentsToDisplayERank = studentsToDisplayERank.filter(student => {
+            const name = student.name ? student.name.toLowerCase() : '';
+            const id = student.id ? student.id.toLowerCase() : '';
+            const room = student.room ? student.room.toLowerCase() : '';
+            const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+            const studentClass = student.class ? student.class.toLowerCase() : '';
+            const section = student.section ? student.section.toLowerCase() : '';
+
+            return name.includes(searchQueryRankings) ||
+                   id.includes(searchQueryRankings) ||
+                   room.includes(searchQueryRankings) ||
+                   floor.includes(searchQueryRankings) ||
+                   studentClass.includes(searchQueryRankings) ||
+                   section.includes(searchQueryRankings);
+        });
+    }
+    // Sort E-Rank students by points (ascending, most negative first)
+    studentsToDisplayERank.sort((a, b) => a.points - b.points);
+
 
     // Render Main Rankings Table
     rankingsTable.innerHTML = '';
     if (studentsToDisplayMain.length === 0) {
-        rankingsTable.innerHTML = '<tr><td colspan="10" class="text-center">No students found matching your criteria.</td></tr>';
+        rankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students found matching your criteria.</td></tr>'; // Updated colspan
     } else {
-        studentsToDisplayMain.forEach((student, index) => {
+        // To get correct rank within filtered view, we need to re-calculate ranks for display
+        // This is a simplified rank for display, not the grade-determining rank
+        let currentFloor = null;
+        let floorRank = 0;
+        studentsToDisplayMain.forEach((student) => {
+            if (student.floor !== currentFloor) {
+                currentFloor = student.floor;
+                floorRank = 1; // Reset rank for new floor
+            } else {
+                floorRank++;
+            }
+
             const row = document.createElement('tr');
-            const displayRank = index + 1;
             row.innerHTML = `
-                <td>${displayRank}</td>
+                <td>${floorRank}</td>
                 <td>${student.id}</td>
                 <td>${student.name}</td>
                 <td>${student.room}</td>
@@ -1503,23 +2056,36 @@ function refreshRankings() {
                     </span>
                 </td>
                 <td>
-                    <input type="text" class="remark-input" 
-                        value="${student.remark || ''}" 
+                    <input type="text" class="remark-input"
+                        value="${student.remark || ''}"
                         onchange="updateRemark('${student.id}', this.value)">
                 </td>
                 <td>${student.class || ''}</td>
                 <td>${student.section || ''}</td>
+                <td>
+                    <button class="btn btn-sm btn-info change-rank-btn" data-id="${student.id}">
+                        <i class="fas fa-exchange-alt"></i> Change Rank
+                    </button>
+                </td>
             `;
             rankingsTable.appendChild(row);
+        });
+
+        // Attach event listeners to the new "Change Rank" buttons
+        document.querySelectorAll('.change-rank-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const studentId = this.dataset.id;
+                openRankChangeModal(studentId);
+            });
         });
     }
 
     // Render E-Rankings Table
     eRankingsTable.innerHTML = '';
-    if (negativeStudents.length === 0) {
+    if (studentsToDisplayERank.length === 0) {
         eRankingsTable.innerHTML = '<tr><td colspan="8" class="text-center">No students with negative points.</td></tr>';
     } else {
-        negativeStudents.forEach((student, index) => {
+        studentsToDisplayERank.forEach((student, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${index + 1}</td>
@@ -1548,10 +2114,10 @@ function refreshRankings() {
         }
 
         // Filter and refresh responses table
-        function filterResponses() {
+        function filterResponses(selectedFloor = 'all', selectedDate = '') { // Added parameters
             const responseTable = document.getElementById('responseTable');
             const searchQueryHistory = document.getElementById('searchQueryHistory').value.toLowerCase().trim();
-            
+
             let filteredHistory = [...responseHistory];
 
             if (searchQueryHistory) {
@@ -1562,15 +2128,39 @@ function refreshRankings() {
                 });
             }
 
+            // Apply floor filter
+            if (selectedFloor !== 'all') {
+                filteredHistory = filteredHistory.filter(entry => {
+                    // Find the student to get their floor
+                    const student = students.find(s => s.id === entry.studentId);
+                    return student && student.floor === selectedFloor;
+                });
+            }
+
+            // Apply date filter
+            if (selectedDate) {
+                filteredHistory = filteredHistory.filter(entry => entry.date === selectedDate);
+            }
+
+            filteredHistory.sort((a, b) => {
+                const dateA = new Date(`${a.date.split('/').reverse().join('-')}T${a.time}`);
+                const dateB = new Date(`${b.date.split('/').reverse().join('-')}T${b.time}`);
+                return dateB - dateA; // Sort by most recent first
+            });
+
             responseTable.innerHTML = '';
-            
+
             if (filteredHistory.length === 0) {
-                responseTable.innerHTML = '<tr><td colspan="6" class="text-center">No history records found matching your search.</td></tr>';
+                responseTable.innerHTML = '<tr><td colspan="8" class="text-center">No history records found matching your search.</td></tr>'; // Updated colspan
                 return;
             }
 
             filteredHistory.forEach(entry => {
                 const row = document.createElement('tr');
+                // Find the student to get their floor
+                const student = students.find(s => s.id === entry.studentId);
+                const studentFloor = student ? student.floor : 'N/A'; // Get floor, default to N/A if not found
+
                 row.innerHTML = `
                     <td>${entry.date}</td>
                     <td>${entry.time}</td>
@@ -1580,6 +2170,8 @@ function refreshRankings() {
                     <td class="${entry.pointsChanged >= 0 ? 'text-success' : 'text-danger'}">
                         ${entry.pointsChanged > 0 ? '+' : ''}${entry.pointsChanged}
                     </td>
+                    <td>${studentFloor}</td> <!-- Display student's floor -->
+                    <td>${entry.modifiedBy || 'N/A'}</td> <!-- Display modifiedBy -->
                 `;
                 responseTable.appendChild(row);
             });
@@ -1628,19 +2220,656 @@ function refreshRankings() {
                         ];
                     })
             ];
-            
+
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, 'Gurukul_Points_Rankings.xlsx');
             XLSX.writeFile(wb, 'Gurukul_Points_Rankings.xlsx');
         }
 
+        // Student Management Functions
+        async function addStudent(event) {
+            event.preventDefault();
+            const addStudentMessage = document.getElementById('addStudentMessage');
+
+            const newStudent = {
+                id: document.getElementById('newStudentId').value.trim(),
+                name: document.getElementById('newStudentName').value.trim(),
+                room: document.getElementById('newStudentRoom').value.trim(),
+                floor: document.getElementById('newStudentFloor').value.trim(),
+                class: document.getElementById('newStudentClass').value.trim(),
+                section: document.getElementById('newStudentSection').value.trim(),
+                points: 0, // New students start with 0 points
+                active: true // New students are active by default
+            };
+
+            if (!newStudent.id || !newStudent.name || !newStudent.room || !newStudent.floor) {
+                addStudentMessage.className = 'mt-3 alert alert-danger';
+                addStudentMessage.textContent = 'Please fill in all required fields (ID, Name, Room, Floor).';
+                addStudentMessage.style.display = 'block';
+                return;
+            }
+
+            // Check for duplicate ID
+            if (students.some(s => s.id === newStudent.id)) {
+                addStudentMessage.className = 'mt-3 alert alert-danger';
+                addStudentMessage.textContent = `Student with ID ${newStudent.id} already exists.`;
+                addStudentMessage.style.display = 'block';
+                return;
+            }
+
+            students.push(newStudent);
+            try {
+                await saveStudentsToFirebase(students);
+                addStudentMessage.className = 'mt-3 alert alert-success';
+                addStudentMessage.textContent = `Student ${newStudent.name} added successfully!`;
+                addStudentMessage.style.display = 'block';
+                document.getElementById('addStudentForm').reset();
+                renderStudentManagementTable(); // Refresh the table
+                document.getElementById('totalStudents').textContent = students.length; // Update quick stats
+                document.getElementById('activeStudents').textContent = students.filter(s => s.active).length;
+            } catch (error) {
+                addStudentMessage.className = 'mt-3 alert alert-danger';
+                addStudentMessage.textContent = 'Error adding student. Please try again.';
+                addStudentMessage.style.display = 'block';
+                console.error("Error adding student:", error);
+            } finally {
+                setTimeout(() => addStudentMessage.style.display = 'none', 3000);
+            }
+        }
+
+        async function deleteStudent(studentId) {
+            const initialLength = students.length;
+            students = students.filter(s => s.id !== studentId);
+            if (students.length < initialLength) {
+                try {
+                    await saveStudentsToFirebase(students);
+                    alert(`Student ${studentId} deleted successfully.`);
+                    renderStudentManagementTable(); // Refresh the table
+                    refreshRankings(); // Refresh rankings as a student might be removed
+                    document.getElementById('totalStudents').textContent = students.length; // Update quick stats
+                    document.getElementById('activeStudents').textContent = students.filter(s => s.active).length;
+                } catch (error) {
+                    alert('Error deleting student. Please try again.');
+                    console.error("Error deleting student:", error);
+                }
+            }
+        }
+
+        async function updateStudentDetails(studentId, field, newValue) {
+            const studentIndex = students.findIndex(s => s.id === studentId);
+            if (studentIndex > -1) {
+                students[studentIndex][field] = newValue;
+                try {
+                    await saveStudentsToFirebase(students);
+                    // No alert here, as it's inline editing, just re-render if needed
+                    // renderStudentManagementTable(); // Re-render might be too aggressive for inline edit
+                    refreshRankings(); // Update rankings if room/floor changed
+                } catch (error) {
+                    alert(`Error updating ${field}. Please try again.`);
+                    console.error(`Error updating student ${field}:`, error);
+                }
+            }
+        }
+
+        let currentPage = 1;
+        const rowsPerPage = 10; // Number of students per page
+        const maxPageButtons = 5; // Maximum number of page buttons to display (excluding First/Last/Prev/Next)
+
+        function renderStudentManagementTable() {
+            const tableBody = document.getElementById('studentManagementTable');
+            const paginationContainer = document.getElementById('studentManagementPagination');
+            const searchQuery = document.getElementById('searchQueryStudentManagement').value.toLowerCase().trim();
+
+            let filteredStudents = students.filter(student => {
+                const name = student.name ? student.name.toLowerCase() : '';
+                const id = student.id ? student.id.toLowerCase() : '';
+                const room = student.room ? student.room.toLowerCase() : '';
+                const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+                const studentClass = student.class ? student.class.toLowerCase() : '';
+                const section = student.section ? student.section.toLowerCase() : '';
+
+                return name.includes(searchQuery) ||
+                       id.includes(searchQuery) ||
+                       room.includes(searchQuery) ||
+                       floor.includes(searchQuery) ||
+                       studentClass.includes(query) ||
+                       section.includes(query);
+            });
+
+            // Sort students alphabetically by name for consistent display
+         
+              
+   
+         
+            const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+            currentPage = Math.min(currentPage, totalPages > 0 ? totalPages : 1); // Adjust current page if it exceeds new total pages
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const studentsToDisplay = filteredStudents.slice(startIndex, endIndex);
+
+            tableBody.innerHTML = '';
+            if (studentsToDisplay.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No students found.</td></tr>';
+            } else {
+                studentsToDisplay.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.dataset.id = student.id; // Store student ID on the row
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td class="editable-cell" data-field="name">${student.name}</td>
+                        <td class="editable-cell" data-field="room">${student.room}</td>
+                        <td class="editable-cell" data-field="floor">${student.floor}</td>
+                        <td class="editable-cell" data-field="class">${student.class || ''}</td>
+                        <td class="editable-cell" data-field="section">${student.section || ''}</td>
+                        <td>${student.points}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm delete-student-btn" data-id="${student.id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Render pagination controls
+            paginationContainer.innerHTML = '';
+            if (totalPages > 1) {
+                // First Page button
+                let li = document.createElement('li');
+                li.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="First"><span aria-hidden="true">&laquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage !== 1) {
+                        currentPage = 1;
+                        renderStudentManagementTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                // Previous Page button
+                li = document.createElement('li');
+                li.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&lsaquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderStudentManagementTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                // Page numbers with ellipses
+                let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+                if (endPage - startPage + 1 < maxPageButtons) {
+                    startPage = Math.max(1, endPage - maxPageButtons + 1);
+                }
+
+                if (startPage > 1) {
+                    li = document.createElement('li');
+                    li.className = `page-item disabled`;
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentPage = i;
+                        renderStudentManagementTable();
+                    });
+                    paginationContainer.appendChild(li);
+                }
+
+                if (endPage < totalPages) {
+                    li = document.createElement('li');
+                    li.className = `page-item disabled`;
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+
+                // Next Page button
+                li = document.createElement('li');
+                li.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&rsaquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderStudentManagementTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                // Last Page button
+                li = document.createElement('li');
+                li.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Last"><span aria-hidden="true">&raquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (currentPage !== totalPages) {
+                        currentPage = totalPages;
+                        renderStudentManagementTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+            }
+        }
+
+        // Batch Discipline Tab Logic
+        let batchDisciplineCurrentPage = 1;
+        const batchDisciplineRowsPerPage = 10;
+
+        function renderBatchDisciplineTable() {
+            const tableBody = document.getElementById('batchDisciplineTable');
+            const paginationContainer = document.getElementById('batchDisciplinePagination');
+            const searchQuery = document.getElementById('searchQueryBatchDiscipline').value.toLowerCase().trim();
+            const floorFilter = document.getElementById('batchDisciplineFloorFilter').value;
+            const classFilter = document.getElementById('batchDisciplineClassFilter').value.toLowerCase().trim();
+            const sectionFilter = document.getElementById('batchDisciplineSectionFilter').value.toLowerCase().trim();
+
+            let filteredStudents = students.filter(student => {
+                const name = student.name ? student.name.toLowerCase() : '';
+                const id = student.id ? student.id.toLowerCase() : '';
+                const room = student.room ? student.room.toLowerCase() : '';
+                const floor = student.floor ? student.floor.toString().toLowerCase() : '';
+                const studentClass = student.class ? student.class.toLowerCase() : '';
+                const section = student.section ? student.section.toLowerCase() : '';
+
+                const matchesSearch = name.includes(searchQuery) ||
+                                      id.includes(searchQuery) ||
+                                      room.includes(searchQuery) ||
+                                      floor.includes(searchQuery) ||
+                                      studentClass.includes(searchQuery) ||
+                                      section.includes(searchQuery);
+
+                const matchesFloor = floorFilter === 'all' || floor === floorFilter;
+                const matchesClass = !classFilter || studentClass.includes(classFilter);
+                const matchesSection = !sectionFilter || section.includes(sectionFilter);
+
+                return matchesSearch && matchesFloor && matchesClass && matchesSection;
+            });
+
+            filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+
+            const totalPages = Math.ceil(filteredStudents.length / batchDisciplineRowsPerPage);
+            batchDisciplineCurrentPage = Math.min(batchDisciplineCurrentPage, totalPages > 0 ? totalPages : 1);
+
+            const startIndex = (batchDisciplineCurrentPage - 1) * batchDisciplineRowsPerPage;
+            const endIndex = startIndex + batchDisciplineRowsPerPage;
+            const studentsToDisplay = filteredStudents.slice(startIndex, endIndex);
+
+            tableBody.innerHTML = '';
+            if (studentsToDisplay.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No students found matching your criteria.</td></tr>';
+            } else {
+                studentsToDisplay.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.dataset.id = student.id;
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.room}</td>
+                        <td>${student.floor}</td>
+                        <td>${student.class || ''}</td>
+                        <td>${student.section || ''}</td>
+                        <td>${student.points}</td>
+                        <td>
+                            <div class="star-rating" data-student-id="${student.id}">
+                                ${Array.from({ length: 10 }, (_, i) => {
+                                    const starValue = 10 - i;
+                                    return `<input type="radio" id="batch-star-${student.id}-${starValue}" name="batch-rating-${student.id}" value="${starValue}" />
+                                            <label for="batch-star-${student.id}-${starValue}" title="${starValue} stars">&#9733;</label>`;
+                                }).join('')}
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    // Set the previously selected rating if available
+                    const savedRating = student.batchDisciplineRating; // Assuming you might store this
+                    if (savedRating) {
+                        const radio = document.getElementById(`batch-star-${student.id}-${savedRating}`);
+                        if (radio) radio.checked = true;
+                    }
+                });
+            }
+
+            // Render pagination for batch discipline table
+            paginationContainer.innerHTML = '';
+            if (totalPages > 1) {
+                let li = document.createElement('li');
+                li.className = `page-item ${batchDisciplineCurrentPage === 1 ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="First"><span aria-hidden="true">&laquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (batchDisciplineCurrentPage !== 1) {
+                        batchDisciplineCurrentPage = 1;
+                        renderBatchDisciplineTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                li = document.createElement('li');
+                li.className = `page-item ${batchDisciplineCurrentPage === 1 ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&lsaquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (batchDisciplineCurrentPage > 1) {
+                        batchDisciplineCurrentPage--;
+                        renderBatchDisciplineTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                let startPage = Math.max(1, batchDisciplineCurrentPage - Math.floor(maxPageButtons / 2));
+                let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+                if (endPage - startPage + 1 < maxPageButtons) {
+                    startPage = Math.max(1, endPage - maxPageButtons + 1);
+                }
+
+                if (startPage > 1) {
+                    li = document.createElement('li');
+                    li.className = `page-item disabled`;
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    li = document.createElement('li');
+                    li.className = `page-item ${i === batchDisciplineCurrentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        batchDisciplineCurrentPage = i;
+                        renderBatchDisciplineTable();
+                    });
+                    paginationContainer.appendChild(li);
+                }
+
+                if (endPage < totalPages) {
+                    li = document.createElement('li');
+                    li.className = `page-item disabled`;
+                    li.innerHTML = `<a class="page-link" href="#">...</a>`;
+                    paginationContainer.appendChild(li);
+                }
+
+                li = document.createElement('li');
+                li.className = `page-item ${batchDisciplineCurrentPage === totalPages ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&rsaquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (batchDisciplineCurrentPage < totalPages) {
+                        batchDisciplineCurrentPage++;
+                        renderBatchDisciplineTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+
+                li = document.createElement('li');
+                li.className = `page-item ${batchDisciplineCurrentPage === totalPages ? 'disabled' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Last"><span aria-hidden="true">&raquo;</span></a>`;
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (batchDisciplineCurrentPage !== totalPages) {
+                        batchDisciplineCurrentPage = totalPages;
+                        renderBatchDisciplineTable();
+                    }
+                });
+                paginationContainer.appendChild(li);
+            }
+        }
+
+        async function saveBatchDisciplineRatings() {
+            const batchDisciplineUpdateMessage = document.getElementById('batchDisciplineUpdateMessage');
+            const updatedStudents = [];
+            const newHistoryEntries = [];
+            const now = new Date();
+            const date = now.toLocaleDateString('en-GB');
+            const time = now.toLocaleTimeString('en-GB');
+
+            // Get all rows in the current view of the table
+            const tableRows = document.querySelectorAll('#batchDisciplineTable tr');
+
+            tableRows.forEach(row => {
+                const studentId = row.dataset.id;
+                const student = students.find(s => s.id === studentId);
+                if (!student) return;
+
+                const selectedRatingInput = row.querySelector(`input[name="batch-rating-${studentId}"]:checked`);
+                const newRating = selectedRatingInput ? parseInt(selectedRatingInput.value) : null;
+
+                // Only process if a new rating is selected and it's different from a potential previous one
+                // Or if it's a new rating being applied
+                if (newRating !== null) {
+                    const pointsAwarded = newRating * 3;
+                    const actionText = `Batch Discipline Review (${newRating} stars)`;
+
+                    // Check if this student's points have already been updated in this batch operation
+                    // or if the rating is genuinely new/changed
+                    const existingUpdate = updatedStudents.find(s => s.id === studentId);
+                    if (!existingUpdate) {
+                        // Create a temporary student object to track changes for this batch
+                        const tempStudent = { ...student };
+                        tempStudent.points += pointsAwarded;
+                        updatedStudents.push(tempStudent);
+
+                        newHistoryEntries.unshift({
+                            date,
+                            time,
+                            studentId,
+                            name: student.name,
+                            action: actionText,
+                            pointsChanged: pointsAwarded
+                        });
+                    }
+                }
+            });
+
+            if (updatedStudents.length === 0) {
+                batchDisciplineUpdateMessage.classList.remove('alert-success');
+                batchDisciplineUpdateMessage.classList.add('alert-info');
+                batchDisciplineUpdateMessage.textContent = 'No new discipline ratings selected or changed.';
+                batchDisciplineUpdateMessage.style.display = 'block';
+                setTimeout(() => batchDisciplineUpdateMessage.style.display = 'none', 3000);
+                return;
+            }
+
+            try {
+                // Apply changes to the main students array
+                updatedStudents.forEach(updatedStudent => {
+                    const index = students.findIndex(s => s.id === updatedStudent.id);
+                    if (index > -1) {
+                        students[index].points = updatedStudent.points;
+                        // Optionally, save the last assigned rating to the student object
+                        // students[index].batchDisciplineRating = updatedStudent.batchDisciplineRating;
+                    }
+                });
+
+                // Add new history entries
+                responseHistory = [...newHistoryEntries, ...responseHistory];
+
+                await Promise.all([
+                    saveStudentsToFirebase(students),
+                    saveHistoryToFirebase(responseHistory)
+                ]);
+
+                batchDisciplineUpdateMessage.classList.remove('alert-danger', 'alert-info');
+                batchDisciplineUpdateMessage.classList.add('alert-success');
+                batchDisciplineUpdateMessage.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Successfully updated discipline ratings for ${updatedStudents.length} student(s).
+                `;
+                batchDisciplineUpdateMessage.style.display = 'block';
+                setTimeout(() => batchDisciplineUpdateMessage.style.display = 'none', 5000);
+
+                // Re-render tables to reflect changes
+                renderBatchDisciplineTable();
+                refreshRankings();
+                refreshResponses();
+            } catch (error) {
+                console.error("Error saving batch discipline ratings:", error);
+                batchDisciplineUpdateMessage.classList.remove('alert-success', 'alert-info');
+                batchDisciplineUpdateMessage.classList.add('alert-danger');
+                batchDisciplineUpdateMessage.textContent = 'Error saving batch discipline ratings. Please try again.';
+                batchDisciplineUpdateMessage.style.display = 'block';
+                setTimeout(() => batchDisciplineUpdateMessage.style.display = 'none', 5000);
+            }
+        }
+
+        // NEW: Rank Changer Functions
+        function openRankChangeModal(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
+                alert('Student not found!');
+                return;
+            }
+
+            document.getElementById('rankChangeStudentId').value = student.id;
+            document.getElementById('rankChangeStudentName').value = student.name;
+            document.getElementById('rankChangeCurrentPoints').value = student.points;
+            document.getElementById('rankChangeCurrentGrade').value = student.assignedGrade || 'N/A'; // Display current grade
+
+            // Clear previous messages
+            const rankChangerMessage = document.getElementById('rankChangerMessage');
+            rankChangerMessage.style.display = 'none';
+            rankChangerMessage.textContent = '';
+
+            rankChangerModal.show();
+        }
+
+        async function submitRankChange(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('rankChangeStudentId').value;
+            const newDesiredRank = parseInt(document.getElementById('newRankInput').value);
+            const adminModifier = document.getElementById('rankChangeAdminSelector').value;
+            const rankChangerMessage = document.getElementById('rankChangerMessage');
+
+            if (isNaN(newDesiredRank) || newDesiredRank < 1) {
+                rankChangerMessage.className = 'mt-3 alert alert-danger';
+                rankChangerMessage.textContent = 'Please enter a valid positive rank.';
+                rankChangerMessage.style.display = 'block';
+                return;
+            }
+
+            if (!adminModifier) {
+                rankChangerMessage.className = 'mt-3 alert alert-danger';
+                rankChangerMessage.textContent = 'Please select who is modifying the rank.';
+                rankChangerMessage.style.display = 'block';
+                return;
+            }
+
+            const studentToUpdate = students.find(s => s.id === studentId);
+            if (!studentToUpdate) {
+                rankChangerMessage.className = 'mt-3 alert alert-danger';
+                rankChangerMessage.textContent = 'Student not found.';
+                rankChangerMessage.style.display = 'block';
+                return;
+            }
+
+            const oldPoints = studentToUpdate.points;
+            const oldRank = getStudentRank(studentToUpdate); // Helper to get current rank
+
+            // Get all students on the same floor with positive points
+            const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
+            floorStudents.sort((a, b) => b.points - a.points); // Sort by points descending
+
+            let targetPoints = 0;
+            if (newDesiredRank <= floorStudents.length) {
+                // If the desired rank is within the current number of students on the floor
+                targetPoints = floorStudents[newDesiredRank - 1].points;
+                // If the target rank is the same as the student's current rank, no change needed
+                if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
+                    rankChangerMessage.className = 'mt-3 alert alert-info';
+                    rankChangerMessage.textContent = `Student is already at rank ${newDesiredRank} on their floor. No change needed.`;
+                    rankChangerMessage.style.display = 'block';
+                    return;
+                }
+            } else {
+                // If desired rank is higher than current number of students on floor,
+                // set points to be just below the last student's points (or a default if no students)
+                targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
+                // Ensure targetPoints doesn't go below 0 if we're trying to rank a positive student
+                targetPoints = Math.max(0, targetPoints);
+            }
+
+            const pointsAdjustment = targetPoints - oldPoints;
+
+            studentToUpdate.points += pointsAdjustment;
+
+            const now = new Date();
+            const date = now.toLocaleDateString('en-GB');
+            const time = now.toLocaleTimeString('en-GB');
+
+            responseHistory.unshift({
+                date,
+                time,
+                studentId: studentToUpdate.id,
+                name: studentToUpdate.name,
+                action: `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`,
+                pointsChanged: pointsAdjustment,
+                oldPoints: oldPoints,
+                newPoints: studentToUpdate.points,
+                modifiedBy: adminModifier
+            });
+
+            try {
+                await Promise.all([
+                    saveStudentsToFirebase(students),
+                    saveHistoryToFirebase(responseHistory)
+                ]);
+
+                rankChangerMessage.classList.remove('alert-danger', 'alert-info');
+                rankChangerMessage.classList.add('alert-success');
+                rankChangerMessage.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Rank changed for ${studentToUpdate.name}.
+                    Points adjusted by ${pointsAdjustment > 0 ? '+' : ''}${pointsAdjustment}.
+                `;
+                rankChangerMessage.style.display = 'block';
+                setTimeout(() => {
+                    rankChangerModal.hide();
+                    refreshRankings();
+                    refreshResponses();
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error changing rank:", error);
+                rankChangerMessage.classList.remove('alert-success', 'alert-info');
+                rankChangerMessage.classList.add('alert-danger');
+                rankChangerMessage.textContent = 'Error changing rank. Please try again.';
+                rankChangerMessage.style.display = 'block';
+            }
+        }
+
+        // Helper function to get a student's current rank within their floor
+        function getStudentRank(student) {
+            const floorStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
+            floorStudents.sort((a, b) => b.points - a.points);
+            const rankIndex = floorStudents.findIndex(s => s.id === student.id);
+            return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
+        }
+
+
         // Check user role and modify UI
         function checkUserRole() {
           const role = localStorage.getItem("userRole");
-          if (role === "incharge") {
-            // Hide admin-only tabs for incharge
+          if (role === "incharge" || role === "teacher") {
+            // Hide admin-only tabs for incharge/teacher
             document.getElementById("rankings-tab").style.display = "none";
             document.getElementById("responses-tab").style.display = "none";
+            document.getElementById("student-management-tab").style.display = "none"; // Hide for incharge/teacher
+            
+            // Show discipline related tabs
+            document.getElementById("discipline-review-tab").style.display = "";
+            document.getElementById("batch-discipline-tab").style.display = "";
           }
         }
 
@@ -1651,7 +2880,7 @@ function refreshRankings() {
         });
     </script>
 <!-- Simple Login Modal -->
-<div aria-hidden="true" aria-labelledby="loginModalLabel" class="modal fade" id="loginModal" tabindex="-1">
+<div aria-hidden="true" aria-labelledby="loginModalLabel" class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
 <div class="modal-dialog">
 <div class="modal-content">
 <div class="modal-header">
@@ -1673,6 +2902,7 @@ function refreshRankings() {
   <option value="">Select user type</option>
   <option value="admin">Admin</option>
   <option value="incharge">Incharge</option>
+  <option value="teacher">Teacher</option>
 </select>
 </div>
 <button class="btn btn-primary w-100" type="submit">Login</button>
@@ -1684,8 +2914,9 @@ function refreshRankings() {
 </div>
 <script>
       const validUsers = {
-        admin: { password: "gurukul123", role: "admin" },
-        incharge: { password: "gurukul", role: "incharge" }
+        admin: { password: "gurukul", role: "admin" },
+        incharge: { password: "gurukul", role: "incharge" },
+        teacher: { password: "gurukul", role: "teacher" }
       };
 
       document.getElementById("loginForm").addEventListener("submit", function(event) {
@@ -1693,8 +2924,8 @@ function refreshRankings() {
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
         const userType = document.getElementById("userType").value;
-        
-        if (userType && validUsers[userType] && 
+
+        if (userType && validUsers[userType] &&
             password === validUsers[userType].password) {
           localStorage.setItem("authenticated", "true");
           localStorage.setItem("userRole", userType);
@@ -1706,14 +2937,11 @@ function refreshRankings() {
 
       window.onload = function () {
         if (!localStorage.getItem("authenticated")) {
-          const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), {
-            backdrop: 'static', // Prevents closing when clicking outside
-            keyboard: false     // Prevents closing with the escape key
-          });
+          const loginModal = new bootstrap.Modal(document.getElementById("loginModal"));
           loginModal.show();
         }
       };
-    
+
 </script>
 
 </body>
