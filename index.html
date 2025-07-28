@@ -840,10 +840,17 @@
 <option value="3">Maintaining Books (+3)</option>
 <option value="3">Good Dress Code (+3)</option>
 <option value="exam">According to percentage (exam)</option>
+<option value="custom">Custom Points</option>
 </select>
 <div class="exam-input" id="examPercentage">
 <label class="form-label" for="percentageInput">Enter Exam Percentage (e.g., 85)</label>
 <input class="form-control" id="percentageInput" max="100" min="0" placeholder="e.g., 85" type="number" title="Enter the student's exam percentage (0-100)."/>
+</div>
+<div class="exam-input" id="customPositiveInput" style="display: none;">
+    <label class="form-label" for="customPositivePoints">Enter Custom Positive Points</label>
+    <input class="form-control mb-2" id="customPositivePoints" type="number" min="1" placeholder="e.g., 25" title="Enter custom positive points."/>
+    <label class="form-label" for="customPositiveReason">Reason for Positive Points</label>
+    <textarea class="form-control" id="customPositiveReason" rows="2" placeholder="e.g., Excellent performance in debate competition" title="Provide a reason for the custom positive points."></textarea>
 </div>
 </div>
 </div>
@@ -870,7 +877,14 @@
 <option value="-20">Damaging gurukul properties (-20)</option>
 <option value="-3">No pooja equipment (-3)</option>
 <option value="-3">No cupboard cleaning (-3)</option>
+<option value="custom">Custom Points</option>
 </select>
+<div class="exam-input" id="customNegativeInput" style="display: none;">
+    <label class="form-label" for="customNegativePoints">Enter Custom Negative Points</label>
+    <input class="form-control mb-2" id="customNegativePoints" type="number" max="-1" placeholder="e.g., -15" title="Enter custom negative points."/>
+    <label class="form-label" for="customNegativeReason">Reason for Negative Points</label>
+    <textarea class="form-control" id="customNegativeReason" rows="2" placeholder="e.g., Repeatedly late for class" title="Provide a reason for the custom negative points."></textarea>
+</div>
 </div>
 </div>
 </div>
@@ -2012,6 +2026,14 @@ function loadStudentsFromFirebase() {
             // Positive action dropdown
             document.getElementById('positiveAction').addEventListener('change', function() {
                 document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
+                // NEW: Handle custom positive input visibility
+                document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+
+            // Add a new event listener for the negative action dropdown
+            document.querySelector('[name="negativeAction"]').addEventListener('change', function() {
+                // NEW: Handle custom negative input visibility
+                document.getElementById('customNegativeInput').style.display = this.value === 'custom' ? 'block' : 'none';
             });
 
             // Points form submission
@@ -2061,13 +2083,45 @@ function loadStudentsFromFirebase() {
                         }
                         points = percentage >= 90 ? 20 : percentage >= 80 ? 15 : percentage >= 70 ? 10 : 5;
                         actionText = `Exam Percentage (${percentage}%)`;
+                    } else if (positiveActionSelect.value === 'custom') { // NEW: Handle custom positive points
+                        const customPoints = parseInt(document.getElementById('customPositivePoints').value);
+                        const customReason = document.getElementById('customPositiveReason').value.trim();
+                        if (isNaN(customPoints) || customPoints <= 0) {
+                            displayUpdateMessage('updateMessage', 'Please enter a valid positive custom point value.', 'danger');
+                            updatePointsButton.disabled = false;
+                            return;
+                        }
+                        if (!customReason) {
+                            displayUpdateMessage('updateMessage', 'Please provide a reason for custom positive points.', 'danger');
+                            updatePointsButton.disabled = false;
+                            return;
+                        }
+                        points = customPoints;
+                        actionText = `Custom Positive: ${customReason} (+${customPoints})`;
                     } else {
                         points = parseInt(positiveActionSelect.value);
                         actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
                     }
                 } else if (negativeActionSelect.value) {
-                    points = parseInt(negativeActionSelect.value);
-                    actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
+                    if (negativeActionSelect.value === 'custom') { // NEW: Handle custom negative points
+                        const customPoints = parseInt(document.getElementById('customNegativePoints').value);
+                        const customReason = document.getElementById('customNegativeReason').value.trim();
+                        if (isNaN(customPoints) || customPoints >= 0) { // Negative points should be 0 or less
+                            displayUpdateMessage('updateMessage', 'Please enter a valid negative custom point value (e.g., -15).', 'danger');
+                            updatePointsButton.disabled = false;
+                            return;
+                        }
+                        if (!customReason) {
+                            displayUpdateMessage('updateMessage', 'Please provide a reason for custom negative points.', 'danger');
+                            updatePointsButton.disabled = false;
+                            return;
+                        }
+                        points = customPoints;
+                        actionText = `Custom Negative: ${customReason} (${customPoints})`;
+                    } else {
+                        points = parseInt(negativeActionSelect.value);
+                        actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
+                    }
                 } else {
                     displayUpdateMessage('updateMessage', 'Please select an action.', 'danger');
                     updatePointsButton.disabled = false; // Re-enable on validation fail
@@ -2107,6 +2161,9 @@ function loadStudentsFromFirebase() {
 
                     document.getElementById('pointsForm').reset();
                     document.getElementById('examPercentage').style.display = 'none';
+                    // NEW: Hide custom input fields after reset
+                    document.getElementById('customPositiveInput').style.display = 'none';
+                    document.getElementById('customNegativeInput').style.display = 'none';
                     document.getElementById('searchResultsPoints').innerHTML = '';
                     document.getElementById('searchQueryPoints').value = '';
                     refreshRankings();
