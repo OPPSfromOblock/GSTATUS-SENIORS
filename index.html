@@ -155,6 +155,18 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Toned down shadow */
     }
 
+    /* Specific override for history tab card to prevent "pop out" */
+    .tab-pane#responses .card:hover {
+        transform: none; /* Remove any transform on hover */
+        box-shadow: var(--card-shadow); /* Keep the default shadow, no extra pop */
+    }
+
+    /* If the filter-container itself has a hover effect, you might need to override that too */
+    .filter-container:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
     .card-header {
         background-color: var(--primary-color);
         color: white;
@@ -1171,63 +1183,62 @@
 </div></div>
 <!-- Responses Tab -->
 <div class="tab-pane fade" id="responses" role="tabpanel">
-<h3 class="mb-4"><i class="fas fa-history"></i> Points History</h3>
-                
-                <div class="filter-container">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="historyFloorFilter" class="form-label">Filter by Floor:</label>
-                            <select id="historyFloorFilter" class="form-select" title="Filter history records by student's floor.">
-                                <option value="all">All Floors</option>
-                                <option value="1">1st Floor</option>
-                                <option value="2">2nd Floor</option>
-                                <option value="3">3rd Floor</option>
-                                <option value="4">4th Floor</option>
-                                <option value="5">5th Floor</option>
-                                <option value="6">6th Floor</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="dateFilter" class="form-label">Filter by Date:</label>
-                            <input type="date" class="form-control" id="dateFilter" title="Filter history records by a specific date.">
-                        </div>
-                    </div>
-                    <button id="applyHistoryFilters" class="btn btn-primary" title="Apply the selected floor and date filters to the history.">Apply Filters</button>
-                    <button id="resetHistoryFilters" class="btn btn-secondary ms-2" title="Clear all history filters and show all records.">Reset Filters</button>
+    <h3 class="mb-4"><i class="fas fa-history"></i> Points History</h3>
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-md-6">
+                    <i class="fas fa-list"></i> Recent Activity
                 </div>
-<div class="card mb-4">
-<div class="card-header">
-<div class="row">
-<div class="col-md-6">
-<i class="fas fa-list"></i> Recent Activity
-                            </div>
-</div>
-</div>
-<div class="card-body">
-<div class="search-container">
-<input class="form-control" id="searchQueryHistory" placeholder="Search history by Student Name, ID, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Search for specific history records."/>
-<i class="fas fa-search search-icon"></i>
-</div>
-<div class="filter-display-container" id="historyFilterDisplay"></div>
-<div class="table-responsive table-responsive-stack">
-<table class="table table-hover">
-<thead class="table-secondary">
-<tr>
-<th><i class="fas fa-calendar-alt"></i> Date</th>
-<th><i class="fas fa-clock"></i> Time</th>
-<th><i class="fas fa-id-card"></i> Student ID</th>
-<th><i class="fas fa-user"></i> Name</th>
-<th><i class="fas fa-hand-point-right"></i> Action</th>
-<th><i class="fas fa-coins"></i> Points Changed</th>
-<th><i class="fas fa-building"></i> Floor</th>
-<th><i class="fas fa-user-tie"></i> Modified By</th>
-</tr>
-</thead>
-<tbody id="responseTable"></tbody>
-</table>
-</div>
-</div>
-</div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="filter-container">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="historyFloorFilter" class="form-label">Filter by Floor:</label>
+                        <select id="historyFloorFilter" class="form-select" title="Filter history records by student's floor.">
+                            <option value="all">All Floors</option>
+                            <option value="1">1st Floor</option>
+                            <option value="2">2nd Floor</option>
+                            <option value="3">3rd Floor</option>
+                            <option value="4">4th Floor</option>
+                            <option value="5">5th Floor</option>
+                            <option value="6">6th Floor</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="dateFilter" class="form-label">Filter by Date:</label>
+                        <input type="date" class="form-control" id="dateFilter" title="Filter history records by a specific date.">
+                    </div>
+                </div>
+                <button id="applyHistoryFilters" class="btn btn-primary" title="Apply the selected floor and date filters to the history.">Apply Filters</button>
+                <button id="resetHistoryFilters" class="btn btn-secondary ms-2" title="Clear all history filters and show all records.">Reset Filters</button>
+            </div>
+            <div class="search-container">
+                <input class="form-control" id="searchQueryHistory" placeholder="Search history by Student Name, ID, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Search for specific history records."/>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="filter-display-container" id="historyFilterDisplay"></div>
+            <div class="table-responsive table-responsive-stack">
+                <table class="table table-hover">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th><i class="fas fa-calendar-alt"></i> Date</th>
+                            <th><i class="fas fa-clock"></i> Time</th>
+                            <th><i class="fas fa-id-card"></i> Student ID</th>
+                            <th><i class="fas fa-user"></i> Name</th>
+                            <th><i class="fas fa-hand-point-right"></i> Action</th>
+                            <th><i class="fas fa-coins"></i> Points Changed</th>
+                            <th><i class="fas fa-building"></i> Floor</th>
+                            <th><i class="fas fa-user-tie"></i> Modified By</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responseTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Student Management Tab -->
@@ -2083,7 +2094,7 @@ function loadStudentsFromFirebase() {
                         }
                         points = percentage >= 90 ? 20 : percentage >= 80 ? 15 : percentage >= 70 ? 10 : 5;
                         actionText = `Exam Percentage (${percentage}%)`;
-                    } else if (positiveActionSelect.value === 'custom') { // NEW: Handle custom positive points
+                    } else if (positiveActionSelect.value === 'custom') { // NEW: Handle custom positive input
                         const customPoints = parseInt(document.getElementById('customPositivePoints').value);
                         const customReason = document.getElementById('customPositiveReason').value.trim();
                         if (isNaN(customPoints) || customPoints <= 0) {
@@ -2103,7 +2114,7 @@ function loadStudentsFromFirebase() {
                         actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
                     }
                 } else if (negativeActionSelect.value) {
-                    if (negativeActionSelect.value === 'custom') { // NEW: Handle custom negative points
+                    if (negativeActionSelect.value === 'custom') { // NEW: Handle custom negative input
                         const customPoints = parseInt(document.getElementById('customNegativePoints').value);
                         const customReason = document.getElementById('customNegativeReason').value.trim();
                         if (isNaN(customPoints) || customPoints >= 0) { // Negative points should be 0 or less
@@ -2628,7 +2639,7 @@ function refreshRankings() {
             const room = student.room ? student.room.toLowerCase() : '';
             const floor = student.floor ? student.floor.toString().toLowerCase() : '';
             const studentClass = student.class ? student.class.toLowerCase() : '';
-            const section = student.section ? student.section.toLowerCase() : '';
+            const section = student ? student.section.toLowerCase() : '';
 
             let matchesSearch = false;
             if (name.includes(searchQueryRankings) || id.includes(searchQueryRankings) || room.includes(searchQueryRankings) || floor.includes(searchQueryRankings)) {
@@ -3634,6 +3645,14 @@ function refreshRankings() {
           document.getElementById("batch-discipline-tab").style.display = "none";
           document.getElementById("individual-data-tab").style.display = "none";
 
+          // Get the positive action section
+          const positiveActionSection = document.querySelector('#administration .action-section:first-child');
+
+          // Hide positive action section by default for all non-admin roles
+          if (positiveActionSection) {
+              positiveActionSection.style.display = 'none';
+          }
+
 
           if (role === "admin") {
             // Admin sees all tabs
@@ -3644,6 +3663,10 @@ function refreshRankings() {
             document.getElementById("batch-discipline-tab").style.display = "";
             document.getElementById("individual-data-tab").style.display = "";
             document.getElementById("administration-tab").style.display = ""; // Admin also needs administration
+            // Admin can see positive points
+            if (positiveActionSection) {
+                positiveActionSection.style.display = 'block';
+            }
           } else if (role === "incharge" || role === "teacher") {
             // Incharge/Teacher sees specific tabs
             document.getElementById("administration-tab").style.display = "";
@@ -3651,7 +3674,13 @@ function refreshRankings() {
             document.getElementById("batch-discipline-tab").style.display = "";
             document.getElementById("individual-data-tab").style.display = "";
             // Grant access to Student Management tab for teachers and incharges
-            document.getElementById("student-management-tab").style.display = ""; 
+            document.getElementById("student-management-tab").style.display = "";
+
+            // For 'incharge' role, show positive points
+            if (role === "incharge" && positiveActionSection) {
+                positiveActionSection.style.display = 'block';
+            }
+            // For 'teacher' role, positiveActionSection remains hidden as per default setting above
           }
         }
 
