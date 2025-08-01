@@ -3623,7 +3623,7 @@
                 const section = student.section ? student.section.toLowerCase() : '';
 
                 let matchesSearch = false;
-                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
+                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(query) || floor.includes(query)) {
                     matchesSearch = true;
                 }
 
@@ -4421,10 +4421,10 @@
 
 
             } else if (role === "incharge") {
-                // In-charge has access to all tabs except Student Management
+                // In-charge has access to all tabs except Student Management and History
                 const allowedTabs = [
                     "home-tab", "administration-tab", "discipline-review-tab", "batch-discipline-tab",
-                    "responses-tab", "rankings-tab", "individual-data-tab", "help-desk-tab"
+                    "rankings-tab", "individual-data-tab", "help-desk-tab"
                 ];
                 allowedTabs.forEach(tabId => {
                     const tabElement = document.getElementById(tabId);
@@ -4439,15 +4439,17 @@
                 if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
                 if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
 
-                // Student Management is hidden for incharge
+                // Student Management and History are hidden for incharge
                 const studentManagementTab = document.getElementById('student-management-tab');
                 if (studentManagementTab) studentManagementTab.style.display = 'none';
+                const responsesTab = document.getElementById('responses-tab');
+                if (responsesTab) responsesTab.style.display = 'none';
 
             } else if (role === "teacher") {
                 // Teacher has access to specific tabs and only negative points
                 const allowedTabs = [
                     "home-tab", "administration-tab", "discipline-review-tab", "batch-discipline-tab",
-                    "responses-tab", "help-desk-tab"
+                    "help-desk-tab"
                 ];
                 allowedTabs.forEach(tabId => {
                     const tabElement = document.getElementById(tabId);
@@ -4462,9 +4464,15 @@
                     negativePointsSectionContainer.classList.remove('col-md-6'); // Remove half width
                     negativePointsSectionContainer.classList.add('col-md-6', 'offset-md-3'); // Center it
                 }
-                // Student Management is hidden for teacher
+                // Student Management, Rankings, Individual Data, and History are hidden for teacher
                 const studentManagementTab = document.getElementById('student-management-tab');
                 if (studentManagementTab) studentManagementTab.style.display = 'none';
+                const rankingsTab = document.getElementById('rankings-tab');
+                if (rankingsTab) rankingsTab.style.display = 'none';
+                const individualDataTab = document.getElementById('individual-data-tab');
+                if (individualDataTab) individualDataTab.style.display = 'none';
+                const responsesTab = document.getElementById('responses-tab');
+                if (responsesTab) responsesTab.style.display = 'none';
             }
             // Re-check discipline tab access after role-based display is set
             checkDisciplineTabAccess();
