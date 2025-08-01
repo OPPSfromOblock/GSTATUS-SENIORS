@@ -1335,6 +1335,15 @@
                             </div>
                         </div>
                     </div>
+                    <!-- New section for Batch Discipline Timer -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <i class="fas fa-clock"></i> Batch Discipline Window
+                        </div>
+                        <div class="card-body">
+                            <p id="batchDisciplineTimerMessage" class="mb-0 text-center fs-5"></p>
+                        </div>
+                    </div>
                 </div>
                 <!-- Administration Tab -->
                 <div class="tab-pane fade" id="administration" role="tabpanel">
@@ -1761,6 +1770,10 @@
                                 </div>
                                 <button type="button" id="applyHistoryFilters" class="btn btn-primary" title="Apply the selected floor and date filters to the history.">Apply Filters</button>
                                 <button type="button" id="resetHistoryFilters" class="btn btn-secondary ms-2" title="Clear all history filters and show all records.">Reset Filters</button>
+                                <!-- NEW EXPORT BUTTON -->
+                                <button type="button" class="btn btn-success ms-2" id="exportHistory" title="Download the current history records as an Excel file.">
+                                    <i class="fas fa-file-excel"></i> Export to Excel
+                                </button>
                             </div>
                             <div class="search-container">
                                 <input class="form-control" id="searchQueryHistory" placeholder="Search history by Student Name, ID, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Search for specific history records." aria-label="Search history"/>
@@ -2478,8 +2491,9 @@
                 document.getElementById('dbStatus').className = 'badge bg-success';
 
                 initializeEventListeners();
-                checkDisciplineTabAccess();
+                checkDisciplineTabAccess(); // Call this to apply the new time-based logic
                 checkUserRole(currentUserRole); // Re-apply role-based access after data load
+                updateBatchDisciplineTimer(); // Start the timer for batch discipline
 
             } catch (error) {
                 console.error("Error initializing app:", error);
@@ -2688,10 +2702,9 @@
 
                 const today = new Date();
                 const dayOfWeek = today.getDay();
-                // Discipline tab access is controlled by checkDisciplineTabAccess, so this check is redundant here
-                // but keeping it for now as per instruction "dont change the lock on batch and discipline review for now"
+                // Enforce single student selection on Saturday for individual discipline review
                 if (dayOfWeek === 6 && selectedStudentIds.length > 1) {
-                    displayUpdateMessage('disciplineUpdateMessage', 'On Saturdays, you can only assign discipline ratings to one student at a time.', 'danger');
+                    displayUpdateMessage('disciplineUpdateMessage', 'On Saturdays, you can only assign discipline ratings to one student at a time in this tab.', 'danger');
                     return;
                 }
 
@@ -2728,6 +2741,18 @@
                     selectedStudentIds.forEach(studentId => {
                         const student = students.find(s => s.id === studentId);
                         if (student) {
+                            // Check if student already has a discipline entry for today
+                            const existingEntryToday = responseHistory.some(entry =>
+                                entry.studentId === studentId &&
+                                entry.action.startsWith('Discipline Review') &&
+                                entry.date === date
+                            );
+
+                            if (dayOfWeek === 6 && existingEntryToday) {
+                                displayUpdateMessage('disciplineUpdateMessage', `Student ${student.name} already has a discipline entry for today. Only one entry per student is allowed on Saturdays.`, 'danger');
+                                throw new Error('Duplicate discipline entry for student on Saturday.');
+                            }
+
                             student.points += pointsAwarded;
                             studentNames.push(student.name);
                             responseHistory.unshift({
@@ -2757,7 +2782,9 @@
                     refreshResponses();
                 } catch (error) {
                     console.error("Error updating discipline points:", error);
-                    displayUpdateMessage('disciplineUpdateMessage', 'Error updating discipline points. Please try again.', 'danger');
+                    if (error.message !== 'Duplicate discipline entry for student on Saturday.') {
+                        displayUpdateMessage('disciplineUpdateMessage', 'Error updating discipline points. Please try again.', 'danger');
+                    }
                 }
             });
 
@@ -2773,9 +2800,10 @@
                 }
             };
             document.getElementById('exportRankings').addEventListener('click', exportToExcel);
+            document.getElementById('exportHistory').addEventListener('click', exportHistoryToExcel); // New line for history export
 
             handleSearch('searchQueryPoints', 'searchResultsPoints', 'selectedStudents');
-            handleSearch('searchQueryDiscipline', 'searchResultsDiscipline', 'selectedStudentsDiscipline', true);
+            handleSearch('searchQueryDiscipline', 'searchResultsDiscipline', 'selectedStudentsDiscipline', true); // Single select on Saturday
             document.getElementById('searchQueryRankings').addEventListener('input', refreshRankings);
             document.getElementById('searchQueryHistory').addEventListener('input', filterResponses);
             document.getElementById('searchQueryStudentManagement').addEventListener('input', renderStudentManagementTable);
@@ -3470,6 +3498,40 @@
             XLSX.writeFile(wb, 'Gurukul_Points_Rankings.xlsx');
         }
 
+        function exportHistoryToExcel() {
+            const wb = XLSX.utils.book_new();
+            const historyTable = document.getElementById('responseTable');
+            const rows = historyTable.querySelectorAll('tr');
+
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td').colSpan === 8)) {
+                alert("No history records to export.");
+                return;
+            }
+
+            const wsData = [];
+            // Add header row
+            wsData.push(['Date', 'Time', 'Student ID', 'Name', 'Action', 'Points Changed', 'Floor', 'Modified By']);
+
+            // Add data rows
+            rows.forEach(row => {
+                const rowData = [];
+                row.querySelectorAll('td').forEach(cell => {
+                    // Extract text content, removing icons and extra spaces
+                    let text = cell.textContent.trim();
+                    // Remove the icon text if present (e.g., "Date 24/07/2024" -> "24/07/2024")
+                    if (cell.querySelector('i')) {
+                        text = text.substring(text.indexOf(' ') + 1).trim();
+                    }
+                    rowData.push(text);
+                });
+                wsData.push(rowData);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Gurukul_Points_History.xlsx');
+            XLSX.writeFile(wb, 'Gurukul_Points_History.xlsx');
+        }
+
         async function addStudent(event) {
             event.preventDefault();
             const addStudentMessage = document.getElementById('addStudentMessage');
@@ -3785,7 +3847,14 @@
                             <div class="star-rating" data-student-id="${student.id}" title="Click a star to assign a discipline rating for this student.">
                                 ${Array.from({ length: 10 }, (_, i) => {
                                     const starValue = 10 - i;
-                                    const isDisabled = (dayOfWeek === 6 && studentsToDisplay.length > 1 && student.id !== studentsToDisplay[0].id);
+                                    // Disable all but the first student's rating on Saturday if multiple students are displayed
+                                    // Also disable if student already has an entry for today
+                                    const existingEntryToday = responseHistory.some(entry =>
+                                        entry.studentId === student.id &&
+                                        entry.action.startsWith('Batch Discipline Review') &&
+                                        entry.date === today.toLocaleDateString('en-GB')
+                                    );
+                                    const isDisabled = (dayOfWeek === 6 && studentsToDisplay.length > 1 && student.id !== studentsToDisplay[0].id) || existingEntryToday;
                                     return `<input type="radio" id="batch-star-${student.id}-${starValue}" name="batch-rating-${student.id}" value="${starValue}" ${isDisabled ? 'disabled' : ''} />
                                             <label for="batch-star-${student.id}-${starValue}" title="${starValue} stars">&#9733;</label>`;
                                 }).join('')}
@@ -3921,23 +3990,28 @@
 
             let studentsWithRatings = 0;
 
-            tableRows.forEach(row => {
+            for (const row of tableRows) {
                 const studentId = row.dataset.id;
                 const student = students.find(s => s.id === studentId);
-                if (!student) return;
+                if (!student) continue;
 
                 const selectedRatingInput = row.querySelector(`input[name="batch-rating-${studentId}"]:checked`);
                 const newRating = selectedRatingInput ? parseInt(selectedRatingInput.value) : null;
 
                 if (newRating !== null) {
-                    studentsWithRatings++;
-                    // Discipline tab access is controlled by checkDisciplineTabAccess, so this check is redundant here
-                    // but keeping it for now as per instruction "dont change the lock on batch and discipline review for now"
-                    if (dayOfWeek === 6 && studentsWithRatings > 1) {
-                        displayUpdateMessage('batchDisciplineUpdateMessage', 'On Saturdays, you can only assign discipline ratings to one student at a time in batch mode.', 'danger');
-                        return;
+                    // Check if student already has a discipline entry for today
+                    const existingEntryToday = responseHistory.some(entry =>
+                        entry.studentId === studentId &&
+                        entry.action.startsWith('Batch Discipline Review') &&
+                        entry.date === date
+                    );
+
+                    if (dayOfWeek === 6 && existingEntryToday) {
+                        displayUpdateMessage('batchDisciplineUpdateMessage', `Student ${student.name} already has a batch discipline entry for today. Only one entry per student is allowed on Saturdays.`, 'danger');
+                        return; // Stop processing and return
                     }
 
+                    studentsWithRatings++;
                     const pointsAwarded = newRating * 3;
                     const actionText = `Batch Discipline Review (${newRating} stars)`;
 
@@ -3959,7 +4033,7 @@
                         });
                     }
                 }
-            });
+            }
 
             if (updatedStudents.length === 0) {
                 displayUpdateMessage('batchDisciplineUpdateMessage', 'No new discipline ratings selected or changed.', 'info');
@@ -4199,35 +4273,61 @@
 
         function checkDisciplineTabAccess() {
             const today = new Date();
-            const dayOfWeek = today.getDay();
+            const dayOfWeek = today.getDay(); // 0 for Sunday, 6 for Saturday
+            const currentHour = today.getHours();
 
             const disciplineTabLink = document.getElementById('discipline-review-tab');
             const batchDisciplineTabLink = document.getElementById('batch-discipline-tab');
 
-            if (disciplineTabLink && batchDisciplineTabLink) { // Ensure elements exist
-                // Keeping the original logic for now as per instruction "dont change the lock on batch and discipline review for now"
-                if (dayOfWeek !== 6) { // Not Saturday
+            const startTime = 7; // 7 AM
+            const endTime = 22; // 10 PM (22:00)
+
+            if (disciplineTabLink && batchDisciplineTabLink) {
+                // Remove existing event listeners to prevent multiple bindings
+                disciplineTabLink.removeEventListener('click', preventDisciplineClick);
+                batchDisciplineTabLink.removeEventListener('click', preventBatchDisciplineClick);
+
+                if (dayOfWeek === 6 && currentHour >= startTime && currentHour < endTime) { // Saturday, 7 AM to 10 PM
+                    disciplineTabLink.classList.remove('disabled');
+                    batchDisciplineTabLink.classList.remove('disabled');
+                } else {
                     disciplineTabLink.classList.add('disabled');
                     batchDisciplineTabLink.classList.add('disabled');
 
-                    disciplineTabLink.removeEventListener('click', preventDefaultClick); // Remove if already added
-                    batchDisciplineTabLink.removeEventListener('click', preventDefaultClick); // Remove if already added
-
-                    disciplineTabLink.addEventListener('click', preventDefaultClick);
-                    batchDisciplineTabLink.addEventListener('click', preventDefaultClick);
-                } else { // Saturday
-                    disciplineTabLink.classList.remove('disabled');
-                    batchDisciplineTabLink.classList.remove('disabled');
-
-                    disciplineTabLink.removeEventListener('click', preventDefaultClick);
-                    batchDisciplineTabLink.removeEventListener('click', preventDefaultClick);
+                    disciplineTabLink.addEventListener('click', preventDisciplineClick);
+                    batchDisciplineTabLink.addEventListener('click', preventBatchDisciplineClick);
                 }
             }
         }
 
-        function preventDefaultClick(event) {
+        function preventDisciplineClick(event) {
             event.preventDefault();
-            alert("This tab is only accessible on Saturdays.");
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const currentHour = today.getHours();
+            const startTime = 7;
+            const endTime = 22;
+
+            if (dayOfWeek !== 6) {
+                alert("The 'Discipline Review' tab is only accessible on Saturdays.");
+            } else if (currentHour < startTime || currentHour >= endTime) {
+                alert("The 'Discipline Review' tab is only accessible between 7 AM and 10 PM on Saturdays.");
+            }
+        }
+
+        function preventBatchDisciplineClick(event) {
+            event.preventDefault();
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const currentHour = today.getHours();
+            const startTime = 7;
+            const endTime = 22;
+
+            if (dayOfWeek !== 6) {
+                alert("The 'Batch Discipline' tab is only accessible on Saturdays.");
+            } else if (currentHour < startTime || currentHour >= endTime) {
+                alert("The 'Batch Discipline' tab is only accessible between 7 AM and 10 PM on Saturdays.");
+            }
         }
 
         // Function to update user info in sidebar and control UI visibility
@@ -4370,6 +4470,69 @@
             checkDisciplineTabAccess();
         }
 
+        // New function for Batch Discipline Timer
+        function updateBatchDisciplineTimer() {
+            const timerMessageElement = document.getElementById('batchDisciplineTimerMessage');
+            if (!timerMessageElement) return;
+
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            const openDay = 6; // Saturday
+            const openHour = 7; // 7 AM
+            const closeHour = 22; // 10 PM (22:00)
+
+            let message = '';
+
+            if (dayOfWeek === openDay && currentHour >= openHour && currentHour < closeHour) {
+                // It's Saturday and within the open window
+                const closeTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), closeHour, 0, 0);
+                const timeLeft = closeTime.getTime() - now.getTime();
+
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                message = `<span class="text-success">Batch Discipline is OPEN!</span> It will close in ${hours}h ${minutes}m ${seconds}s.`;
+            } else {
+                // It's not Saturday or outside the open window
+                let nextOpenTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), openHour, 0, 0);
+
+                if (dayOfWeek < openDay) {
+                    // Days until next Saturday
+                    nextOpenTime.setDate(now.getDate() + (openDay - dayOfWeek));
+                } else if (dayOfWeek > openDay) {
+                    // Days until next Saturday (wrap to next week)
+                    nextOpenTime.setDate(now.getDate() + (7 - dayOfWeek + openDay));
+                } else { // It's Saturday but outside the hours
+                    if (currentHour >= closeHour) {
+                        // Already past closing time on Saturday, so next open is next Saturday
+                        nextOpenTime.setDate(now.getDate() + 7);
+                    }
+                    // If currentHour < openHour, nextOpenTime is already set for today's Saturday 7 AM
+                }
+
+                const timeLeft = nextOpenTime.getTime() - now.getTime();
+
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                message = `<span class="text-danger">Batch Discipline is CLOSED.</span> It will open in `;
+                if (days > 0) message += `${days}d `;
+                message += `${hours}h ${minutes}m ${seconds}s.`;
+            }
+
+            timerMessageElement.innerHTML = message;
+        }
+
+        // Update the timer every second
+        setInterval(updateBatchDisciplineTimer, 1000);
+
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Firebase Auth state listener
             auth.onAuthStateChanged(async (firebaseUser) => {
@@ -4428,4 +4591,3 @@
     </script>
 </body>
 </html>
-
