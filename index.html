@@ -15,6 +15,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <!-- Firebase Auth SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-color: #4a90e2; /* Softer blue */
@@ -1388,7 +1390,6 @@
                                                 <option value="5">Helping others (+5)</option>
                                                 <option value="10">Room cleaning competition 1st (+10)</option>
                                                 <option value="7">Room cleaning competition 2nd (+7)</option>
-                                                <option value="5">Room cleaning competition 3rd (+5)</option>
                                                 <option value="15">Winners in competition (+15)</option>
                                                 <option value="10">Good discipline (+10)</option>
                                                 <option value="5">Completing homework on time (+5)</option>
@@ -1424,7 +1425,6 @@
                                                 <option value="">Select a negative action</option>
                                                 <option value="-5">No Dress code (-5)</option>
                                                 <option value="-3">Incomplete homework (-3)</option>
-                                                <option value="-3">Late from playing bell (-3)</option>
                                                 <option value="-10">Absent to school (-10)</option>
                                                 <option value="-7">No room cleaning (-7)</option>
                                                 <option value="-10">Late for prayer (-10)</option>
@@ -1778,6 +1778,9 @@
                                 <!-- NEW EXPORT BUTTON -->
                                 <button type="button" class="btn btn-success ms-2" id="exportHistory" title="Download the current history records as an Excel file.">
                                     <i class="fas fa-file-excel"></i> Export to Excel
+                                </button>
+                                <button type="button" class="btn btn-info ms-2" id="exportHistoryGraph" title="Export filtered history to graph">
+                                    <i class="fas fa-chart-bar"></i> Export to Graph
                                 </button>
                             </div>
                             <div class="search-container">
@@ -2554,7 +2557,12 @@
             }
         }
 
-        function checkAndApplyCooldown(modifierEmail, studentId) {
+        // Modified checkAndApplyCooldown to apply cooldown only for positive points
+        function checkAndApplyCooldown(modifierEmail, studentId, isPositive) {
+            if (!isPositive) {
+                // No cooldown for negative points
+                return { onCooldown: false };
+            }
             if (!recentModifications[modifierEmail]) {
                 recentModifications[modifierEmail] = {};
             }
@@ -2741,7 +2749,7 @@
                 let cooldownMessage = '';
 
                 for (const studentId of selectedStudentIds) {
-                    const cooldownStatus = checkAndApplyCooldown(adminEmailInput, studentId);
+            const cooldownStatus = checkAndApplyCooldown(adminEmailInput, studentId, isPositive);
                     if (cooldownStatus.onCooldown) {
                         onCooldownForAnyStudent = true;
                         const studentName = students.find(s => s.id === studentId)?.name || studentId;
@@ -4866,6 +4874,111 @@
                 });
             }
         });
+    </script>
+
+    <!-- Modal for History Graph -->
+    <div class="modal fade" id="historyGraphModal" tabindex="-1" aria-labelledby="historyGraphModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyGraphModalLabel">History Minus Points by Incharge</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="historyGraphCanvas" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to generate and show the history graph
+        async function generateHistoryGraph() {
+            const modifiedByFilter = document.getElementById('historyModifiedByFilter').value.toLowerCase().trim();
+            if (!modifiedByFilter) {
+                alert('Please enter a Modified By (Incharge) filter to generate the graph.');
+                return;
+            }
+
+            // Filter history entries by modifiedBy filter and only negative points
+            const filteredEntries = responseHistory.filter(entry => {
+                return entry.modifiedBy && entry.modifiedBy.toLowerCase().includes(modifiedByFilter) && entry.pointsChanged < 0;
+            });
+
+            if (filteredEntries.length === 0) {
+                alert('No negative points found for the specified incharge.');
+                return;
+            }
+
+            // Aggregate points by action
+            const actionPointsMap = {};
+            filteredEntries.forEach(entry => {
+                if (!actionPointsMap[entry.action]) {
+                    actionPointsMap[entry.action] = 0;
+                }
+                actionPointsMap[entry.action] += Math.abs(entry.pointsChanged);
+            });
+
+            const actions = Object.keys(actionPointsMap);
+            const points = actions.map(action => actionPointsMap[action]);
+
+            // Destroy existing chart if any
+            if (window.historyChart) {
+                window.historyChart.destroy();
+            }
+
+            const ctx = document.getElementById('historyGraphCanvas').getContext('2d');
+            window.historyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: actions,
+                    datasets: [{
+                        label: 'Total Minus Points',
+                        data: points,
+                        backgroundColor: 'rgba(217, 83, 79, 0.7)',
+                        borderColor: 'rgba(217, 83, 79, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Points'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Actions'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' points';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Show modal
+            const historyGraphModal = new bootstrap.Modal(document.getElementById('historyGraphModal'));
+            historyGraphModal.show();
+        }
+
+        // Add event listener to the new export to graph button
+        document.getElementById('exportHistoryGraph').addEventListener('click', generateHistoryGraph);
     </script>
 </body>
 </html>
