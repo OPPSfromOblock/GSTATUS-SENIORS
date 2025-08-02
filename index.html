@@ -4501,7 +4501,7 @@
                 // In-charge has access to all tabs except Student Management and History
                 const allowedTabs = [
                     "home-tab", "administration-tab", "batch-discipline-tab",
-                    "rankings-tab", "individual-data-tab", "notes-tab" // Added notes-tab
+                     "individual-data-tab", "notes-tab" // Added notes-tab
                 ];
                 allowedTabs.forEach(tabId => {
                     const tabElement = document.getElementById(tabId);
@@ -4525,7 +4525,7 @@
             } else if (role === "teacher") {
                 // Teacher has access to specific tabs and only negative points
                 const allowedTabs = [
-                    "home-tab", "administration-tab", "batch-discipline-tab",
+                    "home-tab", "administration-tab", 
                     "notes-tab" // Added notes-tab
                 ];
                 allowedTabs.forEach(tabId => {
