@@ -1773,6 +1773,54 @@
                                         <input type="text" class="form-control" id="historyModifiedByFilter" placeholder="e.g., ranveer@example.com, Ranveer Sir" title="Filter history records by the email or name of the modifier." aria-label="Filter history by modifier"/>
                                     </div>
                                 </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="inchargeGraphFilter" class="form-label">Graph Incharge(s):</label>
+                                        <select id="inchargeGraphFilter" class="form-select" multiple title="Select incharges for graph. Hold Ctrl/Cmd to select multiple." aria-label="Select incharges for graph">
+                                            <option value="all">All Incharges</option>
+                                            <option value="BHAVESHBHAI JOLIYA">BHAVESHBHAI JOLIYA</option>
+                                            <option value="PRAVINBHAI SOLANKI">PRAVINBHAI SOLANKI</option>
+                                            <option value="THIRUPATHI VASANTH REDDY">THIRUPATHI VASANTH REDDY</option>
+                                            <option value="SUNIL VINAYAK LUTE">SUNIL VINAYAK LUTE</option>
+                                            <option value="Balaji AshokRao More">Balaji AshokRao More</option>
+                                            <option value="JOLIYA VIPUL RAMJIBHAI">JOLIYA VIPUL RAMJIBHAI</option>
+                                            <option value="LALJI TIWARI">LALJI TIWARI</option>
+                                            <option value="Ranveer Singh">Ranveer Singh</option>
+                                            <option value="BANOTH VAMSHI">BANOTH VAMSHI</option>
+                                            <option value="P Ananth Reddy">P Ananth Reddy</option>
+                                            <option value="AMAN KUMAR">AMAN KUMAR</option>
+                                            <option value="LOKESH YADAV">LOKESH YADAV</option>
+                                            <option value="SUNNY SINGH">SUNNY SINGH</option>
+                                            <option value="Anirudh Kumar">Anirudh Kumar</option>
+                                            <option value="Gauri Shankar Sah">Gauri Shankar Sah</option>
+                                            <option value="CHANDAN KUMAR THAKUR">CHANDAN KUMAR THAKUR</option>
+                                            <option value="BALRAM KUMAR">BALRAM KUMAR</option>
+                                            <option value="KOTAM HARISH KUMAR REDDY">KOTAM HARISH KUMAR REDDY</option>
+                                            <option value="M.VITTAL">M.VITTAL</option>
+                                            <option value="ROHIT KUMAR SINGH">ROHIT KUMAR SINGH</option>
+                                            <option value="PALLA SOMASANKAR">PALLA SOMASANKAR</option>
+                                            <option value="PATLOLLA VINAY REDDY">PATLOLLA VINAY REDDY</option>
+                                            <option value="DESH PANDE AKHIL">DESH PANDE AKHIL</option>
+                                            <option value="CHAKRADHAR SAHOO">CHAKRADHAR SAHOO</option>
+                                            <option value="MANISH">MANISH</option>
+                                            <option value="CH.VINOD KUMAR">CH.VINOD KUMAR</option>
+                                            <option value="G.SHANKER RAO">G.SHANKER RAO</option>
+                                            <option value="V.ADITHYA">V.ADITHYA</option>
+                                            <option value="V.DEVRAJ">V.DEVRAJ</option>
+                                            <option value="B.GIRI PRASAD">B.GIRI PRASAD</option>
+                                            <option value="VENU GOPAL KRISHNA">VENU GOPAL KRISHNA</option>
+                                            <option value="G.NAGARAJU">G.NAGARAJU</option>
+                                            <option value="ADINARAYANA RAO">ADINARAYANA RAO</option>
+                                            <option value="SATISH BHALKE">SATISH BHALKE</option>
+                                            <option value="B.ANIL">B.ANIL</option>
+                                            <option value="RAJIV">RAJIV</option>
+                                            <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
+                                            <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
+                                            <option value="Manoj">Manoj</option>
+                                            <option value="Testing Admin">Testing admin</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <button type="button" id="applyHistoryFilters" class="btn btn-primary" title="Apply the selected floor and date filters to the history.">Apply Filters</button>
                                 <button type="button" id="resetHistoryFilters" class="btn btn-secondary ms-2" title="Clear all history filters and show all records.">Reset Filters</button>
                                 <!-- NEW EXPORT BUTTON -->
@@ -1869,6 +1917,12 @@
                             <div class="search-container mb-3">
                                 <input class="form-control" id="searchQueryStudentManagement" placeholder="Search by Name, ID, Room, Floor, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Search for existing students to manage." aria-label="Search existing students"/>
                                 <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="text-end mb-3">
+                                <button type="button" class="btn btn-info" id="importStudentsExcelBtn" title="Import student data from an Excel file.">
+                                    <i class="fas fa-file-import"></i> Import from Excel
+                                </button>
+                                <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
                             </div>
                             <div class="table-responsive table-responsive-stack">
                                 <table class="table table-hover table-bordered">
@@ -2678,12 +2732,14 @@ const firebaseConfig = {
 
                 let points = 0;
                 let actionText = '';
+                let isPositive = false;
 
                 if (positiveActionSelect.value && negativeActionSelect.value) {
                     displayUpdateMessage('updateMessage', 'Please select only one action (positive or negative).', 'danger');
                     updatePointsButton.disabled = false;
                     return;
                 } else if (positiveActionSelect.value) {
+                    isPositive = true;
                     // Role check for positive points
                     if (currentUserRole === 'teacher') {
                         displayUpdateMessage('updateMessage', 'Teachers can only deduct negative points.', 'danger');
@@ -2720,6 +2776,7 @@ const firebaseConfig = {
                         actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
                     }
                 } else if (negativeActionSelect.value) {
+                    isPositive = false;
                     if (negativeActionSelect.value === 'custom') {
                         const customPoints = parseInt(document.getElementById('customNegativePoints').value);
                         if (isNaN(customPoints) || customPoints >= 0) {
@@ -2749,7 +2806,7 @@ const firebaseConfig = {
                 let cooldownMessage = '';
 
                 for (const studentId of selectedStudentIds) {
-            const cooldownStatus = checkAndApplyCooldown(adminEmailInput, studentId, isPositive);
+                    const cooldownStatus = checkAndApplyCooldown(adminEmailInput, studentId, isPositive);
                     if (cooldownStatus.onCooldown) {
                         onCooldownForAnyStudent = true;
                         const studentName = students.find(s => s.id === studentId)?.name || studentId;
@@ -3062,6 +3119,13 @@ const firebaseConfig = {
                     }
                 });
             });
+
+            // Import Excel for Student Management
+            document.getElementById('importStudentsExcelBtn').addEventListener('click', function() {
+                document.getElementById('excelFileInput').click();
+            });
+
+            document.getElementById('excelFileInput').addEventListener('change', importStudentsFromExcel);
         }
 
         function parseClassSectionQuery(query) {
@@ -3069,11 +3133,11 @@ const firebaseConfig = {
             let sectionQuery = '';
             const parts = query.split('-');
             if (parts.length === 2) {
-                classQuery = parts[0].trim();
-                sectionQuery = parts[1].trim();
+                classQuery = parts[0].trim().toLowerCase();
+                sectionQuery = parts[1].trim().toLowerCase();
             } else {
-                classQuery = query;
-                sectionQuery = query;
+                classQuery = query.toLowerCase();
+                sectionQuery = query.toLowerCase();
             }
             return { classQuery, sectionQuery };
         }
@@ -3907,7 +3971,7 @@ const firebaseConfig = {
                         matchesSearch = true;
                     }
                 } else if (sectionQuery) {
-                    if (section.includes(sectionQuery)) {
+                     if (section.includes(sectionQuery)) {
                         matchesSearch = true;
                     }
                 }
@@ -4894,33 +4958,91 @@ const firebaseConfig = {
     <script>
         // Function to generate and show the history graph
         async function generateHistoryGraph() {
-            const modifiedByFilter = document.getElementById('historyModifiedByFilter').value.toLowerCase().trim();
-            if (!modifiedByFilter) {
-                alert('Please enter a Modified By (Incharge) filter to generate the graph.');
+            const inchargeGraphFilter = document.getElementById('inchargeGraphFilter');
+            const selectedIncharges = Array.from(inchargeGraphFilter.selectedOptions).map(option => option.value);
+
+            if (selectedIncharges.length === 0) {
+                alert('Please select at least one Incharge or "All Incharges" to generate the graph.');
                 return;
             }
 
-            // Filter history entries by modifiedBy filter and only negative points
-            const filteredEntries = responseHistory.filter(entry => {
-                return entry.modifiedBy && entry.modifiedBy.toLowerCase().includes(modifiedByFilter) && entry.pointsChanged < 0;
+            let inchargesToGraph = [];
+            if (selectedIncharges.includes('all')) {
+                // Get all unique incharges from the history data
+                const allIncharges = new Set();
+                responseHistory.forEach(entry => {
+                    if (entry.modifiedBy) {
+                        const match = entry.modifiedBy.match(/^(.*?)\s*\(([^)]+)\)$/);
+                        if (match && match[1]) {
+                            allIncharges.add(match[1].trim());
+                        } else {
+                            allIncharges.add(entry.modifiedBy.trim());
+                        }
+                    }
+                });
+                inchargesToGraph = Array.from(allIncharges);
+            } else {
+                inchargesToGraph = selectedIncharges;
+            }
+
+            // Prepare data for the graph
+            const graphData = {}; // { inchargeName: { action: totalPoints } }
+
+            inchargesToGraph.forEach(incharge => {
+                graphData[incharge] = {};
             });
 
-            if (filteredEntries.length === 0) {
-                alert('No negative points found for the specified incharge.');
-                return;
-            }
+            responseHistory.forEach(entry => {
+                if (entry.pointsChanged < 0 && entry.modifiedBy) {
+                    let actualInchargeName = '';
+                    const match = entry.modifiedBy.match(/^(.*?)\s*\(([^)]+)\)$/);
+                    if (match && match[1]) {
+                        actualInchargeName = match[1].trim();
+                    } else {
+                        actualInchargeName = entry.modifiedBy.trim();
+                    }
 
-            // Aggregate points by action
-            const actionPointsMap = {};
-            filteredEntries.forEach(entry => {
-                if (!actionPointsMap[entry.action]) {
-                    actionPointsMap[entry.action] = 0;
+                    if (inchargesToGraph.includes(actualInchargeName)) {
+                        if (!graphData[actualInchargeName][entry.action]) {
+                            graphData[actualInchargeName][entry.action] = 0;
+                        }
+                        graphData[actualInchargeName][entry.action] += Math.abs(entry.pointsChanged);
+                    }
                 }
-                actionPointsMap[entry.action] += Math.abs(entry.pointsChanged);
             });
 
-            const actions = Object.keys(actionPointsMap);
-            const points = actions.map(action => actionPointsMap[action]);
+            // Determine all unique actions across selected incharges for consistent labels
+            const allActions = new Set();
+            Object.values(graphData).forEach(inchargeActions => {
+                Object.keys(inchargeActions).forEach(action => allActions.add(action));
+            });
+            const sortedActions = Array.from(allActions).sort();
+
+            const datasets = [];
+            const colors = [
+                'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)', 'rgba(83, 102, 255, 0.7)', 'rgba(255, 83, 235, 0.7)',
+                'rgba(83, 255, 102, 0.7)'
+            ];
+            let colorIndex = 0;
+
+            for (const inchargeName of inchargesToGraph) {
+                const data = sortedActions.map(action => graphData[inchargeName][action] || 0);
+                datasets.push({
+                    label: inchargeName,
+                    data: data,
+                    backgroundColor: colors[colorIndex % colors.length],
+                    borderColor: colors[colorIndex % colors.length].replace('0.7', '1'),
+                    borderWidth: 1
+                });
+                colorIndex++;
+            }
+
+            if (datasets.length === 0) {
+                alert('No negative points data found for the selected incharges.');
+                return;
+            }
 
             // Destroy existing chart if any
             if (window.historyChart) {
@@ -4931,40 +5053,46 @@ const firebaseConfig = {
             window.historyChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: actions,
-                    datasets: [{
-                        label: 'Total Minus Points',
-                        data: points,
-                        backgroundColor: 'rgba(217, 83, 79, 0.7)',
-                        borderColor: 'rgba(217, 83, 79, 1)',
-                        borderWidth: 1
-                    }]
+                    labels: sortedActions,
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Points'
+                                text: 'Total Negative Points'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Actions'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'top'
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.parsed.y + ' points';
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y + ' points';
+                                    return label;
                                 }
                             }
                         }
@@ -4979,9 +5107,86 @@ const firebaseConfig = {
 
         // Add event listener to the new export to graph button
         document.getElementById('exportHistoryGraph').addEventListener('click', generateHistoryGraph);
+
+        // Function to import students from Excel
+        async function importStudentsFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                let studentsAdded = 0;
+                let studentsUpdated = 0;
+                let studentsSkipped = 0;
+                const addStudentMessage = document.getElementById('addStudentMessage');
+
+                for (const row of json) {
+                    const studentId = String(row['ID']).trim(); // Ensure ID is string
+                    const studentName = String(row['Name'] || '').trim();
+                    const studentRoom = String(row['Room'] || '').trim();
+                    const studentFloor = String(row['Floor'] || '').trim();
+                    const studentClass = String(row['Class'] || '').trim();
+                    const studentSection = String(row['Section'] || '').trim();
+                    const studentPoints = parseInt(row['Points'] || 0);
+
+                    if (!studentId || !studentName || !studentRoom || !studentFloor) {
+                        console.warn(`Skipping row due to missing required fields: ${JSON.stringify(row)}`);
+                        studentsSkipped++;
+                        continue;
+                    }
+
+                    const existingStudentIndex = students.findIndex(s => s.id === studentId);
+
+                    if (existingStudentIndex > -1) {
+                        // Update existing student
+                        const existingStudent = students[existingStudentIndex];
+                        existingStudent.name = studentName;
+                        existingStudent.room = studentRoom;
+                        existingStudent.floor = studentFloor;
+                        existingStudent.class = studentClass;
+                        existingStudent.section = studentSection;
+                        existingStudent.points = studentPoints; // Update points from Excel
+                        studentsUpdated++;
+                    } else {
+                        // Add new student
+                        const newStudent = {
+                            id: studentId,
+                            name: studentName,
+                            room: studentRoom,
+                            floor: studentFloor,
+                            class: studentClass,
+                            section: studentSection,
+                            points: studentPoints,
+                            active: true // Default to active
+                        };
+                        students.push(newStudent);
+                        studentsAdded++;
+                    }
+                }
+
+                try {
+                    await saveStudentsToFirebase(students);
+                    displayUpdateMessage('addStudentMessage', `Excel import complete: ${studentsAdded} students added, ${studentsUpdated} students updated, ${studentsSkipped} rows skipped.`, 'success');
+                    renderStudentManagementTable();
+                    refreshRankings();
+                    document.getElementById('totalStudents').textContent = students.length;
+                    document.getElementById('activeStudents').textContent = students.filter(s => s.active).length;
+                } catch (error) {
+                    displayUpdateMessage('addStudentMessage', 'Error importing students from Excel. Please try again.', 'danger');
+                    console.error("Error importing students:", error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; // Clear the file input
+        }
     </script>
 </body>
 </html>
-
-
-
