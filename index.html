@@ -4570,33 +4570,28 @@ const firebaseConfig = {
 
 
             } else if (role === "incharge") {
-                // In-charge has access to all tabs except Student Management, History, Rankings, and Individual Data
-                const allowedTabs = [
-                    "home-tab", "administration-tab", "batch-discipline-tab",
-                    "notes-tab" // Added notes-tab
-                ];
-                allowedTabs.forEach(tabId => {
-                    const tabElement = document.getElementById(tabId);
-                    if (tabElement) {
-                        tabElement.style.display = "";
-                    }
-                });
-                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
-                if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
-                // Ensure both sections take half width
-                if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
-                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
-                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
+    // In-charge has access to all tabs except History and Rankings
+    const allowedTabs = [
+        "home-tab", "administration-tab", "batch-discipline-tab",
+        "student-management-tab", "individual-data-tab", "notes-tab"
+    ];
+    allowedTabs.forEach(tabId => {
+        const tabElement = document.getElementById(tabId);
+        if (tabElement) {
+            tabElement.style.display = "";
+        }
+    });
+    if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
+    if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
+    if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
+    if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
+    if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
 
-                // Student Management, History, Rankings, and Individual Data are hidden for incharge
-                const studentManagementTab = document.getElementById('student-management-tab');
-                if (studentManagementTab) studentManagementTab.style.display = 'none';
-                const responsesTab = document.getElementById('responses-tab');
-                if (responsesTab) responsesTab.style.display = 'none';
-                const rankingsTab = document.getElementById('rankings-tab');
-                if (rankingsTab) rankingsTab.style.display = 'none';
-                const individualDataTab = document.getElementById('individual-data-tab');
-                if (individualDataTab) individualDataTab.style.display = 'none';
+    // Hide only Rankings and History for incharge
+    const rankingsTab = document.getElementById('rankings-tab');
+    if (rankingsTab) rankingsTab.style.display = 'none';
+    const responsesTab = document.getElementById('responses-tab');
+    if (responsesTab) responsesTab.style.display = 'none';
 
 
             } else if (role === "teacher") {
