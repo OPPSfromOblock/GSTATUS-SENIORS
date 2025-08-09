@@ -4968,4 +4968,557 @@
             if (currentUserRole === 'admin') {
                 if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'block';
             } else {
-                if (addPublicN
+                if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'none';
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Firebase Auth state listener
+            auth.onAuthStateChanged(async (firebaseUser) => {
+                if (firebaseUser) {
+                    // User is signed in with Firebase (email/password or Google)
+                    // Fetch user role from Firebase Realtime Database
+                    const userRoleSnapshot = await database.ref('userRoles/' + firebaseUser.uid).once('value');
+                    let userRole = 'teacher'; // Default role if not found
+                    if (userRoleSnapshot.exists()) {
+                        userRole = userRoleSnapshot.val().role;
+                    } else {
+                        // If user exists in Auth but not in userRoles, create an entry with default role
+                        await database.ref('userRoles/' + firebaseUser.uid).set({
+                            email: firebaseUser.email,
+                            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                            role: 'teacher'
+                        });
+                    }
+
+                    const currentUserData = {
+                        uid: firebaseUser.uid,
+                        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                        email: firebaseUser.email,
+                        role: userRole
+                    };
+
+                    sessionStorage.setItem('currentUser', JSON.stringify(currentUserData));
+                    currentUserEmail = currentUserData.email;
+                    currentUserRole = currentUserData.role;
+                    currentUserUid = currentUserData.uid;
+                    updateUserInfo(currentUserData);
+                    await initializeApp(); // Initialize app data and listeners after user is set
+                } else {
+                    // No user is signed in with Firebase, clear session storage
+                    sessionStorage.removeItem('currentUser'); // Ensure session is cleared on logout
+                    updateUserInfo(null); // Show authentication forms
+                }
+            });
+
+            // Handle tab switching for main content title (for auth forms)
+            const loginTabBtn = document.getElementById('login-tab');
+            const registerTabBtn = document.getElementById('register-tab');
+            const mainTitle = document.getElementById('mainTitle');
+
+            if (loginTabBtn) {
+                loginTabBtn.addEventListener('shown.bs.tab', () => {
+                    mainTitle.textContent = 'Login / Register';
+                });
+            }
+            if (registerTabBtn) {
+                registerTabBtn.addEventListener('shown.bs.tab', () => {
+                    mainTitle.textContent = 'Register New Account';
+                });
+            }
+        });
+    </script>
+
+    <!-- Modal for History Graph -->
+    <div class="modal fade" id="historyGraphModal" tabindex="-1" aria-labelledby="historyGraphModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyGraphModalLabel">History Minus Points by Incharge</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="historyGraphCanvas" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Incharge Activity Graph -->
+    <div class="modal fade" id="inchargeGraphModal" tabindex="-1" aria-labelledby="inchargeGraphModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inchargeGraphModalLabel">Incharge Activity Overview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="inchargeGraphCanvas" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Floor Statistics Graph -->
+    <div class="modal fade" id="floorGraphModal" tabindex="-1" aria-labelledby="floorGraphModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="floorGraphModalLabel">Floor Statistics Overview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="floorGraphCanvas" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to generate and show the history graph
+        async function generateHistoryGraph() {
+            // The inchargeGraphFilter dropdown is removed, so we will rely on the historyModifiedByFilter input
+            const searchQueryHistory = document.getElementById('historyModifiedByFilter').value.toLowerCase().trim();
+            let selectedIncharges = [];
+
+            // If a search query is present in the "Modified By" filter, prioritize it
+            if (searchQueryHistory) {
+                // Filter history entries by the search query first
+                const filteredBySearch = responseHistory.filter(entry =>
+                    entry.modifiedBy && entry.modifiedBy.toLowerCase().includes(searchQueryHistory)
+                );
+                // Extract unique incharges from this filtered set
+                const uniqueInchargesFromSearch = new Set();
+                filteredBySearch.forEach(entry => {
+                    if (entry.modifiedBy) {
+                        const match = entry.modifiedBy.match(/^(.*?)\s*\(([^)]+)\)$/);
+                        if (match && match[1]) {
+                            uniqueInchargesFromSearch.add(match[1].trim());
+                        } else {
+                            uniqueInchargesFromSearch.add(entry.modifiedBy.trim());
+                        }
+                    }
+                });
+                selectedIncharges = Array.from(uniqueInchargesFromSearch);
+            } else {
+                // If no search query is present, get all unique incharges from the entire history.
+                const allIncharges = new Set();
+                responseHistory.forEach(entry => {
+                    if (entry.modifiedBy) {
+                        const match = entry.modifiedBy.match(/^(.*?)\s*\(([^)]+)\)$/);
+                        if (match && match[1]) {
+                            allIncharges.add(match[1].trim());
+                        } else {
+                            allIncharges.add(entry.modifiedBy.trim());
+                        }
+                    }
+                });
+                selectedIncharges = Array.from(allIncharges);
+            }
+
+            if (selectedIncharges.length === 0) {
+                alert('No incharges found to generate the graph based on current filters or search.');
+                return;
+            }
+
+            // Prepare data for the graph
+            const graphData = {}; // { inchargeName: { action: totalPoints } }
+
+            selectedIncharges.forEach(incharge => {
+                graphData[incharge] = {};
+            });
+
+            responseHistory.forEach(entry => {
+                if (entry.pointsChanged < 0 && entry.modifiedBy) {
+                    let actualInchargeName = '';
+                    const match = entry.modifiedBy.match(/^(.*?)\s*\(([^)]+)\)$/);
+                    if (match && match[1]) {
+                        actualInchargeName = match[1].trim();
+                    } else {
+                        actualInchargeName = entry.modifiedBy.trim();
+                    }
+
+                    if (selectedIncharges.includes(actualInchargeName)) {
+                        if (!graphData[actualInchargeName][entry.action]) {
+                            graphData[actualInchargeName][entry.action] = 0;
+                        }
+                        graphData[actualInchargeName][entry.action] += Math.abs(entry.pointsChanged);
+                    }
+                }
+            });
+
+            // Determine all unique actions across selected incharges for consistent labels
+            const allActions = new Set();
+            Object.values(graphData).forEach(inchargeActions => {
+                Object.keys(inchargeActions).forEach(action => allActions.add(action));
+            });
+            const sortedActions = Array.from(allActions).sort();
+
+            const datasets = [];
+            const colors = [
+                'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)', 'rgba(83, 102, 255, 0.7)', 'rgba(255, 83, 235, 0.7)',
+                'rgba(83, 255, 102, 0.7)'
+            ];
+            let colorIndex = 0;
+
+            for (const inchargeName of selectedIncharges) {
+                const data = sortedActions.map(action => graphData[inchargeName][action] || 0);
+                datasets.push({
+                    label: inchargeName,
+                    data: data,
+                    backgroundColor: colors[colorIndex % colors.length],
+                    borderColor: colors[colorIndex % colors.length].replace('0.7', '1'),
+                    borderWidth: 1
+                });
+                colorIndex++;
+            }
+
+            if (datasets.length === 0) {
+                alert('No negative points data found for the selected incharges.');
+                return;
+            }
+
+            // Destroy existing chart if any
+            if (window.historyChart) {
+                window.historyChart.destroy();
+            }
+
+            const ctx = document.getElementById('historyGraphCanvas').getContext('2d');
+            window.historyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedActions,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Total Negative Points'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Actions'
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y + ' points';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Show modal
+            const historyGraphModal = new bootstrap.Modal(document.getElementById('historyGraphModal'));
+            historyGraphModal.show();
+        }
+
+        // Add event listener to the new export to graph button
+        document.getElementById('exportHistoryGraph').addEventListener('click', generateHistoryGraph);
+
+        // Function to import students from Excel
+        async function importStudentsFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                let studentsAdded = 0;
+                let studentsUpdated = 0;
+                let studentsSkipped = 0;
+                const addStudentMessage = document.getElementById('addStudentMessage');
+
+                const studentsToSave = {}; // Use an object to store students by ID for Firebase set
+                const currentStudentIds = new Set(students.map(s => s.id)); // Get current IDs for checking updates
+
+                for (const row of json) {
+                    const studentId = String(row['ID']).trim(); // Ensure ID is string
+                    const studentName = String(row['Name'] || '').trim();
+                    const studentRoom = String(row['Room'] || '').trim();
+                    const studentFloor = String(row['Floor'] || '').trim();
+                    const studentClass = String(row['Class'] || '').trim();
+                    const studentSection = String(row['Section'] || '').trim();
+                    const studentPoints = parseInt(row['Points'] || 0);
+
+                    if (!studentId || !studentName || !studentRoom || !studentFloor) {
+                        console.warn(`Skipping row due to missing required fields: ${JSON.stringify(row)}`);
+                        studentsSkipped++;
+                        continue;
+                    }
+
+                    const newStudentData = {
+                        id: studentId,
+                        name: studentName,
+                        room: studentRoom,
+                        floor: studentFloor,
+                        class: studentClass,
+                        section: studentSection,
+                        points: studentPoints,
+                        active: true // Default to active
+                    };
+
+                    if (currentStudentIds.has(studentId)) {
+                        studentsUpdated++;
+                    } else {
+                        studentsAdded++;
+                    }
+                    studentsToSave[studentId] = newStudentData; // Add/overwrite in the object
+                }
+
+                try {
+                    // Save all students from the Excel file. This will overwrite the entire 'students' node
+                    // with the data from the Excel file, ensuring consistency.
+                    await database.ref('students').set(studentsToSave);
+                    displayUpdateMessage('addStudentMessage', `Excel import complete: ${studentsAdded} students added, ${studentsUpdated} students updated, ${studentsSkipped} rows skipped.`, 'success');
+                    // UI will update via real-time listener
+                } catch (error) {
+                    displayUpdateMessage('addStudentMessage', 'Error importing students from Excel. Please try again.', 'danger');
+                    console.error("Error importing students:", error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; // Clear the file input
+        }
+
+        // Adjudicators Tab Functions
+        function renderAdjudicatorTables() {
+            const inchargeRankingsTable = document.getElementById('inchargeRankingsTable');
+            const floorStatisticsTable = document.getElementById('floorStatisticsTable');
+
+            // 1. Incharge Activity Rankings
+            const inchargeActivity = {}; // { 'Name (email)': { positive: count, negative: count, total: count } }
+
+            responseHistory.forEach(entry => {
+                const modifiedBy = entry.modifiedBy || 'Unknown';
+                if (!inchargeActivity[modifiedBy]) {
+                    inchargeActivity[modifiedBy] = { positive: 0, negative: 0, total: 0 };
+                }
+                inchargeActivity[modifiedBy].total++;
+                if (entry.pointsChanged > 0) {
+                    inchargeActivity[modifiedBy].positive++;
+                } else if (entry.pointsChanged < 0) {
+                    inchargeActivity[modifiedBy].negative++;
+                }
+            });
+
+            const sortedIncharges = Object.entries(inchargeActivity).map(([name, data]) => ({
+                name,
+                ...data
+            })).sort((a, b) => b.total - a.total); // Sort by total entries
+
+            inchargeRankingsTable.innerHTML = '';
+            if (sortedIncharges.length === 0) {
+                inchargeRankingsTable.innerHTML = '<tr><td colspan="6" class="text-center">No incharge activity found.</td></tr>';
+            } else {
+                const fragment = document.createDocumentFragment();
+                sortedIncharges.forEach((incharge, index) => {
+                    const row = document.createElement('tr');
+                    const nameParts = incharge.name.match(/^(.*?)\s*\(([^)]+)\)$/);
+                    const displayName = nameParts ? nameParts[1].trim() : incharge.name;
+                    const email = nameParts ? nameParts[2].trim() : 'N/A';
+
+                    row.innerHTML = `
+                        <td data-label="Rank"><i class="fas fa-sort-numeric-up-alt"></i> ${index + 1}</td>
+                        <td data-label="Incharge Name"><i class="fas fa-user-tie"></i> ${displayName}</td>
+                        <td data-label="Email"><i class="fas fa-envelope"></i> ${email}</td>
+                        <td data-label="Positive Entries" class="text-success"><i class="fas fa-plus-circle"></i> ${incharge.positive}</td>
+                        <td data-label="Negative Entries" class="text-danger"><i class="fas fa-minus-circle"></i> ${incharge.negative}</td>
+}</td>
+                        <td data-label="Negative Entries" class="text-danger"><i class="fas fa-minus-circle"></i> ${incharge.negative}</td>
+                        
+<td data-label="Total Entries"><i class="fas fa-list-alt"></i> ${incharge.total}</td>
+                    `;
+                    fragment.appendChild(row);
+                });
+                inchargeRankingsTable.appendChild(fragment);
+            }
+
+            // 2. Floor Statistics
+            const floorStats = {}; 
+
+            students.forEach(student => {
+                const floor = student.floor || 'Unknown';
+                if (!floorStats[floor]) {
+                    floorStats[floor] = { totalStudents: 0, totalPoints: 0, positiveEntries: 0, negativeEntries: 0 };
+                }
+                floorStats[floor].totalStudents++;
+                floorStats[floor].totalPoints += student.points;
+            });
+
+            responseHistory.forEach(entry => {
+                const student = students.find(s => s.id === entry.studentId);
+                if (student) {
+                    const floor = student.floor || 'Unknown';
+                    if (floorStats[floor]) {
+                        if (entry.pointsChanged > 0) {
+                            floorStats[floor].positiveEntries++;
+                        } else if (entry.pointsChanged < 0) {
+                            floorStats[floor].negativeEntries++;
+                        }
+                    }
+                }
+            });
+
+            const sortedFloors = Object.keys(floorStats).sort((a, b) => a - b);
+
+            floorStatisticsTable.innerHTML = '';
+            if (sortedFloors.length === 0) {
+                floorStatisticsTable.innerHTML = '<tr><td colspan="5" class="text-center">No floor data available.</td></tr>';
+            } else {
+                const fragment = document.createDocumentFragment();
+                sortedFloors.forEach(floor => {
+                    const stats = floorStats[floor];
+                    const avgPoints = stats.totalStudents > 0 ? (stats.totalPoints / stats.totalStudents).toFixed(2) : 0;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="Floor"><i class="fas fa-building"></i> ${floor}</td>
+                        <td data-label="Total Students"><i class="fas fa-users"></i> ${stats.totalStudents}</td>
+                        <td data-label="Average Points"><i class="fas fa-coins"></i> ${avgPoints}</td>
+                        <td data-label="Total Positive Entries" class="text-success"><i class="fas fa-plus-circle"></i> ${stats.positiveEntries}</td>
+                        <td data-label="Total Negative Entries" class="text-danger"><i class="fas fa-minus-circle"></i> ${stats.negativeEntries}</td>
+                    `;
+                    fragment.appendChild(row);
+                });
+                floorStatisticsTable.appendChild(fragment);
+            }
+        }
+
+        function generateInchargeGraph() {
+            const inchargeActivity = {};
+            responseHistory.forEach(entry => {
+                const modifiedBy = entry.modifiedBy || 'Unknown';
+                if (!inchargeActivity[modifiedBy]) {
+                    inchargeActivity[modifiedBy] = { positive: 0, negative: 0, total: 0 };
+                }
+                inchargeActivity[modifiedBy].total++;
+                if (entry.pointsChanged > 0) {
+                    inchargeActivity[modifiedBy].positive++;
+                } else if (entry.pointsChanged < 0) {
+                    inchargeActivity[modifiedBy].negative++;
+                }
+            });
+            
+            const sortedIncharges = Object.entries(inchargeActivity)
+                .map(([name, data]) => ({ name: name.split(' (')[0], ...data }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 15); // Show top 15 for clarity
+
+            const labels = sortedIncharges.map(i => i.name);
+            const positiveData = sortedIncharges.map(i => i.positive);
+            const negativeData = sortedIncharges.map(i => i.negative);
+
+            if (window.inchargeChart) {
+                window.inchargeChart.destroy();
+            }
+
+            const ctx = document.getElementById('inchargeGraphCanvas').getContext('2d');
+            window.inchargeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Positive Entries',
+                        data: positiveData,
+                        backgroundColor: 'rgba(92, 184, 92, 0.7)',
+                    }, {
+                        label: 'Negative Entries',
+                        data: negativeData,
+                        backgroundColor: 'rgba(217, 83, 79, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Number of Entries' } },
+                        x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+                    }
+                }
+            });
+            new bootstrap.Modal(document.getElementById('inchargeGraphModal')).show();
+        }
+
+        function generateFloorGraph() {
+            const floorStats = {};
+            students.forEach(student => {
+                const floor = student.floor || 'Unknown';
+                if (!floorStats[floor]) {
+                    floorStats[floor] = { totalStudents: 0, totalPoints: 0 };
+                }
+                floorStats[floor].totalStudents++;
+                floorStats[floor].totalPoints += student.points;
+            });
+
+            const sortedFloors = Object.keys(floorStats).sort((a, b) => a - b);
+            const labels = sortedFloors.map(f => `Floor ${f}`);
+            const avgPointsData = sortedFloors.map(f => (
+                floorStats[f].totalStudents > 0 ? (floorStats[f].totalPoints / floorStats[f].totalStudents).toFixed(2) : 0
+            ));
+
+            if (window.floorChart) {
+                window.floorChart.destroy();
+            }
+
+            const ctx = document.getElementById('floorGraphCanvas').getContext('2d');
+            window.floorChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Points',
+                        data: avgPointsData,
+                        backgroundColor: 'rgba(74, 144, 226, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { title: { display: true, text: 'Average Points' } }
+                    }
+                }
+            });
+            new bootstrap.Modal(document.getElementById('floorGraphModal')).show();
+        }
+    </script>
+</body>
+</html>
+
+
