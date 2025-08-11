@@ -3177,7 +3177,7 @@
                     publicNoteModal.hide();
                     // renderPublicNotes() will be called by real-time listener
                 } catch (error) {
-                    displayUpdateMessage('publicNoteMessage', `Error ${noteId ? 'updating' : 'adding'} public note. Please try again.`, 'danger');
+                    displayUpdateMessage('publicNoteMessage', `Error ${noteId ? 'updating' : 'adding'} public note. Please tryC again.`, 'danger');
                     console.error("Error saving public note:", error);
                 }
             });
@@ -3907,22 +3907,24 @@
                 const section = student.section ? student.section.toLowerCase() : '';
 
                 let matchesSearch = false;
-                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(query)) {
+                // Check if query matches name, ID, room, or floor
+                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
                     matchesSearch = true;
                 }
 
+                // Check for class-section combination (e.g., "X-A")
                 if (classQuery && sectionQuery) {
                     if (studentClass === classQuery && section === sectionQuery) {
                         matchesSearch = true;
                     }
-                } else if (classQuery) {
-                    if (studentClass.includes(classQuery)) {
-                        matchesSearch = true;
-                    }
-                } else if (sectionQuery) {
-                    if (section.includes(sectionQuery)) {
-                        matchesSearch = true;
-                    }
+                } 
+                // Check for class only (e.g., "X")
+                else if (classQuery && studentClass.includes(classQuery)) {
+                    matchesSearch = true;
+                } 
+                // Check for section only (e.g., "A")
+                else if (sectionQuery && section.includes(sectionQuery)) {
+                    matchesSearch = true;
                 }
                 return matchesSearch;
             });
@@ -5354,7 +5356,7 @@
                     const displayName = nameParts ? nameParts[1].trim() : incharge.name;
                     const email = nameParts ? nameParts[2].trim() : 'N/A';
 
-                    row.innerHTML = `
+                   row.innerHTML = `
                         <td data-label="Rank"><i class="fas fa-sort-numeric-up-alt"></i> ${index + 1}</td>
                         <td data-label="Incharge Name"><i class="fas fa-user-tie"></i> ${displayName}</td>
                         <td data-label="Email"><i class="fas fa-envelope"></i> ${email}</td>
@@ -5522,3 +5524,4 @@
 </html>
 
 
+S
