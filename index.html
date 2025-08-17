@@ -2757,203 +2757,179 @@
             });
 
             document.getElementById('pointsForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const updatePointsButton = document.getElementById('updatePointsBtn');
+    e.preventDefault();
+    const updatePointsButton = document.getElementById('updatePointsBtn');
 
-                // IMMEDIATELY DISABLE THE BUTTON AND SHOW FEEDBACK
-                updatePointsButton.disabled = true;
-                updatePointsButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+    updatePointsButton.disabled = true;
+    updatePointsButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
 
+    const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsPoints input[name="selectedStudents"]:checked')).map(input => input.value);
+    const positiveActionSelect = document.getElementById('positiveAction');
+    const negativeActionSelect = document.querySelector('[name="negativeAction"]');
+    const percentageInput = document.getElementById('percentageInput').value;
+    const adminModifierDropdown = document.getElementById('adminSelector').value;
+    const teacherAdminNameInput = document.getElementById('teacherAdminName').value.trim();
+    const adminEmailInput = currentUserEmail; // This should be populated from the logged-in user
 
-                const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsPoints input[name="selectedStudents"]:checked')).map(input => input.value);
-                const positiveActionSelect = document.getElementById('positiveAction');
-                const negativeActionSelect = document.querySelector('[name="negativeAction"]');
-                const percentageInput = document.getElementById('percentageInput').value;
-                const adminModifierDropdown = document.getElementById('adminSelector').value;
-                const teacherAdminNameInput = document.getElementById('teacherAdminName').value.trim();
-                const adminEmailInput = currentUserEmail;
+    if (!selectedStudentIds.length) {
+        displayUpdateMessage('updateMessage', 'Please select at least one student.', 'danger');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    }
 
-                if (!selectedStudentIds.length) {
-                    displayUpdateMessage('updateMessage', 'Please select at least one student.', 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                }
+    if (!adminEmailInput) {
+        displayUpdateMessage('updateMessage', 'Your email ID is missing. Please log in again.', 'danger');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    }
 
-                if (!adminEmailInput) {
-                    displayUpdateMessage('updateMessage', 'Your email ID is missing. Please log in again.', 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                }
+    let modifiedBy = '';
+    if (adminModifierDropdown) {
+        modifiedBy = adminModifierDropdown;
+    } else if (teacherAdminNameInput) {
+        modifiedBy = teacherAdminNameInput;
+    } else {
+        displayUpdateMessage('updateMessage', 'Please select an Incharge or enter a Teacher\'s Name.', 'danger');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    }
+    modifiedBy += ` (${adminEmailInput})`; // Append email to the chosen name
 
-                let modifiedBy = '';
-                if (adminModifierDropdown) {
-                    modifiedBy = adminModifierDropdown;
-                } else if (teacherAdminNameInput) {
-                    modifiedBy = teacherAdminNameInput;
-                } else {
-                    displayUpdateMessage('updateMessage', 'Please select an Incharge or enter a Teacher\'s Name.', 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                }
-                modifiedBy += ` (${adminEmailInput})`;
+    let points = 0;
+    let actionText = '';
+    let isPositive = false;
 
-                let points = 0;
-                let actionText = '';
-                let isPositive = false;
+    if (positiveActionSelect.value && negativeActionSelect.value) {
+        displayUpdateMessage('updateMessage', 'Please select only one action (positive or negative).', 'danger');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    } else if (positiveActionSelect.value) {
+        isPositive = true;
 
-                if (positiveActionSelect.value && negativeActionSelect.value) {
-                    displayUpdateMessage('updateMessage', 'Please select only one action (positive or negative).', 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                } else if (positiveActionSelect.value) {
-                    isPositive = true;
-                    // Role check for positive points
-                    if (currentUserRole === 'teacher') {
-                        displayUpdateMessage('updateMessage', 'Teachers can only deduct negative points.', 'danger');
-                        updatePointsButton.disabled = false;
-                        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                        return;
-                    }
+        if (positiveActionSelect.value === 'exam') {
+            const percentage = parseInt(percentageInput);
+            if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+                displayUpdateMessage('updateMessage', 'Please enter a valid percentage (0-100).', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            points = percentage >= 90 ? 20 : percentage >= 80 ? 15 : percentage >= 70 ? 10 : 5;
+            actionText = `Exam Percentage (${percentage}%)`;
+        } else if (positiveActionSelect.value === 'custom') {
+            const customPoints = parseInt(document.getElementById('customPositivePoints').value);
+            if (isNaN(customPoints) || customPoints <= 0) {
+                displayUpdateMessage('updateMessage', 'Please enter a valid positive custom point value.', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            const customReason = document.getElementById('customPositiveReason').value.trim();
+            if (!customReason) {
+                displayUpdateMessage('updateMessage', 'Please provide a reason for custom positive points.', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            points = customPoints;
+            actionText = `Custom Positive: ${customReason} (+${customPoints})`;
+        } else {
+            points = parseInt(positiveActionSelect.value);
+            actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
+        }
+    } else if (negativeActionSelect.value) {
+        isPositive = false;
+        if (negativeActionSelect.value === 'custom') {
+            const customPoints = parseInt(document.getElementById('customNegativePoints').value);
+            if (isNaN(customPoints) || customPoints >= 0) {
+                displayUpdateMessage('updateMessage', 'Please enter a valid negative custom point value (e.g., -15).', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            const customReason = document.getElementById('customNegativeReason').value.trim();
+            if (!customReason) {
+                displayUpdateMessage('updateMessage', 'Please provide a reason for custom negative points.', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            points = customPoints;
+            actionText = `Custom Negative: ${customReason} (${points})`;
+        } else {
+            points = parseInt(negativeActionSelect.value);
+            actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
+        }
+    } else {
+        displayUpdateMessage('updateMessage', 'Please select an action.', 'danger');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    }
 
-                    if (positiveActionSelect.value === 'exam') {
-                        const percentage = parseInt(percentageInput);
-                        if (isNaN(percentage) || percentage < 0 || percentage > 100) {
-                            displayUpdateMessage('updateMessage', 'Please enter a valid percentage (0-100).', 'danger');
-                            updatePointsButton.disabled = false;
-                            updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                            return;
-                        }
-                        points = percentage >= 90 ? 20 : percentage >= 80 ? 15 : percentage >= 70 ? 10 : 5;
-                        actionText = `Exam Percentage (${percentage}%)`;
-                    } else if (positiveActionSelect.value === 'custom') {
-                        const customPoints = parseInt(document.getElementById('customPositivePoints').value);
-                        if (isNaN(customPoints) || customPoints <= 0) {
-                            displayUpdateMessage('updateMessage', 'Please enter a valid positive custom point value.', 'danger');
-                            updatePointsButton.disabled = false;
-                            updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                            return;
-                        }
-                        const customReason = document.getElementById('customPositiveReason').value.trim();
-                        if (!customReason) {
-                            displayUpdateMessage('updateMessage', 'Please provide a reason for custom positive points.', 'danger');
-                            updatePointsButton.disabled = false;
-                            updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                            return;
-                        }
-                        points = customPoints;
-                        actionText = `Custom Positive: ${customReason} (+${customPoints})`;
-                    } else {
-                        points = parseInt(positiveActionSelect.value);
-                        actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
-                    }
-                } else if (negativeActionSelect.value) {
-                    isPositive = false;
-                    if (negativeActionSelect.value === 'custom') {
-                        const customPoints = parseInt(document.getElementById('customNegativePoints').value);
-                        if (isNaN(customPoints) || customPoints >= 0) {
-                            displayUpdateMessage('updateMessage', 'Please enter a valid negative custom point value (e.g., -15).', 'danger');
-                            updatePointsButton.disabled = false;
-                            updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                            return;
-                        }
-                        const customReason = document.getElementById('customNegativeReason').value.trim();
-                        if (!customReason) {
-                            displayUpdateMessage('updateMessage', 'Please provide a reason for custom negative points.', 'danger');
-                            updatePointsButton.disabled = false;
-                            updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                            return;
-                        }
-                        points = customPoints;
-                        actionText = `Custom Negative: ${customReason} (${points})`;
-                    } else {
-                        points = parseInt(negativeActionSelect.value);
-                        actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
-                    }
-                } else {
-                    displayUpdateMessage('updateMessage', 'Please select an action.', 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                }
+    const now = new Date();
+    const date = now.toLocaleDateString('en-GB');
+    const time = now.toLocaleTimeString('en-GB');
 
-                let onCooldownForAnyStudent = false;
-                let cooldownMessage = '';
+    try {
+        const studentNames = [];
+        const updatePromises = [];
 
-                for (const studentId of selectedStudentIds) {
-                    const cooldownStatus = checkAndApplyCooldown(adminEmailInput, studentId, isPositive);
-                    if (cooldownStatus.onCooldown) {
-                        onCooldownForAnyStudent = true;
-                        const studentName = students.find(s => s.id === studentId)?.name || studentId;
-                        cooldownMessage = `Cannot add points to ${studentName}. You have modified this student's points too frequently. Please wait ${cooldownStatus.minutesLeft} minutes.`;
-                        break;
-                    }
-                }
+        for (const studentId of selectedStudentIds) {
+            const studentsSnapshot = await database.ref('students').once('value');
+            const studentsData = studentsSnapshot.val();
+            const studentIndex = Object.keys(studentsData).findIndex(key => studentsData[key].id === studentId);
 
-                if (onCooldownForAnyStudent) {
-                    displayUpdateMessage('updateMessage', cooldownMessage, 'danger');
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
-                    return;
-                }
+            if (studentIndex !== -1) {
+                const student = studentsData[studentIndex];
+                const oldPoints = student.points;
+                const newPoints = oldPoints + points;
+                studentNames.push(student.name);
 
-                const now = new Date();
-                const date = now.toLocaleDateString('en-GB');
-                const time = now.toLocaleTimeString('en-GB');
+                // Update student points in Firebase using the index
+                updatePromises.push(database.ref('students/' + studentIndex).update({ points: newPoints }));
 
-                try {
-                    const studentNames = [];
-                    const updatePromises = [];
+                // Add history entry to Firebase
+                updatePromises.push(addHistoryEntryToFirebase({
+                    date,
+                    time,
+                    studentId,
+                    name: student.name,
+                    action: actionText,
+                    pointsChanged: points,
+                    oldPoints: oldPoints,
+                    newPoints: newPoints,
+                    modifiedBy: modifiedBy
+                }));
+            } else {
+                console.warn(`Student with ID ${studentId} not found in Firebase.`);
+            }
+        }
 
-                    for (const studentId of selectedStudentIds) {
-                        const student = students.find(s => s.id === studentId);
-                        if (student) {
-                            const oldPoints = student.points;
-                            const newPoints = oldPoints + points;
-                            studentNames.push(student.name);
+        await Promise.all(updatePromises);
 
-                            // Update student points in Firebase
-                            updatePromises.push(updateStudentInFirebase(student.id, { points: newPoints }));
+        const studentNamesString = studentNames.join(', ');
+        displayUpdateMessage('updateMessage', `Done, added points for ${studentNamesString} by ${modifiedBy}.`, 'success');
 
-                            // Add history entry to Firebase
-                            updatePromises.push(addHistoryEntryToFirebase({
-                                date,
-                                time,
-                                studentId,
-                                name: student.name,
-                                action: actionText,
-                                pointsChanged: points,
-                                oldPoints: oldPoints, // Store old points for history
-                                newPoints: newPoints, // Store new points for history
-                                modifiedBy: modifiedBy
-                            }));
-                        }
-                    }
+        document.getElementById('pointsForm').reset();
+        document.getElementById('examPercentage').style.display = 'none';
+        document.getElementById('customPositiveInput').style.display = 'none';
+        document.getElementById('customNegativeInput').style.display = 'none';
+        document.getElementById('searchResultsPoints').innerHTML = '';
+        document.getElementById('searchQueryPoints').value = '';
+    } catch (error) {
+        console.error("Error updating points:", error);
+        displayUpdateMessage('updateMessage', 'Error updating points. Please try again.', 'danger');
+    } finally {
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points'; // Reset button text/icon
+    }
+});
 
-                    await Promise.all(updatePromises);
-
-                    const studentNamesString = studentNames.join(', ');
-                    displayUpdateMessage('updateMessage', `Done, added points for ${studentNamesString} by ${modifiedBy}.`, 'success');
-
-                    document.getElementById('pointsForm').reset();
-                    document.getElementById('examPercentage').style.display = 'none';
-                    document.getElementById('customPositiveInput').style.display = 'none';
-                    document.getElementById('customNegativeInput').style.display = 'none';
-                    document.getElementById('searchResultsPoints').innerHTML = '';
-                    document.getElementById('searchQueryPoints').value = '';
-                    // No need to call refreshRankings() or refreshResponses() explicitly here
-                    // as the real-time listeners will handle the UI updates.
-                } catch (error) {
-                    console.error("Error updating points:", error);
-                    displayUpdateMessage('updateMessage', 'Error updating points. Please try again.', 'danger');
-                } finally {
-                    updatePointsButton.disabled = false;
-                    updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points'; // Reset button text/icon
-                }
-            });
 
             window.updateRemark = async function(studentId, newRemark) {
                 const student = students.find(s => s.id === studentId);
@@ -5520,6 +5496,3 @@
     </script>
 </body>
 </html>
-
-
-S
