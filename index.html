@@ -2493,16 +2493,17 @@
 
         // --- DASHBOARD LOGIC (from dashboard.html) ---
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        const firebaseConfig = {
-          apiKey: "AIzaSyAsFiadkeL-__gF_Lb5VY2iap4DlatkaX4",
-          authDomain: "senior-data-researchinnovation.firebaseapp.com",
-          databaseURL: "https://senior-data-researchinnovation-default-rtdb.firebaseio.com",
-          projectId: "senior-data-researchinnovation",
-          storageBucket: "senior-data-researchinnovation.firebasestorage.app",
-          messagingSenderId: "587116206951",
-          appId: "1:587116206951:web:ddf6db02ecd19a63cf2dc2",
-          measurementId: "G-8E23BREM8V"
-        };
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAsFiadkeL-__gF_Lb5VY2iap4DlatkaX4",
+  authDomain: "senior-data-researchinnovation.firebaseapp.com",
+  databaseURL: "https://senior-data-researchinnovation-default-rtdb.firebaseio.com",
+  projectId: "senior-data-researchinnovation",
+  storageBucket: "senior-data-researchinnovation.firebasestorage.app",
+  messagingSenderId: "587116206951",
+  appId: "1:587116206951:web:ddf6db02ecd19a63cf2dc2",
+  measurementId: "G-8E23BREM8V"
+};
         let firebaseApp;
         try {
             firebaseApp = firebase.initializeApp(firebaseConfig);
@@ -2563,16 +2564,36 @@
         // Function to update a single student's data
         async function updateStudentInFirebase(studentId, updatedFields) {
             showLoading();
-            return database.ref('students/' + studentId).update(updatedFields)
-                .then(() => {
-                    console.log(`Student ${studentId} updated in Firebase`);
-                    hideLoading();
-                })
-                .catch(error => {
-                    console.error(`Error updating student ${studentId}:`, error);
-                    hideLoading();
-                    throw error;
-                });
+            // Find the Firebase key for the student based on their ID
+            // This is necessary because Firebase keys are auto-generated, but we use 'id' as a unique identifier
+            // If you're using student.id as the direct Firebase key, this lookup isn't needed.
+            // Assuming 'id' is a property within the student object, and Firebase keys are auto-generated.
+            // If student.id IS the Firebase key, simplify to database.ref('students/' + studentId).update(updatedFields)
+            const studentRef = database.ref('students');
+            let firebaseKey = null;
+
+            // Fetch all students once to find the correct Firebase key
+            const snapshot = await studentRef.orderByChild('id').equalTo(studentId).once('value');
+            snapshot.forEach(childSnapshot => {
+                firebaseKey = childSnapshot.key;
+            });
+
+            if (firebaseKey) {
+                return studentRef.child(firebaseKey).update(updatedFields)
+                    .then(() => {
+                        console.log(`Student ${studentId} updated in Firebase under key ${firebaseKey}`);
+                        hideLoading();
+                    })
+                    .catch(error => {
+                        console.error(`Error updating student ${studentId} under key ${firebaseKey}:`, error);
+                        hideLoading();
+                        throw error;
+                    });
+            } else {
+                console.error(`Student with ID ${studentId} not found in Firebase to update.`);
+                hideLoading();
+                throw new Error(`Student with ID ${studentId} not found.`);
+            }
         }
 
         // Function to add a single history entry
@@ -2671,7 +2692,16 @@
                 // Setup real-time listeners for students and history
                 database.ref('students').on('value', snapshot => {
                     const data = snapshot.val();
-                    students = data ? Object.values(data) : []; // Convert object values to array
+                    // Convert object of objects to array of objects, preserving Firebase keys if needed
+                    // For student management, we assume 'id' is unique and used for lookup
+                    students = [];
+                    if (data) {
+                        for (const key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                students.push({ ...data[key], firebaseKey: key }); // Store Firebase key for direct updates
+                            }
+                        }
+                    }
                     console.log("Students data updated from Firebase (real-time)");
                     document.getElementById('totalStudents').textContent = students.length;
                     document.getElementById('activeStudents').textContent = students.filter(s => s.active).length;
@@ -2880,18 +2910,15 @@
         const updatePromises = [];
 
         for (const studentId of selectedStudentIds) {
-            const studentsSnapshot = await database.ref('students').once('value');
-            const studentsData = studentsSnapshot.val();
-            const studentIndex = Object.keys(studentsData).findIndex(key => studentsData[key].id === studentId);
-
-            if (studentIndex !== -1) {
-                const student = studentsData[studentIndex];
+            // Find the student in the local 'students' array to get current points and name
+            const student = students.find(s => s.id === studentId);
+            if (student) {
                 const oldPoints = student.points;
                 const newPoints = oldPoints + points;
                 studentNames.push(student.name);
 
-                // Update student points in Firebase using the index
-                updatePromises.push(database.ref('students/' + studentIndex).update({ points: newPoints }));
+                // Update student points in Firebase
+                updatePromises.push(updateStudentInFirebase(student.id, { points: newPoints }));
 
                 // Add history entry to Firebase
                 updatePromises.push(addHistoryEntryToFirebase({
@@ -2906,7 +2933,7 @@
                     modifiedBy: modifiedBy
                 }));
             } else {
-                console.warn(`Student with ID ${studentId} not found in Firebase.`);
+                console.warn(`Student with ID ${studentId} not found in local data.`);
             }
         }
 
@@ -2999,7 +3026,8 @@
 
             document.getElementById('studentManagementTable').addEventListener('dblclick', function(event) {
                 const target = event.target;
-                if (target.classList.contains('editable-cell') && target.dataset.field) {
+                // Ensure we are double-clicking on an editable cell and not the input itself
+                if (target.classList.contains('editable-cell') && target.dataset.field && target.tagName !== 'INPUT') {
                     const studentId = target.closest('tr').dataset.id;
                     const field = target.dataset.field;
                     const originalValue = target.textContent.trim();
@@ -3007,24 +3035,40 @@
                     const input = document.createElement('input');
                     input.type = 'text';
                     input.value = originalValue;
-                    input.className = 'form-control form-control-sm';
+                    input.className = 'form-control form-control-sm'; // Apply Bootstrap styling
+                    input.style.width = '100%'; // Ensure input fills the cell
 
-                    target.innerHTML = '';
-                    target.appendChild(input);
-                    input.focus();
+                    target.innerHTML = ''; // Clear the cell content
+                    target.appendChild(input); // Append the input field
+                    input.focus(); // Focus the input field
 
                     const saveChanges = async () => {
                         const newValue = input.value.trim();
+                        // Only update if the value has actually changed
                         if (newValue !== originalValue) {
-                            await updateStudentDetails(studentId, field, newValue);
+                            try {
+                                await updateStudentDetails(studentId, field, newValue);
+                                // The real-time listener for 'students' data will automatically
+                                // re-render the table, so no manual UI update needed here.
+                            } catch (error) {
+                                console.error("Error saving changes:", error);
+                                // Revert UI if update failed (optional, as real-time listener will correct it)
+                                target.textContent = originalValue;
+                            }
+                        } else {
+                            // If value didn't change, just revert to text display
+                            target.textContent = originalValue;
                         }
-                        target.textContent = newValue;
+                        // Re-add editable-cell class and data-field attributes if they were removed
+                        target.classList.add('editable-cell');
+                        target.dataset.field = field;
                     };
 
-                    input.addEventListener('blur', saveChanges);
+                    // Attach event listeners to the input field
+                    input.addEventListener('blur', saveChanges); // Save when input loses focus
                     input.addEventListener('keypress', function(e) {
                         if (e.key === 'Enter') {
-                            input.blur();
+                            input.blur(); // Trigger blur to save changes
                         }
                     });
                 }
@@ -3830,7 +3874,9 @@
 
             try {
                 // Save individual student to Firebase using their ID as key
-                await database.ref('students/' + newStudent.id).set(newStudent);
+                // Assuming Firebase keys are auto-generated and 'id' is a property within the object
+                // If 'id' is meant to be the Firebase key, use .set(newStudent) on database.ref('students/' + newStudent.id)
+                await database.ref('students').push(newStudent); // Push with auto-generated key
                 displayUpdateMessage('addStudentMessage', `Student ${newStudent.name} added successfully!`, 'success');
                 document.getElementById('addStudentForm').reset();
                 // UI will update via real-time listener
@@ -3845,9 +3891,16 @@
 
         async function deleteStudent(studentId) {
             try {
-                await database.ref('students/' + studentId).remove(); // Remove directly from Firebase
-                alert(`Student ${studentId} deleted successfully.`);
-                // UI will update via real-time listener
+                // Find the Firebase key for the student based on their ID
+                const studentToDelete = students.find(s => s.id === studentId);
+                if (studentToDelete && studentToDelete.firebaseKey) {
+                    await database.ref('students/' + studentToDelete.firebaseKey).remove(); // Remove directly from Firebase using its key
+                    alert(`Student ${studentId} deleted successfully.`);
+                    // UI will update via real-time listener
+                } else {
+                    alert(`Student with ID ${studentId} not found or missing Firebase key.`);
+                    console.error(`Student with ID ${studentId} not found or missing Firebase key.`);
+                }
             } catch (error) {
                 alert('Error deleting student. Please try again.');
                 console.error("Error deleting student:", error);
@@ -3856,8 +3909,17 @@
 
         async function updateStudentDetails(studentId, field, newValue) {
             try {
-                await updateStudentInFirebase(studentId, { [field]: newValue });
-                // UI will update via real-time listener
+                // Find the student in the local 'students' array to get its Firebase key
+                const studentToUpdate = students.find(s => s.id === studentId);
+                if (studentToUpdate && studentToUpdate.firebaseKey) {
+                    const updatedFields = { [field]: newValue };
+                    await database.ref('students/' + studentToUpdate.firebaseKey).update(updatedFields);
+                    console.log(`Updated student ${studentId}, field ${field} to ${newValue}`);
+                    // UI will update via real-time listener
+                } else {
+                    console.error(`Student with ID ${studentId} not found or missing Firebase key.`);
+                    alert(`Error: Student ${studentId} not found or cannot be updated.`);
+                }
             } catch (error) {
                 alert(`Error updating ${field}. Please try again.`);
                 console.error(`Error updating student ${field}:`, error);
@@ -4815,7 +4877,7 @@
             if (totalPages > 1) {
                 let li = document.createElement('li');
                 li.className = `page-item ${notesCurrentPage === 1 ? 'disabled' : ''}`;
-                li.innerHTML = `<a class="page-link" href="#" aria-label="Previous" title="Go to the previous page."><span aria-hidden="true">&laquo;</span></a>`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Previous" title="Go to the first page."><span aria-hidden="true">&laquo;</span></a>`;
                 li.addEventListener('click', (e) => {
                     e.preventDefault();
                     if (notesCurrentPage > 1) {
@@ -4834,7 +4896,7 @@
                         notesCurrentPage = i;
                         renderNotesTable();
                     });
-                    notesPagination.appendChild(li);
+                    paginationContainer.appendChild(li);
                 }
 
                 li = document.createElement('li');
@@ -5496,3 +5558,6 @@
     </script>
 </body>
 </html>
+
+
+
