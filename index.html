@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -1564,14 +1565,13 @@
                                 <div class="col-md-4">
                                     <label class="form-label" for="batchDisciplineFloorFilter">Filter by Floor</label>
                                     <select class="form-select" id="batchDisciplineFloorFilter" title="Filter students by their floor." aria-label="Filter by floor">
-                                        <option value="all">All Floors</option>
-                                        <option value="1">1st Floor</option>
-                                        <option value="2">2nd Floor</option>
-                                        <option value="3">3rd Floor</option>
-                                        <option value="4">4th Floor</option>
-                                        <option value="5">5th Floor</option>
-                                        <option value="6">6th Floor</option>
-                                    </select>
+                                        <option value="1" selected>Floor 1</option>
+  <option value="2">Floor 2</option>
+  <option value="3">Floor 3</option>
+  <option value="4">Floor 4</option>
+  <option value="5">Floor 5</option>
+  <option value="6">Floor 6</option>
+</select>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="batchDisciplineClassFilter">Filter by Class</label>
@@ -1706,7 +1706,6 @@
                             <div class="col-md-4">
                                 <label class="form-label" for="floorFilter">Filter by Floor</label>
                                 <select class="form-select" id="floorFilter" title="Filter students by their floor." aria-label="Filter by floor">
-                                    <option value="all">All Floors</option>
                                     <option value="1">1st Floor</option>
                                     <option value="2">2nd Floor</option>
                                     <option value="3">3rd Floor</option>
@@ -2958,17 +2957,15 @@ const firebaseConfig = {
 });
 
 
-            window.updateRemark = async function(studentId, newRemark) {
-                const student = students.find(s => s.id === studentId);
-                if (student) {
-                    try {
-                        await updateStudentInFirebase(student.id, { remark: newRemark });
-                        // UI will update via real-time listener
-                    } catch (error) {
-                        console.error("Error updating remark:", error);
-                    }
-                }
-            };
+         // ...existing code...
+window.updateRemark = async function(studentId, newRemark) {
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+        student.remark = newRemark;
+        await updateStudentInFirebase(studentId, { remark: newRemark });
+    }
+};
+// ...existing code...
             document.getElementById('exportRankings').addEventListener('click', exportToExcel);
             document.getElementById('exportHistory').addEventListener('click', exportHistoryToExcel); // New line for history export
 
@@ -3410,234 +3407,128 @@ const firebaseConfig = {
             }
         }
 
-        function refreshRankings() {
-            const rankingsTable = document.getElementById('rankingsTable');
-            const eRankingsTable = document.getElementById('eRankingsTable');
-            const gradeFilter = document.getElementById('gradeFilter').value;
-            const floorFilter = document.getElementById('floorFilter').value;
-            const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
-            const { classQuery, sectionQuery } = parseClassSectionQuery(searchQueryRankings);
+        // ...existing code...
+function refreshRankings() {
+    const rankingsTable = document.getElementById('rankingsTable');
+    const eRankingsTable = document.getElementById('eRankingsTable');
+    const gradeFilter = document.getElementById('gradeFilter').value;
+    const floorFilter = document.getElementById('floorFilter').value || '1'; // Default to 1
+    const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
+    const { classQuery, sectionQuery } = parseClassSectionQuery(searchQueryRankings);
 
-            displayActiveFilters('rankingsFilterDisplay', {
-                search: searchQueryRankings,
-                grade: gradeFilter,
-                floor: floorFilter
-            });
+    displayActiveFilters('rankingsFilterDisplay', {
+        grade: gradeFilter,
+        floor: floorFilter
+    });
 
-            let studentsToProcess = [...students];
+    // Only show students for the selected floor
+    let studentsToProcess = students.filter(s => s.floor === floorFilter);
 
-            let positiveStudents = studentsToProcess.filter(s => s.points >= 0);
-            let negativeStudents = studentsToProcess.filter(s => s.points < 0);
+    // Separate positive and negative points
+    let positiveStudents = studentsToProcess.filter(s => s.points >= 0);
+    let negativeStudents = studentsToProcess.filter(s => s.points < 0);
 
-            negativeStudents.forEach(student => {
-                student.assignedGrade = 'E';
-            });
+    // Assign E grade to negative points
+    negativeStudents.forEach(student => {
+        student.assignedGrade = 'E';
+    });
 
-            const studentsByFloor = {};
-            const floors = ['1', '2', '3', '4', '5', '6'];
-            floors.forEach(floor => {
-                studentsByFloor[floor] = positiveStudents.filter(s => s.floor === floor).sort((a, b) => b.points - a.points);
-            });
+    // Sort positive students by points descending
+    positiveStudents.sort((a, b) => b.points - a.points);
 
-            floors.forEach(floor => {
-                const floorStudents = studentsByFloor[floor];
-                const totalStudentsOnFloor = floorStudents.length;
+    // Assign grades based on rank
+    positiveStudents.forEach((student, idx) => {
+        if (idx < 10) student.assignedGrade = 'A+';
+        else if (idx < 40) student.assignedGrade = 'A';
+        else if (idx < 80) student.assignedGrade = 'B';
+        else if (idx < 130) student.assignedGrade = 'C';
+        else student.assignedGrade = 'D';
+    });
 
-                floorStudents.forEach((student, index) => {
-                    const rank = index + 1;
-                    const percentageRank = (rank / totalStudentsOnFloor) * 100;
+    // Filter by search and grade if needed
+    let studentsToDisplayMain = positiveStudents;
+    if (searchQueryRankings) {
+        studentsToDisplayMain = studentsToDisplayMain.filter(s =>
+            s.name.toLowerCase().includes(searchQueryRankings) ||
+            s.id.toLowerCase().includes(searchQueryRankings) ||
+            (s.class && s.class.toLowerCase().includes(classQuery)) ||
+            (s.section && s.section.toLowerCase().includes(sectionQuery))
+        );
+    }
+    if (gradeFilter !== 'all') {
+        studentsToDisplayMain = studentsToDisplayMain.filter(s => s.assignedGrade === gradeFilter);
+    }
 
-                    if (percentageRank <= 5) {
-                        student.assignedGrade = 'A+';
-                    } else if (percentageRank <= 20) {
-                        student.assignedGrade = 'A';
-                    } else if (percentageRank <= 50) {
-                        student.assignedGrade = 'B';
-                    } else if (percentageRank <= 75) {
-                        student.assignedGrade = 'C';
-                    } else {
-                        student.assignedGrade = 'D';
-                    }
-                });
-            });
+    // Render main rankings table with correct columns and order
+    rankingsTable.innerHTML = '';
+    if (studentsToDisplayMain.length === 0) {
+        rankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students found matching your criteria.</td></tr>';
+    } else {
+        studentsToDisplayMain.forEach((student, idx) => {
+            rankingsTable.innerHTML += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.room}</td>
+                    <td>${student.floor}</td>
+                    <td>${student.points}</td>
+                    <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="${student.remark || ''}" 
+                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark"/>
+                    </td>
+                    <td>${student.class || ''}</td>
+                    <td>${student.section || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}')">Change Rank</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
 
-            let allRankedStudents = [...negativeStudents, ...positiveStudents];
+    // Render E rank table (negative points) with same columns
+    let studentsToDisplayERank = negativeStudents;
+    if (searchQueryRankings) {
+        studentsToDisplayERank = studentsToDisplayERank.filter(s =>
+            s.name.toLowerCase().includes(searchQueryRankings) ||
+            s.id.toLowerCase().includes(searchQueryRankings) ||
+            (s.class && s.class.toLowerCase().includes(classQuery)) ||
+            (s.section && s.section.toLowerCase().includes(sectionQuery))
+        );
+    }
+    studentsToDisplayERank.sort((a, b) => a.points - b.points);
 
-            let studentsToDisplayMain = allRankedStudents.filter(s => s.points >= 0);
-
-            if (searchQueryRankings) {
-                studentsToDisplayMain = studentsToDisplayMain.filter(student => {
-                    const name = student.name ? student.name.toLowerCase() : '';
-                    const id = student.id ? student.id.toLowerCase() : '';
-                    const room = student.room ? student.room.toLowerCase() : '';
-                    const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-                    const studentClass = student.class ? student.class.toLowerCase() : '';
-                    const section = student.section ? student.section.toLowerCase() : '';
-
-                    let matchesSearch = false;
-                    if (name.includes(searchQueryRankings) || id.includes(searchQueryRankings) || room.includes(searchQueryRankings) || floor.includes(searchQueryRankings)) {
-                        matchesSearch = true;
-                    }
-
-                    if (classQuery && sectionQuery) {
-                        if (studentClass === classQuery && section === sectionQuery) {
-                            matchesSearch = true;
-                        }
-                    } else if (classQuery) {
-                        if (studentClass.includes(classQuery)) {
-                            matchesSearch = true;
-                        }
-                    } else if (sectionQuery) {
-                         if (section.includes(sectionQuery)) {
-                            matchesSearch = true;
-                        }
-                    }
-                    return matchesSearch;
-                });
-            }
-
-            if (gradeFilter !== 'all') {
-                studentsToDisplayMain = studentsToDisplayMain.filter(s => s.assignedGrade === gradeFilter);
-            }
-
-            if (floorFilter !== 'all') {
-                studentsToDisplayMain = studentsToDisplayMain.filter(s => s.floor === floorFilter);
-            }
-
-            studentsToDisplayMain.sort((a, b) => {
-                if (a.floor !== b.floor) {
-                    return a.floor - b.floor;
-                }
-                return b.points - a.points;
-            });
-
-            rankingsTable.innerHTML = '';
-            if (studentsToDisplayMain.length === 0) {
-                rankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students found matching your criteria.</td></tr>';
-            } else {
-                const fragment = document.createDocumentFragment();
-                let currentFloor = null;
-                let floorRank = 0;
-                studentsToDisplayMain.forEach((student) => {
-                    if (student.floor !== currentFloor) {
-                        currentFloor = student.floor;
-                        floorRank = 1;
-                    } else {
-                        floorRank++;
-                    }
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td data-label="Rank"><i class="fas fa-sort-numeric-up-alt"></i> ${floorRank}</td>
-                        <td data-label="Student ID"><i class="fas fa-id-card"></i> ${student.id}</td>
-                        <td data-label="Name"><i class="fas fa-user"></i> ${student.name}</td>
-                        <td data-label="Room"><i class="fas fa-door-open"></i> ${student.room}</td>
-                        <td data-label="Floor"><i class="fas fa-building"></i> ${student.floor}</td>
-                        <td data-label="Points" class="${student.points >= 0 ? 'text-success' : 'text-danger'}">
-                            <i class="fas fa-coins"></i> ${student.points > 0 ? '+' : ''}${student.points}
-                        </td>
-                        <td data-label="Grade">
-                            <span class="badge ${getGradeBadgeClass(student.assignedGrade)}">
-                                <i class="fas fa-award"></i> ${student.assignedGrade}
-                            </span>
-                        </td>
-                        <td data-label="Remark">
-                            <input type="text" class="remark-input"
-                                value="${student.remark || ''}"
-                                onchange="updateRemark('${student.id}', this.value)"
-                                title="Add or edit remarks for this student.">
-                        </td>
-                        <td data-label="Class"><i class="fas fa-chalkboard"></i> ${student.class || ''}</td>
-                        <td data-label="Section"><i class="fas fa-tag"></i> ${student.section || ''}</td>
-                        <td data-label="Actions">
-                            <button class="btn btn-sm btn-info change-rank-btn" data-id="${student.id}" title="Change this student's rank.">
-                                <i class="fas fa-exchange-alt"></i> Change Rank
-                            </button>
-                        </td>
-                    `;
-                    fragment.appendChild(row);
-                });
-                rankingsTable.appendChild(fragment);
-
-                document.querySelectorAll('.change-rank-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const studentId = this.dataset.id;
-                        openRankChangeModal(studentId);
-                    });
-                });
-            }
-
-            let studentsToDisplayERank = negativeStudents;
-            if (floorFilter !== 'all') {
-                studentsToDisplayERank = studentsToDisplayERank.filter(s => s.floor === floorFilter);
-            }
-            if (searchQueryRankings) {
-                studentsToDisplayERank = studentsToDisplayERank.filter(student => {
-                    const name = student.name ? student.name.toLowerCase() : '';
-                    const id = student.id ? student.id.toLowerCase() : '';
-                    const room = student.room ? student.room.toLowerCase() : '';
-                    const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-                    const studentClass = student.class ? student.class.toLowerCase() : '';
-                    const section = student ? student.section.toLowerCase() : '';
-
-                    let matchesSearch = false;
-                    if (name.includes(searchQueryRankings) || id.includes(searchQueryRankings) || room.includes(searchQueryRankings) || floor.includes(searchQueryRankings)) {
-                        matchesSearch = true;
-                    }
-
-                    if (classQuery && sectionQuery) {
-                        if (studentClass === classQuery && section === sectionQuery) {
-                            matchesSearch = true;
-                        }
-                    } else if (classQuery) {
-                        if (studentClass.includes(classQuery)) {
-                            matchesSearch = true;
-                        }
-                    } else if (sectionQuery) {
-                         if (section.includes(sectionQuery)) {
-                            matchesSearch = true;
-                        }
-                    }
-                    return matchesSearch;
-                });
-            }
-            studentsToDisplayERank.sort((a, b) => a.points - b.points);
-
-            eRankingsTable.innerHTML = '';
-            if (studentsToDisplayERank.length === 0) {
-                eRankingsTable.innerHTML = '<tr><td colspan="9" class="text-center">No students with negative points.</td></tr>';
-            } else {
-                const fragment = document.createDocumentFragment();
-                studentsToDisplayERank.forEach((student, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td data-label="E-Rank"><i class="fas fa-sort-numeric-down-alt"></i> ${index + 1}</td>
-                        <td data-label="Student ID"><i class="fas fa-id-card"></i> ${student.id}</td>
-                        <td data-label="Name"><i class="fas fa-user"></i> ${student.name}</td>
-                        <td data-label="Room"><i class="fas fa-door-open"></i> ${student.room}</td>
-                        <td data-label="Floor"><i class="fas fa-building"></i> ${student.floor}</td>
-                        <td data-label="Points" class="text-danger fw-bold"><i class="fas fa-coins"></i> ${student.points}</td>
-                        <td data-label="Class"><i class="fas fa-chalkboard"></i> ${student.class || ''}</td>
-                        <td data-label="Section"><i class="fas fa-tag"></i> ${student.section || ''}</td>
-                        <td data-label="Actions">
-                            <button class="btn btn-sm btn-info change-e-rank-btn" data-id="${student.id}" title="Change this student's E-Rank.">
-                                <i class="fas fa-exchange-alt"></i> Change Rank
-                            </button>
-                        </td>
-                    `;
-                    fragment.appendChild(row);
-                });
-                eRankingsTable.appendChild(fragment);
-
-                document.querySelectorAll('.change-e-rank-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const studentId = this.dataset.id;
-                        openRankChangeModal(studentId, true);
-                    });
-                });
-            }
-        }
-
+    eRankingsTable.innerHTML = '';
+    if (studentsToDisplayERank.length === 0) {
+        eRankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students with negative points.</td></tr>';
+    } else {
+        studentsToDisplayERank.forEach((student, idx) => {
+            eRankingsTable.innerHTML += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.room}</td>
+                    <td>${student.floor}</td>
+                    <td>${student.points}</td>
+                    <td><span class="badge ${getGradeBadgeClass('E')}">E</span></td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="${student.remark || ''}" 
+                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark"/>
+                    </td>
+                    <td>${student.class || ''}</td>
+                    <td>${student.section || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', true)">Change Rank</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+}
+// ...existing code...
         function getGradeBadgeClass(grade) {
             if (grade === 'A+') return 'bg-success';
             if (grade === 'A') return 'bg-primary';
