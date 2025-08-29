@@ -1,5 +1,4 @@
-
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -2958,13 +2957,91 @@ const firebaseConfig = {
 
 
          // ...existing code...
-window.updateRemark = async function(studentId, newRemark) {
-    const student = students.find(s => s.id === studentId);
-    if (student) {
-        student.remark = newRemark;
-        await updateStudentInFirebase(studentId, { remark: newRemark });
-    }
-};
+        const GRADE_KEYWORDS = ['A+', 'A', 'B', 'C', 'D', 'E'];
+
+        window.updateRemark = async function(studentId, newRemark) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const oldRemark = student.remark || '';
+            const oldManualGrade = student.manualGrade;
+
+            // Check if the new remark contains a grade keyword
+            let detectedGrade = null;
+            for (const grade of GRADE_KEYWORDS) {
+                if (newRemark.toUpperCase().includes(grade)) {
+                    detectedGrade = grade;
+                    break;
+                }
+            }
+
+            let confirmed = true;
+            if (detectedGrade) {
+                confirmed = confirm(`WARNING: You are attempting to manually assign grade "${detectedGrade}" to ${student.name}. This will override their calculated grade and may affect rankings. Do you want to proceed?`);
+            }
+
+            if (confirmed) {
+                let updatedFields = { remark: newRemark };
+
+                if (detectedGrade) {
+                    updatedFields.manualGrade = detectedGrade;
+
+                    // Handle A+ specific logic (top 10)
+                    if (detectedGrade === 'A+') {
+                        const currentAPlusStudents = students.filter(s => s.floor === student.floor && (s.manualGrade === 'A+' || (s.manualGrade === undefined && getCalculatedGrade(s.points, s.floor) === 'A+')));
+                        if (currentAPlusStudents.length >= 10) {
+                            // Find the lowest ranked A+ student (by points, then by ID for tie-breaking)
+                            currentAPlusStudents.sort((a, b) => {
+                                if (a.points !== b.points) return a.points - b.points;
+                                return a.id.localeCompare(b.id);
+                            });
+                            const studentToDemote = currentAPlusStudents[currentAPlusStudents.length - 1];
+
+                            if (studentToDemote && studentToDemote.id !== studentId) { // Don't demote the same student if they were already A+
+                                const demoteConfirmed = confirm(`${student.name} is being manually set to A+. There are already 10 A+ students on this floor. ${studentToDemote.name} (ID: ${studentToDemote.id}) will be demoted to grade A. Proceed?`);
+                                if (demoteConfirmed) {
+                                    await updateStudentInFirebase(studentToDemote.id, { manualGrade: 'A' });
+                                    alert(`${studentToDemote.name} has been demoted to grade A.`);
+                                } else {
+                                    // If demotion is cancelled, don't set the new student to A+
+                                    updatedFields.manualGrade = oldManualGrade; // Revert
+                                    alert("A+ assignment cancelled as demotion was not confirmed.");
+                                    return; // Exit function
+                                }
+                            }
+                        }
+                    }
+                } else if (oldManualGrade && !newRemark.toUpperCase().includes(oldManualGrade)) {
+                    // If remark no longer contains the old manual grade, clear manualGrade
+                    updatedFields.manualGrade = null; // Clear the manual grade
+                }
+
+                await updateStudentInFirebase(studentId, updatedFields);
+                alert(`Remark and grade for ${student.name} updated successfully.`);
+            } else {
+                // If user cancels, revert the input field to old remark
+                const inputElement = document.querySelector(`input[data-id="${studentId}"]`);
+                if (inputElement) {
+                    inputElement.value = oldRemark;
+                }
+                alert("Remark update cancelled.");
+            }
+        };
+
+        // Helper function to get calculated grade (used for A+ demotion logic)
+        function getCalculatedGrade(points, floor) {
+            const floorStudents = students.filter(s => s.floor === floor && s.points >= 0);
+            floorStudents.sort((a, b) => b.points - a.points);
+            const studentIndex = floorStudents.findIndex(s => s.points === points); // Simplified, assumes unique points for rank
+            if (studentIndex === -1) return 'D'; // Default if not found
+
+            if (studentIndex < 10) return 'A+';
+            else if (studentIndex < 40) return 'A';
+            else if (studentIndex < 80) return 'B';
+            else if (studentIndex < 130) return 'C';
+            else return 'D';
+        }
+
 // ...existing code...
             document.getElementById('exportRankings').addEventListener('click', exportToExcel);
             document.getElementById('exportHistory').addEventListener('click', exportHistoryToExcel); // New line for history export
@@ -3421,50 +3498,104 @@ function refreshRankings() {
         floor: floorFilter
     });
 
+    // ...inside refreshRankings()...
     // Only show students for the selected floor
-    let studentsToProcess = students.filter(s => s.floor === floorFilter);
+    let studentsOnFloor = students.filter(s => String(s.floor) === String(floorFilter));
 
-    // Separate positive and negative points
-    let positiveStudents = studentsToProcess.filter(s => s.points >= 0);
-    let negativeStudents = studentsToProcess.filter(s => s.points < 0);
+    // Assign grades based on points or manual override
+    studentsOnFloor.forEach(student => {
+        if (student.manualGrade) {
+            student.assignedGrade = student.manualGrade;
+        } else {
+            // Calculate grade based on points
+            const floorPositiveStudents = studentsOnFloor.filter(s => s.points >= 0);
+            floorPositiveStudents.sort((a, b) => b.points - a.points);
+            const studentIndex = floorPositiveStudents.findIndex(s => s.id === student.id);
 
-    // Assign E grade to negative points
-    negativeStudents.forEach(student => {
-        student.assignedGrade = 'E';
+            if (student.points < 0) {
+                student.assignedGrade = 'E';
+            } else if (String(floorFilter) === '5') {
+                // Custom grading for Floor 5
+                if (studentIndex >= 0 && studentIndex < 5) {
+                    student.assignedGrade = 'A+';
+                } else if (studentIndex >= 5 && studentIndex < 20) {
+                    student.assignedGrade = 'A';
+                } else if (studentIndex >= 20 && studentIndex < 40) {
+                    student.assignedGrade = 'B';
+                } else if (studentIndex >= 40 && studentIndex < 60) {
+                    student.assignedGrade = 'C';
+                } else {
+                    student.assignedGrade = 'D';
+                }
+            } else {
+                // Default grading for other floors
+                if (studentIndex < 10) {
+                    student.assignedGrade = 'A+';
+                } else if (studentIndex < 40) {
+                    student.assignedGrade = 'A';
+                } else if (studentIndex < 80) {
+                    student.assignedGrade = 'B';
+                } else if (studentIndex < 130) {
+                    student.assignedGrade = 'C';
+                } else {
+                    student.assignedGrade = 'D';
+                }
+            }
+        }
+    });
+// ...existing code...
+
+    // Separate students for main rankings and E-rankings
+    let mainRankStudents = studentsOnFloor.filter(s => s.assignedGrade !== 'E');
+    let eRankStudents = studentsOnFloor.filter(s => s.assignedGrade === 'E');
+
+    // Sort main rank students: A+ first, then A, B, C, D, then by points, then by ID
+    mainRankStudents.sort((a, b) => {
+        const gradeOrder = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+        if (gradeOrder[a.assignedGrade] !== gradeOrder[b.assignedGrade]) {
+            return gradeOrder[a.assignedGrade] - gradeOrder[b.assignedGrade];
+        }
+        if (a.points !== b.points) {
+            return b.points - a.points; // Higher points first
+        }
+        return a.id.localeCompare(b.id); // Tie-break by ID
     });
 
-    // Sort positive students by points descending
-    positiveStudents.sort((a, b) => b.points - a.points);
-
-    // Assign grades based on rank
-    positiveStudents.forEach((student, idx) => {
-        if (idx < 10) student.assignedGrade = 'A+';
-        else if (idx < 40) student.assignedGrade = 'A';
-        else if (idx < 80) student.assignedGrade = 'B';
-        else if (idx < 130) student.assignedGrade = 'C';
-        else student.assignedGrade = 'D';
+    // Sort E-rank students by points (least negative first), then by ID
+    eRankStudents.sort((a, b) => {
+        if (a.points !== b.points) {
+            return a.points - b.points; // Less negative (closer to 0) first
+        }
+        return a.id.localeCompare(b.id); // Tie-break by ID
     });
 
-    // Filter by search and grade if needed
-    let studentsToDisplayMain = positiveStudents;
+    // Apply search query to both lists
     if (searchQueryRankings) {
-        studentsToDisplayMain = studentsToDisplayMain.filter(s =>
+        mainRankStudents = mainRankStudents.filter(s =>
+            s.name.toLowerCase().includes(searchQueryRankings) ||
+            s.id.toLowerCase().includes(searchQueryRankings) ||
+            (s.class && s.class.toLowerCase().includes(classQuery)) ||
+            (s.section && s.section.toLowerCase().includes(sectionQuery))
+        );
+        eRankStudents = eRankStudents.filter(s =>
             s.name.toLowerCase().includes(searchQueryRankings) ||
             s.id.toLowerCase().includes(searchQueryRankings) ||
             (s.class && s.class.toLowerCase().includes(classQuery)) ||
             (s.section && s.section.toLowerCase().includes(sectionQuery))
         );
     }
+
+    // Apply grade filter to main rank students
     if (gradeFilter !== 'all') {
-        studentsToDisplayMain = studentsToDisplayMain.filter(s => s.assignedGrade === gradeFilter);
+        mainRankStudents = mainRankStudents.filter(s => s.assignedGrade === gradeFilter);
     }
 
-    // Render main rankings table with correct columns and order
+    // Render main rankings table
     rankingsTable.innerHTML = '';
-    if (studentsToDisplayMain.length === 0) {
+    if (mainRankStudents.length === 0) {
         rankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students found matching your criteria.</td></tr>';
     } else {
-        studentsToDisplayMain.forEach((student, idx) => {
+        mainRankStudents.forEach((student, idx) => {
             rankingsTable.innerHTML += `
                 <tr>
                     <td>${idx + 1}</td>
@@ -3475,8 +3606,8 @@ function refreshRankings() {
                     <td>${student.points}</td>
                     <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
                     <td>
-                        <input type="text" class="form-control form-control-sm" value="${student.remark || ''}" 
-                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark"/>
+                        <input type="text" class="form-control form-control-sm remark-input" value="${student.remark || ''}" 
+                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark" data-id="${student.id}"/>
                     </td>
                     <td>${student.class || ''}</td>
                     <td>${student.section || ''}</td>
@@ -3488,23 +3619,12 @@ function refreshRankings() {
         });
     }
 
-    // Render E rank table (negative points) with same columns
-    let studentsToDisplayERank = negativeStudents;
-    if (searchQueryRankings) {
-        studentsToDisplayERank = studentsToDisplayERank.filter(s =>
-            s.name.toLowerCase().includes(searchQueryRankings) ||
-            s.id.toLowerCase().includes(searchQueryRankings) ||
-            (s.class && s.class.toLowerCase().includes(classQuery)) ||
-            (s.section && s.section.toLowerCase().includes(sectionQuery))
-        );
-    }
-    studentsToDisplayERank.sort((a, b) => a.points - b.points);
-
+    // Render E rank table
     eRankingsTable.innerHTML = '';
-    if (studentsToDisplayERank.length === 0) {
+    if (eRankStudents.length === 0) {
         eRankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students with negative points.</td></tr>';
     } else {
-        studentsToDisplayERank.forEach((student, idx) => {
+        eRankStudents.forEach((student, idx) => {
             eRankingsTable.innerHTML += `
                 <tr>
                     <td>${idx + 1}</td>
@@ -3515,8 +3635,8 @@ function refreshRankings() {
                     <td>${student.points}</td>
                     <td><span class="badge ${getGradeBadgeClass('E')}">E</span></td>
                     <td>
-                        <input type="text" class="form-control form-control-sm" value="${student.remark || ''}" 
-                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark"/>
+                        <input type="text" class="form-control form-control-sm remark-input" value="${student.remark || ''}" 
+                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark" data-id="${student.id}"/>
                     </td>
                     <td>${student.class || ''}</td>
                     <td>${student.section || ''}</td>
@@ -3661,7 +3781,9 @@ function refreshRankings() {
                     .sort((a, b) => b.points - a.points)
                     .map((student, index) => {
                         let assignedGradeForExport;
-                        if (student.points < 0) {
+                        if (student.manualGrade) {
+                            assignedGradeForExport = student.manualGrade;
+                        } else if (student.points < 0) {
                             assignedGradeForExport = 'E';
                         } else if (index < 10) {
                             assignedGradeForExport = 'A+';
@@ -5091,7 +5213,7 @@ function refreshRankings() {
             const colors = [
                 'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
                 'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
-                'rgba(199, 199, 199, 0.7)', 'rgba(83, 102, 255, 0.7)', 'rgba(255, 83, 235, 0.7)',
+                'rgba(199, 199, 199, 0.7)', 'rgba(83, 102, 255, 0.7)', 'rgba(255, 83, 235,0.7)',
                 'rgba(83, 255, 102, 0.7)'
             ];
             let colorIndex = 0;
