@@ -3485,6 +3485,7 @@ const firebaseConfig = {
         }
 
         // ...existing code...
+// ...existing code...
 function refreshRankings() {
     const rankingsTable = document.getElementById('rankingsTable');
     const eRankingsTable = document.getElementById('eRankingsTable');
@@ -3498,91 +3499,102 @@ function refreshRankings() {
         floor: floorFilter
     });
 
-    // ...inside refreshRankings()...
-    // Only show students for the selected floor
+    // Filter students for the selected floor
     let studentsOnFloor = students.filter(s => String(s.floor) === String(floorFilter));
 
-    // Assign grades based on points or manual override
-    studentsOnFloor.forEach(student => {
-        if (student.manualGrade) {
-            student.assignedGrade = student.manualGrade;
-        } else {
-            // Calculate grade based on points
-            const floorPositiveStudents = studentsOnFloor.filter(s => s.points >= 0);
-            floorPositiveStudents.sort((a, b) => b.points - a.points);
-            const studentIndex = floorPositiveStudents.findIndex(s => s.id === student.id);
+    // Assign grades (manual override takes priority)
+    // ...existing code...
+studentsOnFloor.forEach(student => {
+    if (student.manualGrade) {
+        student.assignedGrade = student.manualGrade;
+    } else if (student.points < 0) {
+        student.assignedGrade = 'E';
+    } else {
+        // Calculate rank by points (descending)
+        const sorted = [...studentsOnFloor].filter(s => s.points >= 0)
+            .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
+        const rank = sorted.findIndex(s => s.id === student.id);
 
-            if (student.points < 0) {
-                student.assignedGrade = 'E';
-            } else if (String(floorFilter) === '5') {
-                // Custom grading for Floor 5
-                if (studentIndex >= 0 && studentIndex < 5) {
-                    student.assignedGrade = 'A+';
-                } else if (studentIndex >= 5 && studentIndex < 20) {
-                    student.assignedGrade = 'A';
-                } else if (studentIndex >= 20 && studentIndex < 40) {
-                    student.assignedGrade = 'B';
-                } else if (studentIndex >= 40 && studentIndex < 60) {
-                    student.assignedGrade = 'C';
-                } else {
-                    student.assignedGrade = 'D';
-                }
-            } else {
-                // Default grading for other floors
-                if (studentIndex < 10) {
-                    student.assignedGrade = 'A+';
-                } else if (studentIndex < 40) {
-                    student.assignedGrade = 'A';
-                } else if (studentIndex < 80) {
-                    student.assignedGrade = 'B';
-                } else if (studentIndex < 130) {
-                    student.assignedGrade = 'C';
-                } else {
-                    student.assignedGrade = 'D';
-                }
-            }
+        // Floor-specific grade boundaries
+        const floor = String(student.floor);
+        if (floor === '1') {
+            if (rank < 10) student.assignedGrade = 'A+';
+            else if (rank < 50) student.assignedGrade = 'A';
+            else if (rank < 110) student.assignedGrade = 'B';
+            else if (rank < 165) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D';
+        } else if (floor === '2') {
+            if (rank < 10) student.assignedGrade = 'A+';
+            else if (rank < 50) student.assignedGrade = 'A';
+            else if (rank < 110) student.assignedGrade = 'B';
+            else if (rank < 160) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D';
+        } else if (floor === '4') {
+            if (rank < 10) student.assignedGrade = 'A+';
+            else if (rank < 45) student.assignedGrade = 'A';
+            else if (rank < 105) student.assignedGrade = 'B';
+            else if (rank < 155) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D';
+        } else if (floor === '5') {
+            if (rank < 5) student.assignedGrade = 'A+';
+            else if (rank < 15) student.assignedGrade = 'A';
+            else if (rank < 40) student.assignedGrade = 'B';
+            else if (rank < 60) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D';
+        } else {
+            // Default (use floor 1 logic)
+            if (rank < 10) student.assignedGrade = 'A+';
+            else if (rank < 50) student.assignedGrade = 'A';
+            else if (rank < 110) student.assignedGrade = 'B';
+            else if (rank < 165) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D';
         }
-    });
+    }
+});
 // ...existing code...
 
     // Separate students for main rankings and E-rankings
     let mainRankStudents = studentsOnFloor.filter(s => s.assignedGrade !== 'E');
     let eRankStudents = studentsOnFloor.filter(s => s.assignedGrade === 'E');
 
-    // Sort main rank students: A+ first, then A, B, C, D, then by points, then by ID
+    // Sort main rank students: grade, points, id
+    const gradeOrder = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
     mainRankStudents.sort((a, b) => {
-        const gradeOrder = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
-        if (gradeOrder[a.assignedGrade] !== gradeOrder[b.assignedGrade]) {
-            return gradeOrder[a.assignedGrade] - gradeOrder[b.assignedGrade];
-        }
-        if (a.points !== b.points) {
-            return b.points - a.points; // Higher points first
-        }
-        return a.id.localeCompare(b.id); // Tie-break by ID
+        const gA = gradeOrder[a.assignedGrade] ?? 99;
+        const gB = gradeOrder[b.assignedGrade] ?? 99;
+        if (gA !== gB) return gA - gB;
+        if (b.points !== a.points) return b.points - a.points;
+        return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
     // Sort E-rank students by points (least negative first), then by ID
     eRankStudents.sort((a, b) => {
-        if (a.points !== b.points) {
-            return a.points - b.points; // Less negative (closer to 0) first
-        }
-        return a.id.localeCompare(b.id); // Tie-break by ID
+        if (a.points !== b.points) return a.points - b.points;
+        return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
     // Apply search query to both lists
+    function matchesSearch(student) {
+        const name = (student.name || '').toLowerCase();
+        const id = String(student.id || '').toLowerCase();
+        const room = String(student.room || '').toLowerCase();
+        const floor = String(student.floor || '').toLowerCase();
+        const remark = (student.remark || '').toLowerCase();
+        const cls = (student.class || '').toLowerCase();
+        const section = (student.section || '').toLowerCase();
+        return (
+            name.includes(searchQueryRankings) ||
+            id.includes(searchQueryRankings) ||
+            room.includes(searchQueryRankings) ||
+            floor.includes(searchQueryRankings) ||
+            remark.includes(searchQueryRankings) ||
+            cls.includes(classQuery) ||
+            section.includes(sectionQuery)
+        );
+    }
     if (searchQueryRankings) {
-        mainRankStudents = mainRankStudents.filter(s =>
-            s.name.toLowerCase().includes(searchQueryRankings) ||
-            s.id.toLowerCase().includes(searchQueryRankings) ||
-            (s.class && s.class.toLowerCase().includes(classQuery)) ||
-            (s.section && s.section.toLowerCase().includes(sectionQuery))
-        );
-        eRankStudents = eRankStudents.filter(s =>
-            s.name.toLowerCase().includes(searchQueryRankings) ||
-            s.id.toLowerCase().includes(searchQueryRankings) ||
-            (s.class && s.class.toLowerCase().includes(classQuery)) ||
-            (s.section && s.section.toLowerCase().includes(sectionQuery))
-        );
+        mainRankStudents = mainRankStudents.filter(matchesSearch);
+        eRankStudents = eRankStudents.filter(matchesSearch);
     }
 
     // Apply grade filter to main rank students
@@ -3595,28 +3607,33 @@ function refreshRankings() {
     if (mainRankStudents.length === 0) {
         rankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students found matching your criteria.</td></tr>';
     } else {
-        mainRankStudents.forEach((student, idx) => {
-            rankingsTable.innerHTML += `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${student.id}</td>
-                    <td>${student.name}</td>
-                    <td>${student.room}</td>
-                    <td>${student.floor}</td>
-                    <td>${student.points}</td>
-                    <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm remark-input" value="${student.remark || ''}" 
-                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark" data-id="${student.id}"/>
-                    </td>
-                    <td>${student.class || ''}</td>
-                    <td>${student.section || ''}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}')">Change Rank</button>
-                    </td>
-                </tr>
+        const rows = mainRankStudents.map((student, idx) => {
+            const rank = idx + 1;
+            return `
+<tr>
+    <td>${rank}</td>
+    <td>${student.id || ''}</td>
+    <td>${student.name || ''}</td>
+    <td>${student.room || ''}</td>
+    <td>${student.floor || ''}</td>
+    <td>${student.points ?? 0}</td>
+    <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
+    <td>
+        <input type="text" class="form-control remark-input" value="${student.remark || ''}" 
+            onchange="updateRemark('${student.id}', this.value)" 
+            placeholder="Add remark" title="Edit remark for ${student.name}" />
+    </td>
+    <td>${student.class || ''}</td>
+    <td>${student.section || ''}</td>
+    <td>
+        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', false)">
+            <i class="fas fa-edit"></i> Change Grade
+        </button>
+    </td>
+</tr>
             `;
         });
+        rankingsTable.innerHTML = rows.join('');
     }
 
     // Render E rank table
@@ -3624,28 +3641,33 @@ function refreshRankings() {
     if (eRankStudents.length === 0) {
         eRankingsTable.innerHTML = '<tr><td colspan="11" class="text-center">No students with negative points.</td></tr>';
     } else {
-        eRankStudents.forEach((student, idx) => {
-            eRankingsTable.innerHTML += `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${student.id}</td>
-                    <td>${student.name}</td>
-                    <td>${student.room}</td>
-                    <td>${student.floor}</td>
-                    <td>${student.points}</td>
-                    <td><span class="badge ${getGradeBadgeClass('E')}">E</span></td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm remark-input" value="${student.remark || ''}" 
-                            onchange="updateRemark('${student.id}', this.value)" placeholder="Add remark" data-id="${student.id}"/>
-                    </td>
-                    <td>${student.class || ''}</td>
-                    <td>${student.section || ''}</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', true)">Change Rank</button>
-                    </td>
-                </tr>
+        const rows = eRankStudents.map((student, idx) => {
+            const rank = idx + 1;
+            return `
+<tr>
+    <td>${rank}</td>
+    <td>${student.id || ''}</td>
+    <td>${student.name || ''}</td>
+    <td>${student.room || ''}</td>
+    <td>${student.floor || ''}</td>
+    <td>${student.points ?? 0}</td>
+    <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
+    <td>
+        <input type="text" class="form-control remark-input" value="${student.remark || ''}" 
+            onchange="updateRemark('${student.id}', this.value)" 
+            placeholder="Add remark" title="Edit remark for ${student.name}" />
+    </td>
+    <td>${student.class || ''}</td>
+    <td>${student.section || ''}</td>
+    <td>
+        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', true)">
+            <i class="fas fa-edit"></i> Change Grade
+        </button>
+    </td>
+</tr>
             `;
         });
+        eRankingsTable.innerHTML = rows.join('');
     }
 }
 // ...existing code...
@@ -4109,42 +4131,43 @@ function refreshRankings() {
                 class: classFilter,
                 section: sectionFilter
             });
+// ...inside renderBatchDisciplineTable...
+let filteredStudents = students.filter(student => {
+    const name = student.name ? student.name.toLowerCase() : '';
+    const id = student.id ? student.id.toLowerCase() : '';
+    const room = student.room ? student.room.toLowerCase() : '';
+    const floor = String(student.floor).toLowerCase(); // Always compare as string
+    const studentClass = student.class ? student.class.toLowerCase() : '';
+    const section = student.section ? student.section.toLowerCase() : '';
 
-            let filteredStudents = students.filter(student => {
-                const name = student.name ? student.name.toLowerCase() : '';
-                const id = student.id ? student.id.toLowerCase() : '';
-                const room = student.room ? student.room.toLowerCase() : '';
-                const floor = student.floor ? student.floor.toString().toLowerCase() : '';
-                const studentClass = student.class ? student.class.toLowerCase() : '';
-                const section = student.section ? student.section.toLowerCase() : '';
+    let matchesSearch = false;
+    if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
+        matchesSearch = true;
+    }
 
-                let matchesSearch = false;
-                if (name.includes(searchQuery) || id.includes(searchQuery) || room.includes(searchQuery) || floor.includes(searchQuery)) {
-                    matchesSearch = true;
-                }
+    if (classQuery && sectionQuery) {
+        if (studentClass === classQuery && section === sectionQuery) {
+            matchesSearch = true;
+        }
+    } else if (classQuery) {
+        if (studentClass.includes(classQuery)) {
+            matchesSearch = true;
+        }
+    } else if (sectionQuery) {
+        if (section.includes(sectionQuery)) {
+            matchesSearch = true;
+        }
+    }
 
-                if (classQuery && sectionQuery) {
-                    if (studentClass === classQuery && section === sectionQuery) {
-                        matchesSearch = true;
-                    }
-                } else if (classQuery) {
-                    if (studentClass.includes(classQuery)) {
-                        matchesSearch = true;
-                    }
-                } else if (sectionQuery) {
-                     if (section.includes(sectionQuery)) {
-                        matchesSearch = true;
-                    }
-                }
+    // FIX: Always compare floor as string
+    const matchesFloor = floorFilter === 'all' || floor === String(floorFilter);
+    const matchesClassFilter = !classFilter || studentClass.includes(classFilter);
+    const matchesSectionFilter = !sectionFilter || section.includes(sectionFilter);
 
-                const matchesFloor = floorFilter === 'all' || floor === floorFilter;
-                const matchesClassFilter = !classFilter || studentClass.includes(classFilter);
-                const matchesSectionFilter = !sectionFilter || section.includes(sectionFilter);
-
-                return matchesSearch && matchesFloor && matchesClassFilter && matchesSectionFilter;
-            });
-
-            filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+    return matchesSearch && matchesFloor && matchesClassFilter && matchesSectionFilter;
+});
+// ...inside renderBatchDisciplineTable...
+filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
             const totalPages = Math.ceil(filteredStudents.length / batchDisciplineRowsPerPage);
             batchDisciplineCurrentPage = Math.min(batchDisciplineCurrentPage, totalPages > 0 ? totalPages : 1);
