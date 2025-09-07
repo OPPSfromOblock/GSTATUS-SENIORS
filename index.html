@@ -1680,7 +1680,14 @@
                 </div>
 
                 <!-- Rankings Tab -->
-                <div class="tab-pane fade" id="rankings" role="tabpanel">
+                <div class="tab-pane fade" id="rankings"
+>
+<div class="text-end mb-3">
+    <button class="btn btn-success" onclick="exportAllRankings()" title="Download all floors and E-Rank students as Excel file">
+        <i class="fas fa-file-excel"></i> Download Full Rankings Report
+    </button>
+</div>
+ role="tabpanel">
                     <h3><i class="fas fa-trophy"></i> Student Rankings</h3>
                     <div class="filter-section">
                         <div class="row">
@@ -5592,6 +5599,103 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
             new bootstrap.Modal(document.getElementById('floorGraphModal')).show();
         }
     </script>
+
+<script>
+function exportAllRankings() {
+    const wb = XLSX.utils.book_new();
+    const floorNumbers = [1, 2, 3, 4, 5, 6];
+
+    floorNumbers.forEach(floorNum => {
+        const wsData = [];
+        wsData.push(['Rank', 'Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark', 'Class', 'Section']);
+        let studentsOnFloor = students.filter(s => String(s.floor) === String(floorNum));
+
+        studentsOnFloor.forEach((student, idx) => {
+            let grade = 'D';
+            if (student.manualGrade) {
+                grade = student.manualGrade;
+            } else if (student.points < 0) {
+                grade = 'E';
+            } else {
+                const sorted = [...studentsOnFloor].filter(s => s.points >= 0)
+                    .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
+                const rank = sorted.findIndex(s => s.id === student.id);
+                if (String(floorNum) === '1') {
+                    if (rank < 10) grade = 'A+';
+                    else if (rank < 50) grade = 'A';
+                    else if (rank < 110) grade = 'B';
+                    else if (rank < 165) grade = 'C';
+                    else grade = 'D';
+                } else if (String(floorNum) === '2') {
+                    if (rank < 10) grade = 'A+';
+                    else if (rank < 50) grade = 'A';
+                    else if (rank < 110) grade = 'B';
+                    else if (rank < 160) grade = 'C';
+                    else grade = 'D';
+                } else if (String(floorNum) === '4') {
+                    if (rank < 10) grade = 'A+';
+                    else if (rank < 45) grade = 'A';
+                    else if (rank < 105) grade = 'B';
+                    else if (rank < 155) grade = 'C';
+                    else grade = 'D';
+                } else if (String(floorNum) === '5') {
+                    if (rank < 5) grade = 'A+';
+                    else if (rank < 15) grade = 'A';
+                    else if (rank < 40) grade = 'B';
+                    else if (rank < 60) grade = 'C';
+                    else grade = 'D';
+                } else {
+                    if (rank < 10) grade = 'A+';
+                    else if (rank < 50) grade = 'A';
+                    else if (rank < 110) grade = 'B';
+                    else if (rank < 165) grade = 'C';
+                    else grade = 'D';
+                }
+            }
+
+            wsData.push([
+                idx + 1,
+                student.id || '',
+                student.name || '',
+                student.room || '',
+                student.floor || '',
+                student.points ?? 0,
+                grade,
+                student.remark || '',
+                student.class || '',
+                student.section || ''
+            ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, `Floor ${floorNum}`);
+    });
+
+    const wsERank = [];
+    wsERank.push(['Student ID', 'Name', 'Room', 'Floor', 'Points', 'Remark', 'Class', 'Section']);
+    const erankStudents = students.filter(s => (s.points ?? 0) < 0);
+    erankStudents.forEach(student => {
+        wsERank.push([
+            student.id || '',
+            student.name || '',
+            student.room || '',
+            student.floor || '',
+            student.points ?? 0,
+            student.remark || '',
+            student.class || '',
+            student.section || ''
+        ]);
+    });
+    const wsE = XLSX.utils.aoa_to_sheet(wsERank);
+    XLSX.utils.book_append_sheet(wb, wsE, 'E-Rank Students');
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const fileName = `Gurukul_Full_Rankings_Report_${dateStr}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
+</script>
+
 </body>
 </html>
 
