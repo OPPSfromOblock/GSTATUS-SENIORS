@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Gurukul Points Management - GSTATUS</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
     <!-- Google Fonts: Poppins -->
@@ -17,6 +24,61 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Face-API.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Offline Database and Sync -->
+    <script src="db.js"></script>
+    <script src="sync-manager.js"></script>
+    
+    <style>
+        /* Face Recognition Styles */
+        #videoContainer {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        #video {
+            width: 100%;
+            border: 3px solid #0d6efd;
+            border-radius: 8px;
+        }
+
+        #studentInfo .card {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+
+        #studentInfo img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .student-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: block;
+            border: 3px solid #0d6efd;
+        }
+
+        .student-card {
+            transition: transform 0.2s;
+        }
+
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+    </style>
     <style>
         :root {
             --primary-color: #4a90e2; /* Softer blue */
@@ -1201,6 +1263,11 @@
                     </a>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <a class="nav-link" data-bs-toggle="tab" href="#canteen" id="canteen-tab" role="tab" title="Manage student canteen information">
+                        <i class="fas fa-utensils"></i> Canteen
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
                     <a class="nav-link" data-bs-toggle="tab" href="#notes" id="notes-tab" role="tab" title="Manage your personal notes">
                         <i class="fas fa-clipboard"></i> Notes
                     </a>
@@ -1208,6 +1275,11 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link" data-bs-toggle="tab" href="#adjudicators" id="adjudicators-tab" role="tab" title="Track incharge activity and floor statistics">
                         <i class="fas fa-gavel"></i> Adjudicators
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" data-bs-toggle="tab" href="#face-recognition" id="face-recognition-tab" role="tab" title="Use face recognition to identify students">
+                        <i class="fas fa-camera"></i> Face Scan
                     </a>
                 </li>
             </ul>
@@ -2047,6 +2119,32 @@
                 <div class="tab-pane fade" id="adjudicators" role="tabpanel">
                     <h3><i class="fas fa-gavel"></i> Adjudicator & Floor Statistics</h3>
 
+                    <!-- Floor Statistics Card -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-building"></i> Floor Statistics
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Floor</th>
+                                            <th class="text-center">Students</th>
+                                            <th>Total Points</th>
+                                            <th>Avg. Points</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="floorStatisticsTable">
+                                        <!-- Floor statistics will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card mb-4">
                         <div class="card-header">
                             <i class="fas fa-users"></i> Incharge Activity Rankings
@@ -2079,30 +2177,296 @@
 
                     <div class="card mt-4">
                         <div class="card-header">
-                            <i class="fas fa-building"></i> Floor Statistics
+                            <i class="fas fa-chart-bar"></i> Floor Performance Comparison
                         </div>
                         <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-end">
+                                    <button type="button" class="btn btn-info" id="generateFloorPerfComparison" title="Generate floor performance comparison chart">
+                                        <i class="fas fa-chart-bar"></i> Generate Chart
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="floorPerfChartContainer" style="display: none; height: 400px; position: relative;">
+                                <canvas id="floorPerfComparisonChart"></canvas>
+                            </div>
+                            <div id="floorPerfMessage" class="alert alert-info" style="display: none;" role="alert"></div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <i class="fas fa-exclamation-circle"></i> At-Risk Students
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-filter"></i> Filter by Floor:</label>
+                                    <select class="form-select" id="riskFloorFilter">
+                                        <option value="">All Floors</option>
+                                        <option value="1">Floor 1</option>
+                                        <option value="2">Floor 2</option>
+                                        <option value="3">Floor 3</option>
+                                        <option value="4">Floor 4</option>
+                                        <option value="5">Floor 5</option>
+                                        <option value="6">Floor 6</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-sliders-h"></i> Risk Threshold:</label>
+                                    <input type="range" class="form-range" id="riskThreshold" min="0" max="100" value="50" title="Adjust risk threshold percentage">
+                                    <small class="text-muted">Risk Level: <span id="riskThresholdValue">50</span>%</small>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead class="table-warning">
+                                        <tr>
+                                            <th>Risk Level</th>
+                                            <th>Student ID</th>
+                                            <th>Name</th>
+                                            <th>Floor</th>
+                                            <th>Points</th>
+                                            <th>Risk Score</th>
+                                            <th>Trend</th>
+                                            <th>Recommendation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riskStudentsTable">
+                                        <tr><td colspan="8" class="text-center">Click "Analyze Students" to identify at-risk students</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="riskAnalysisMessage" class="alert alert-info mt-3" style="display: none;" role="alert"></div>
+                            <div class="text-end mt-3">
+                                <button type="button" class="btn btn-warning" id="refreshRiskAnalysis" title="Analyze students for risk factors">
+                                    <i class="fas fa-search"></i> Analyze Students
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canteen Tab -->
+                <div class="tab-pane fade" id="canteen" role="tabpanel">
+                    <h3><i class="fas fa-utensils"></i> Canteen Management</h3>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-filter"></i> Filter Students
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter by Floor:</label>
+                                    <select class="form-select" id="canteenFloorFilter">
+                                        <option value="">All Floors</option>
+                                        <option value="1">1st Floor</option>
+                                        <option value="2">2nd Floor</option>
+                                        <option value="3">3rd Floor</option>
+                                        <option value="4">4th Floor</option>
+                                        <option value="5">5th Floor</option>
+                                        <option value="6">6th Floor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter by Class:</label>
+                                    <input type="text" class="form-control" id="canteenClassFilter" placeholder="e.g., X, IX">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Exclude Ranks:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="E" id="excludeERank" checked>
+                                        <label class="form-check-label" for="excludeERank">Exclude E Rank</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="D" id="excludeDRank" checked>
+                                        <label class="form-check-label" for="excludeDRank">Exclude D Rank</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button class="btn btn-primary" id="applyCanteenFilters">
+                                        <i class="fas fa-filter"></i> Apply Filters
+                                    </button>
+                                    <button class="btn btn-success" id="exportToExcel">
+                                        <i class="fas fa-file-excel"></i> Export to Excel
+                                    </button>
+                                    <button class="btn btn-danger" id="exportToPDF">
+                                        <i class="fas fa-file-pdf"></i> Export to PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-list"></i> Student List for Canteen
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered" id="canteenStudentTable">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>MID</th>
+                                            <th>Name</th>
+                                            <th>Class</th>
+                                            <th>Room No</th>
+                                            <th>Cup No</th>
+                                            <th>Rank</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="canteenStudentList">
+                                        <!-- Student data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Face Recognition Tab -->
+                <div class="tab-pane fade" id="face-recognition" role="tabpanel">
+                    <div class="container-fluid">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0"><i class="fas fa-user-plus"></i> Add New Student</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="addStudentForm">
+                                            <div class="mb-3">
+                                                <label for="studentName" class="form-label">Student Name</label>
+                                                <input type="text" class="form-control" id="studentName" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="studentMid" class="form-label">Student MID</label>
+                                                <input type="text" class="form-control" id="studentMid" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="studentPhoto" class="form-label">Student Photo</label>
+                                                <input type="file" class="form-control" id="studentPhoto" accept="image/*" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-save"></i> Save Student
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0"><i class="fas fa-camera"></i> Face Recognition</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div id="videoContainer">
+                                            <video id="video" width="100%" height="auto" autoplay muted></video>
+                                            <canvas id="canvas" style="display: none;"></canvas>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <button id="startButton" class="btn btn-primary me-2">
+                                                <i class="fas fa-camera"></i> Start Camera
+                                            </button>
+                                            <button id="captureButton" class="btn btn-success" disabled>
+                                                <i class="fas fa-camera-retro"></i> Capture
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="studentInfo" class="card" style="display: none;">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0"><i class="fas fa-user-check"></i> Student Recognized</h5>
+                                    </div>
+                                    <div class="card-body text-center" id="studentDetails">
+                                        <!-- Recognized student info will appear here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Predictive Analytics Tab -->
+                <div class="tab-pane fade" id="predictive-analytics" role="tabpanel">
+                    <h3><i class="fas fa-brain"></i> Predictive Analytics & Risk Scoring</h3>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-exclamation-circle"></i> At-Risk Students (Negative Points Prediction)
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-filter"></i> Filter by Floor:</label>
+                                    <select class="form-select" id="riskFloorFilter">
+                                        <option value="">All Floors</option>
+                                        <option value="1">Floor 1</option>
+                                        <option value="2">Floor 2</option>
+                                        <option value="3">Floor 3</option>
+                                        <option value="4">Floor 4</option>
+                                        <option value="5">Floor 5</option>
+                                        <option value="6">Floor 6</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="fas fa-sliders-h"></i> Risk Threshold:</label>
+                                    <input type="range" class="form-range" id="riskThreshold" min="0" max="100" value="50" title="Adjust risk threshold percentage">
+                                    <small class="text-muted">Risk Level: <span id="riskThresholdValue">50</span>%</small>
+                                </div>
+                            </div>
                             <div class="text-end mb-3">
-                                <button type="button" class="btn btn-info ms-2" id="exportFloorGraph" title="Export floor statistics to graph">
-                                    <i class="fas fa-chart-bar"></i> Export to Graph
+                                <button type="button" class="btn btn-primary" id="refreshRiskAnalysis" title="Refresh risk analysis">
+                                    <i class="fas fa-sync-alt"></i> Refresh Analysis
+                                </button>
+                                <button type="button" class="btn btn-success" id="exportRiskReport" title="Export risk report to Excel">
+                                    <i class="fas fa-download"></i> Export Report
                                 </button>
                             </div>
                             <div class="table-responsive table-responsive-stack">
                                 <table class="table table-hover table-bordered">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th><i class="fas fa-building"></i> Floor</th>
-                                            <th><i class="fas fa-users"></i> Total Students</th>
-                                            <th><i class="fas fa-coins"></i> Average Points</th>
-                                            <th><i class="fas fa-plus-circle"></i> Total Positive Entries</th>
-                                            <th><i class="fas fa-minus-circle"></i> Total Negative Entries</th>
+                                            <th><i class="fas fa-exclamation-triangle"></i> Risk Level</th>
+                                            <th><i class="fas fa-id-card"></i> Student ID</th>
+                                            <th><i class="fas fa-user"></i> Name</th>
+                                            <th><i class="fas fa-coins"></i> Current Points</th>
+                                            <th><i class="fas fa-percent"></i> Risk Score</th>
+                                            <th><i class="fas fa-chart-line"></i> Trend</th>
+                                            <th><i class="fas fa-lightbulb"></i> Recommendation</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="floorStatisticsTable">
-                                        <!-- Floor statistics will be loaded here -->
+                                    <tbody id="riskStudentsTable">
+                                        <!-- At-risk students will be loaded here -->
                                     </tbody>
                                 </table>
                             </div>
+                            <div id="riskAnalysisMessage" class="alert" style="display: none;" role="alert"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Comparative Analysis Tab -->
+                <div class="tab-pane fade" id="comparative-analysis" role="tabpanel">
+                    <h3><i class="fas fa-chart-line"></i> Comparative Floor Analysis</h3>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-building"></i> Floor Performance Metrics
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Detailed floor performance analysis has been moved to the <strong>Adjudicators</strong> tab for integrated risk assessment.</p>
                         </div>
                     </div>
                 </div>
@@ -2302,6 +2666,10 @@
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const loginError = document.getElementById('loginError');
+            if (!loginError) {
+                console.error('Login error element not found');
+                return;
+            }
 
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
@@ -2348,6 +2716,10 @@
             const registerEmail = document.getElementById('registerEmail').value.trim();
             const registerPassword = document.getElementById('registerPassword').value.trim();
             const registerError = document.getElementById('registerError');
+            if (!registerError) {
+                console.error('Register error element not found');
+                return;
+            }
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(registerEmail, registerPassword);
@@ -2390,6 +2762,10 @@
         document.getElementById('googleSignInBtn').addEventListener('click', async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             const loginError = document.getElementById('loginError');
+            if (!loginError) {
+                console.error('Login error element not found');
+                return;
+            }
 
             try {
                 const userCredential = await auth.signInWithPopup(provider);
@@ -2456,7 +2832,19 @@
             e.preventDefault();
             const upgradeCode = document.getElementById('upgradeRoleCode').value.trim();
             const upgradeMessage = document.getElementById('upgradeMessage');
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!upgradeMessage) {
+                console.error('Upgrade message element not found');
+                return;
+            }
+            let currentUser;
+            try {
+                currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            } catch (error) {
+                console.error('Error parsing currentUser from sessionStorage:', error);
+                sessionStorage.removeItem('currentUser');
+                displayUpdateMessage('upgradeMessage', 'Session data corrupted. Please log in again.', 'danger');
+                return;
+            }
 
             if (!currentUser) {
                 displayUpdateMessage('upgradeMessage', 'You must be logged in to upgrade your account.', 'danger');
@@ -2499,36 +2887,48 @@
             }
         });
 
-        // --- DASHBOARD LOGIC (from dashboard.html) ---
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAsFiadkeL-__gF_Lb5VY2iap4DlatkaX4",
-  authDomain: "senior-data-researchinnovation.firebaseapp.com",
-  databaseURL: "https://senior-data-researchinnovation-default-rtdb.firebaseio.com",
-  projectId: "senior-data-researchinnovation",
-  storageBucket: "senior-data-researchinnovation.firebasestorage.app",
-  messagingSenderId: "587116206951",
-  appId: "1:587116206951:web:ddf6db02ecd19a63cf2dc2",
-  measurementId: "G-8E23BREM8V"
-};
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsFiadkeL-__gF_Lb5VY2iap4DlatkaX4",
+            authDomain: "senior-data-researchinnovation.firebaseapp.com",
+            databaseURL: "https://senior-data-researchinnovation-default-rtdb.firebaseio.com",
+            projectId: "senior-data-researchinnovation",
+            storageBucket: "senior-data-researchinnovation.firebasestorage.app",
+            messagingSenderId: "587116206951",
+            appId: "1:587116206951:web:ddf6db02ecd19a63cf2dc2",
+            measurementId: "G-8E23BREM8V"
+        };
+
+        // Initialize Firebase
         let firebaseApp;
+        let auth;
+        let database;
+        
         try {
             firebaseApp = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth(); // Initialize Firebase Auth
+            auth = firebase.auth();
+            database = firebase.database();
+            firebase.analytics();
             console.log("Firebase initialized successfully");
         } catch (err) {
-            console.error("Firebase initialization error", err);
-            alert("Failed to connect to database. Please check your internet connection and try again.");
+            console.error("Firebase initialization error:", err);
+            // If Firebase is already initialized, get the existing instance
+            if (err.code === 'app/duplicate-app') {
+                firebaseApp = firebase.app();
+                auth = firebase.auth();
+                database = firebase.database();
+                console.log("Using existing Firebase app instance");
+            } else {
+                // Handle other initialization errors
+                console.error("Failed to initialize Firebase:", err);
+                alert("Failed to initialize Firebase. Please check console for details.");
+            }
         }
 
-        let students = []; // Local array to hold student data
-        let responseHistory = []; // Local array to hold history data
-        let notes = []; // Local array for personal notes
-        let publicNotes = []; // Local array for public notes
-        const database = firebase.database();
-
         const loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            console.error('Loading overlay element not found');
+        }
         const rankChangerModal = new bootstrap.Modal(document.getElementById('rankChangerModal'));
         const publicNoteModal = new bootstrap.Modal(document.getElementById('publicNoteModal'));
 
@@ -2542,11 +2942,15 @@ const firebaseConfig = {
         const MAX_MODIFICATIONS_PER_STUDENT = 2;
 
         function showLoading() {
-            loadingOverlay.style.display = 'flex';
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+            }
         }
 
         function hideLoading() {
-            loadingOverlay.style.display = 'none';
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
         }
 
         // Function to save ALL students (used for initial setup or Excel import)
@@ -2572,6 +2976,19 @@ const firebaseConfig = {
         // Function to update a single student's data
         async function updateStudentInFirebase(studentId, updatedFields) {
             showLoading();
+            
+            // Input validation
+            if (!studentId || typeof studentId !== 'string') {
+                console.error('Invalid studentId provided:', studentId);
+                hideLoading();
+                throw new Error('Invalid student ID provided');
+            }
+            
+            if (!updatedFields || typeof updatedFields !== 'object' || Object.keys(updatedFields).length === 0) {
+                console.error('Invalid updatedFields provided:', updatedFields);
+                hideLoading();
+                throw new Error('Invalid updated fields provided');
+            }
             // Find the Firebase key for the student based on their ID
             // This is necessary because Firebase keys are auto-generated, but we use 'id' as a unique identifier
             // If you're using student.id as the direct Firebase key, this lookup isn't needed.
@@ -2607,6 +3024,20 @@ const firebaseConfig = {
         // Function to add a single history entry
         async function addHistoryEntryToFirebase(entry) {
             showLoading();
+            
+            // Input validation
+            if (!entry || typeof entry !== 'object') {
+                console.error('Invalid entry provided:', entry);
+                hideLoading();
+                throw new Error('Invalid history entry provided');
+            }
+            
+            if (!entry.date || !entry.time || !entry.studentId || !entry.name) {
+                console.error('Missing required fields in entry:', entry);
+                hideLoading();
+                throw new Error('Missing required fields in history entry');
+            }
+            
             return database.ref('history').push(entry)
                 .then(() => {
                     console.log("History entry added to Firebase");
@@ -2622,6 +3053,20 @@ const firebaseConfig = {
         // New functions for Personal Notes
         async function saveNotesToFirebase(notesData) {
             showLoading();
+            
+            // Input validation
+            if (!currentUserUid) {
+                console.error('No current user UID available');
+                hideLoading();
+                throw new Error('User not authenticated');
+            }
+            
+            if (!notesData || typeof notesData !== 'object') {
+                console.error('Invalid notesData provided:', notesData);
+                hideLoading();
+                throw new Error('Invalid notes data provided');
+            }
+            
             // Store notes under the user's UID
             return database.ref(`userNotes/${currentUserUid}`).set(notesData)
                 .then(() => {
@@ -2638,6 +3083,14 @@ const firebaseConfig = {
         // New functions for Public Notes
         async function savePublicNotesToFirebase(notesData) {
             showLoading();
+            
+            // Input validation
+            if (!notesData || typeof notesData !== 'object') {
+                console.error('Invalid notesData provided:', notesData);
+                hideLoading();
+                throw new Error('Invalid public notes data provided');
+            }
+            
             return database.ref('publicNotes').set(notesData)
                 .then(() => {
                     console.log("Public Notes saved to Firebase");
@@ -2693,9 +3146,456 @@ const firebaseConfig = {
             }
         }
 
-        async function initializeApp() {
+        async // ===== FLOOR STATISTICS FUNCTIONS =====
+        function calculateFloorStatistics() {
+            const floors = {
+                '1': { name: 'Floor 1', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' },
+                '2': { name: 'Floor 2', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' },
+                '3': { name: 'Floor 3', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' },
+                '4': { name: 'Floor 4', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' },
+                '5': { name: 'Floor 5', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' },
+                '6': { name: 'Floor 6', students: 0, totalPoints: 0, avgPoints: 0, status: 'Good' }
+            };
+
+            // Calculate statistics
+            Object.values(students).forEach(student => {
+                const floor = student.floor || '1'; // Default to floor 1 if not specified
+                if (floors[floor]) {
+                    floors[floor].students++;
+                    floors[floor].totalPoints += student.points || 0;
+                }
+            });
+
+            // Calculate averages and determine status
+            Object.values(floors).forEach(floor => {
+                floor.avgPoints = floor.students > 0 ? (floor.totalPoints / floor.students).toFixed(1) : 0;
+                
+                // Determine status based on average points
+                if (floor.avgPoints >= 80) {
+                    floor.status = 'Excellent';
+                } else if (floor.avgPoints >= 50) {
+                    floor.status = 'Good';
+                } else if (floor.avgPoints >= 30) {
+                    floor.status = 'Fair';
+                } else {
+                    floor.status = 'Needs Attention';
+                }
+            });
+
+            return Object.values(floors);
+        }
+
+        function renderFloorStatistics() {
+            const floorStats = calculateFloorStatistics();
+            const tableBody = document.getElementById('floorStatisticsTable');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = floorStats.map(floor => {
+                const statusClass = {
+                    'Excellent': 'success',
+                    'Good': 'primary',
+                    'Fair': 'warning',
+                    'Needs Attention': 'danger'
+                }[floor.status] || 'secondary';
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-shape-sm bg-light text-dark rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <strong>${floor.name}</strong>
+                            </div>
+                        </td>
+                        <td class="text-center">${floor.students}</td>
+                        <td>${floor.totalPoints}</td>
+                        <td>${floor.avgPoints}</td>
+                        <td><span class="badge bg-${statusClass}">${floor.status}</span></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewFloorDetails('${floor.name}')">
+                                <i class="fas fa-eye me-1"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function viewFloorDetails(floorName) {
+            const floorNum = floorName.split(' ')[1]; // Extract floor number from "Floor X"
+            const floorStudents = Object.values(students)
+                .filter(student => student.floor === floorNum)
+                .sort((a, b) => (b.points || 0) - (a.points || 0));
+
+            // Create modal content
+            const modalContent = `
+                <div class="modal-header">
+                    <h5 class="modal-title">${floorName} - Student Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>ID</th>
+                                    <th>Points</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${floorStudents.map(student => `
+                                    <tr>
+                                        <td>${student.name || 'N/A'}</td>
+                                        <td>${student.id || 'N/A'}</td>
+                                        <td class="${(student.points || 0) < 0 ? 'text-danger' : ''}">
+                                            ${student.points || 0}
+                                        </td>
+                                        <td>
+                                            <span class="badge ${getStatusBadgeClass(student.points || 0)}">
+                                                ${getStatusText(student.points || 0)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            `;
+            
+            // Create or update modal
+            let modal = document.getElementById('floorDetailsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'floorDetailsModal';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            ${modalContent}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('.modal-content').innerHTML = modalContent;
+            }
+            
+            // Show the modal
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+        }
+
+        function getStatusText(points) {
+            if (points >= 80) return 'Excellent';
+            if (points >= 50) return 'Good';
+            if (points >= 30) return 'Fair';
+            return 'Needs Attention';
+        }
+
+        function getStatusBadgeClass(points) {
+            if (points >= 80) return 'bg-success';
+            if (points >= 50) return 'bg-primary';
+            if (points >= 30) return 'bg-warning';
+            return 'bg-danger';
+        }
+
+        // ===== END FACE RECOGNITION FUNCTIONS =====
+
+        // ===== CANTEEN MANAGEMENT FUNCTIONS =====
+        
+        // Global variable to store filtered students
+        let filteredCanteenStudents = [];
+        
+        // Add event listeners for canteen tab
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners for canteen tab
+            document.getElementById('applyCanteenFilters').addEventListener('click', applyCanteenFilters);
+            document.getElementById('exportToExcel').addEventListener('click', exportCanteenToExcel);
+            document.getElementById('exportToPDF').addEventListener('click', exportCanteenToPDF);
+            
+            // Load students when canteen tab is shown
+            document.getElementById('canteen-tab').addEventListener('shown.bs.tab', function() {
+                // Check if we've already loaded students
+                if (filteredCanteenStudents.length === 0) {
+                    applyCanteenFilters();
+                }
+            });
+            
+            // Also try to load students right away if canteen tab is active on page load
+            if (document.getElementById('canteen-tab').classList.contains('active')) {
+                applyCanteenFilters();
+            }
+        });
+        
+        // Apply filters to canteen student list
+        async function applyCanteenFilters() {
             try {
                 showLoading();
+                console.log('Fetching students from Firebase...');
+                
+                // Get all students from Firebase
+                const snapshot = await firebase.database().ref('students').once('value');
+                const allStudents = snapshot.val() || {};
+                console.log('Raw student data from Firebase:', allStudents);
+                
+                // Get filter values
+                const floorFilter = document.getElementById('canteenFloorFilter').value;
+                const classFilter = document.getElementById('canteenClassFilter').value.toLowerCase();
+                const excludeERank = document.getElementById('excludeERank').checked;
+                const excludeDRank = document.getElementById('excludeDRank').checked;
+                
+                // Filter students
+                const studentsArray = Object.entries(allStudents);
+                console.log(`Processing ${studentsArray.length} students...`);
+                
+                filteredCanteenStudents = studentsArray
+                    .map(([id, student]) => {
+                        const studentWithId = {
+                            id,
+                            ...student,
+                            // Calculate rank based on points
+                            rank: calculateRank(student.points || 0)
+                        };
+                        console.log(`Processed student ${id}:`, studentWithId);
+                        return studentWithId;
+                    })
+                    .filter(student => {
+                        // Apply floor filter
+                        if (floorFilter && student.floor !== floorFilter) {
+                            console.log(`Filtering out student ${student.id} - floor ${student.floor} doesn't match ${floorFilter}`);
+                            return false;
+                        }
+                        
+                        // Apply class filter
+                        if (classFilter && !student.class?.toLowerCase().includes(classFilter)) {
+                            console.log(`Filtering out student ${student.id} - class ${student.class} doesn't match ${classFilter}`);
+                            return false;
+                        }
+                        
+                        // Apply rank filters
+                        if (excludeERank && student.rank === 'E') {
+                            console.log(`Filtering out student ${student.id} - rank E excluded`);
+                            return false;
+                        }
+                        if (excludeDRank && student.rank === 'D') {
+                            console.log(`Filtering out student ${student.id} - rank D excluded`);
+                            return false;
+                        }
+                        
+                        return true;
+                    });
+                
+                console.log(`Filtered to ${filteredCanteenStudents.length} students`);
+                
+                // Sort by name
+                filteredCanteenStudents.sort((a, b) => a.name?.localeCompare(b.name) || 0);
+                
+                // Display results
+                displayCanteenStudents();
+                
+            } catch (error) {
+                console.error('Error applying canteen filters:', error);
+                alert('Error loading student data. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Display filtered students in the table
+        function displayCanteenStudents() {
+            const tbody = document.getElementById('canteenStudentList');
+            tbody.innerHTML = '';
+            
+            if (!filteredCanteenStudents || filteredCanteenStudents.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="6" class="text-center">No students found matching the criteria</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            
+            filteredCanteenStudents.forEach(student => {
+                const tr = document.createElement('tr');
+                // Use roomNo/room and cupNo/cup fields
+                const room = student.roomNo || student.room || '';
+                const cup = student.cupNo || student.cup || '';
+                
+                tr.innerHTML = `
+                    <td>${student.id || ''}</td>
+                    <td>${student.name || ''}</td>
+                    <td>${student.class || ''}</td>
+                    <td>${room}</td>
+                    <td>${cup}</td>
+                    <td><span class="badge ${getRankBadgeClass(student.rank)}">${student.rank || 'N/A'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Calculate rank based on points
+        function calculateRank(points) {
+            if (points >= 90) return 'A+';
+            if (points >= 80) return 'A';
+            if (points >= 70) return 'B';
+            if (points >= 60) return 'C';
+            if (points >= 50) return 'D';
+            return 'E';
+        }
+        
+        // Get badge class for rank
+        function getRankBadgeClass(rank) {
+            switch(rank) {
+                case 'A+': return 'bg-success';
+                case 'A': return 'bg-success';
+                case 'B': return 'bg-info';
+                case 'C': return 'bg-warning';
+                case 'D': return 'bg-warning';
+                case 'E': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+        
+        // Export to Excel
+        function exportCanteenToExcel() {
+            if (filteredCanteenStudents.length === 0) {
+                alert('No data to export. Please apply filters first.');
+                return;
+            }
+            
+            // Create a CSV string
+            let csvContent = 'MID,Name,Class,Room No,Cup No,Rank\n';
+            
+            filteredCanteenStudents.forEach(student => {
+                const row = [
+                    `"${student.id || ''}"`,
+                    `"${student.name || ''}"`,
+                    `"${student.class || ''}"`,
+                    `"${student.roomNo || ''}"`,
+                    `"${student.cupNo || ''}"`,
+                    `"${student.rank || ''}"`
+                ].join(',');
+                csvContent += row + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `canteen_students_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Export to PDF
+        function exportCanteenToPDF() {
+            if (filteredCanteenStudents.length === 0) {
+                alert('No data to export. Please apply filters first.');
+                return;
+            }
+            
+            // Create a new window with the data formatted for printing
+            const printWindow = window.open('', '_blank');
+            const title = 'Canteen Student List';
+            const date = new Date().toLocaleDateString();
+            
+            // Create HTML content for the PDF
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; color: #333; }
+                        .date { text-align: right; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .badge { padding: 3px 6px; border-radius: 3px; font-size: 0.8em; color: white; }
+                        .bg-success { background-color: #28a745; }
+                        .bg-info { background-color: #17a2b8; }
+                        .bg-warning { background-color: #ffc107; color: #000; }
+                        .bg-danger { background-color: #dc3545; }
+                        .bg-secondary { background-color: #6c757d; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    <div class="date">Generated on: ${date}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MID</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Room No</th>
+                                <th>Cup No</th>
+                                <th>Rank</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Add student rows
+            filteredCanteenStudents.forEach(student => {
+                htmlContent += `
+                    <tr>
+                        <td>${student.id || ''}</td>
+                        <td>${student.name || ''}</td>
+                        <td>${student.class || ''}</td>
+                        <td>${student.roomNo || ''}</td>
+                        <td>${student.cupNo || ''}</td>
+                        <td><span class="badge ${getRankBadgeClass(student.rank)}">${student.rank || 'N/A'}</span></td>
+                    </tr>
+                `;
+            });
+            
+            htmlContent += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; text-align: right; font-size: 0.8em; color: #666;">
+                        Generated by Gurukul Points Management System
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Write the content and trigger print
+            printWindow.document.open();
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            
+            // Wait for content to load before printing
+            printWindow.onload = function() {
+                setTimeout(() => {
+                    printWindow.print();
+                    // printWindow.close(); // Uncomment to close after printing
+                }, 500);
+            };
+        }
+        
+        // ===== END CANTEEN MANAGEMENT FUNCTIONS =====
+
+        function initializeApp() {
+            try {
+                showLoading();
+
+                // Add event listener for the Adjudicators tab
+                const adjudicatorsTab = document.getElementById('adjudicators-tab');
+                if (adjudicatorsTab) {
+                    adjudicatorsTab.addEventListener('shown.bs.tab', function() {
+                        renderFloorStatistics();
+                    });
+                }
 
                 // Setup real-time listeners for students and history
                 database.ref('students').on('value', snapshot => {
@@ -2773,6 +3673,7 @@ const firebaseConfig = {
                 checkDisciplineTabAccess(); // Call this to apply the new time-based logic
                 checkUserRole(currentUserRole); // Re-apply role-based access after data load
                 updateBatchDisciplineTimer(); // Start the timer for batch discipline
+                populateTrendStudentSelect(); // Populate student options for trend analysis
 
             } catch (error) {
                 console.error("Error initializing app:", error);
@@ -2797,6 +3698,10 @@ const firebaseConfig = {
             document.getElementById('pointsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const updatePointsButton = document.getElementById('updatePointsBtn');
+    if (!updatePointsButton) {
+        console.error('Update points button not found');
+        return;
+    }
 
     updatePointsButton.disabled = true;
     updatePointsButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
@@ -2804,9 +3709,20 @@ const firebaseConfig = {
     const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsPoints input[name="selectedStudents"]:checked')).map(input => input.value);
     const positiveActionSelect = document.getElementById('positiveAction');
     const negativeActionSelect = document.querySelector('[name="negativeAction"]');
-    const percentageInput = document.getElementById('percentageInput').value;
-    const adminModifierDropdown = document.getElementById('adminSelector').value;
-    const teacherAdminNameInput = document.getElementById('teacherAdminName').value.trim();
+    const percentageInputEl = document.getElementById('percentageInput');
+    const adminSelectorEl = document.getElementById('adminSelector');
+    const teacherAdminNameEl = document.getElementById('teacherAdminName');
+    
+    if (!percentageInputEl || !adminSelectorEl || !teacherAdminNameEl) {
+        console.error('Required form elements not found');
+        updatePointsButton.disabled = false;
+        updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+        return;
+    }
+    
+    const percentageInput = percentageInputEl.value;
+    const adminModifierDropdown = adminSelectorEl.value;
+    const teacherAdminNameInput = teacherAdminNameEl.value.trim();
     const adminEmailInput = currentUserEmail; // This should be populated from the logged-in user
 
     if (!selectedStudentIds.length) {
@@ -2950,12 +3866,19 @@ const firebaseConfig = {
         const studentNamesString = studentNames.join(', ');
         displayUpdateMessage('updateMessage', `Done, added points for ${studentNamesString} by ${modifiedBy}.`, 'success');
 
-        document.getElementById('pointsForm').reset();
-        document.getElementById('examPercentage').style.display = 'none';
-        document.getElementById('customPositiveInput').style.display = 'none';
-        document.getElementById('customNegativeInput').style.display = 'none';
-        document.getElementById('searchResultsPoints').innerHTML = '';
-        document.getElementById('searchQueryPoints').value = '';
+        const pointsForm = document.getElementById('pointsForm');
+        const examPercentageEl = document.getElementById('examPercentage');
+        const customPositiveInputEl = document.getElementById('customPositiveInput');
+        const customNegativeInputEl = document.getElementById('customNegativeInput');
+        const searchResultsPointsEl = document.getElementById('searchResultsPoints');
+        const searchQueryPointsEl = document.getElementById('searchQueryPoints');
+        
+        if (pointsForm) pointsForm.reset();
+        if (examPercentageEl) examPercentageEl.style.display = 'none';
+        if (customPositiveInputEl) customPositiveInputEl.style.display = 'none';
+        if (customNegativeInputEl) customNegativeInputEl.style.display = 'none';
+        if (searchResultsPointsEl) searchResultsPointsEl.innerHTML = '';
+        if (searchQueryPointsEl) searchQueryPointsEl.value = '';
     } catch (error) {
         console.error("Error updating points:", error);
         displayUpdateMessage('updateMessage', 'Error updating points. Please try again.', 'danger');
@@ -3499,9 +4422,18 @@ const firebaseConfig = {
 function refreshRankings() {
     const rankingsTable = document.getElementById('rankingsTable');
     const eRankingsTable = document.getElementById('eRankingsTable');
-    const gradeFilter = document.getElementById('gradeFilter').value;
-    const floorFilter = document.getElementById('floorFilter').value || '1'; // Default to 1
-    const searchQueryRankings = document.getElementById('searchQueryRankings').value.toLowerCase().trim();
+    const gradeFilterEl = document.getElementById('gradeFilter');
+    const floorFilterEl = document.getElementById('floorFilter');
+    const searchQueryRankingsEl = document.getElementById('searchQueryRankings');
+    
+    if (!rankingsTable || !eRankingsTable || !gradeFilterEl || !floorFilterEl || !searchQueryRankingsEl) {
+        console.error('Required rankings elements not found');
+        return;
+    }
+    
+    const gradeFilter = gradeFilterEl.value;
+    const floorFilter = floorFilterEl.value || '1'; // Default to 1
+    const searchQueryRankings = searchQueryRankingsEl.value.toLowerCase().trim();
     const { classQuery, sectionQuery } = parseClassSectionQuery(searchQueryRankings);
 
     displayActiveFilters('rankingsFilterDisplay', {
@@ -4071,6 +5003,11 @@ studentsOnFloor.forEach(student => {
                     if (currentPage > 1) {
                         currentPage--;
                         renderStudentManagementTable();
+                        refreshRankings();
+                        const activeTab = document.querySelector('.tab-pane.active');
+                        if (activeTab && activeTab.id === 'adjudicators') {
+                            renderFloorStatistics();
+                        }
                     }
                 });
                 paginationContainer.appendChild(li);
@@ -4875,7 +5812,476 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
         // Update the timer every second
         setInterval(updateBatchDisciplineTimer, 1000);
 
-        // Personal Notes Management Functions
+        // Initialize event listeners for charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Floor Performance Comparison
+            const floorPerfBtn = document.getElementById('generateFloorPerfComparison');
+            if (floorPerfBtn) {
+                floorPerfBtn.addEventListener('click', renderFloorPerformanceChart);
+            }
+
+            // At-Risk Students
+            const refreshRiskBtn = document.getElementById('refreshRiskAnalysis');
+            if (refreshRiskBtn) {
+                refreshRiskBtn.addEventListener('click', renderAtRiskStudents);
+            }
+
+            // Initialize risk threshold display
+            const thresholdSlider = document.getElementById('riskThreshold');
+            const thresholdValue = document.getElementById('riskThresholdValue');
+            if (thresholdSlider && thresholdValue) {
+                thresholdSlider.addEventListener('input', function() {
+                    thresholdValue.textContent = this.value;
+                });
+            }
+        });
+
+        // Floor Performance Comparison Chart - Simplified Version
+        async function renderFloorPerformanceChart() {
+            try {
+                const container = document.getElementById('floorPerfChartContainer');
+                const message = document.getElementById('floorPerfMessage');
+                
+                // Show loading state
+                container.style.display = 'none';
+                message.style.display = 'block';
+                message.textContent = 'Generating floor performance comparison...';
+                message.className = 'alert alert-info';
+
+                // Fetch student data
+                const snapshot = await database.ref('students').once('value');
+                const students = snapshot.val() || {};
+                
+                // Process data by floor - only active students
+                const floorData = {};
+                Object.values(students).forEach(student => {
+                    if (!student.floor) return;
+                    if (student.isActive === false) return; // Skip inactive students
+                    
+                    const floor = `Floor ${student.floor}`;
+                    if (!floorData[floor]) {
+                        floorData[floor] = { 
+                            count: 0, 
+                            totalPoints: 0
+                        };
+                    }
+                    floorData[floor].count++;
+                    floorData[floor].totalPoints += parseFloat(student.points || 0);
+                });
+
+                // Prepare data for chart
+                const labels = [];
+                const avgScores = [];
+                
+                // Sort floors numerically
+                const sortedFloors = Object.keys(floorData).sort((a, b) => 
+                    parseInt(a.replace('Floor ', '')) - parseInt(b.replace('Floor ', ''))
+                );
+
+                sortedFloors.forEach(floor => {
+                    const stats = floorData[floor];
+                    labels.push(floor);
+                    avgScores.push(stats.count > 0 ? (stats.totalPoints / stats.count).toFixed(2) : 0);
+                });
+
+                // Get or create chart
+                const ctx = document.getElementById('floorPerfComparisonChart').getContext('2d');
+                if (window.floorPerfChart) {
+                    window.floorPerfChart.destroy();
+                }
+
+                window.floorPerfChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Average Points',
+                            data: avgScores,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Average Points'
+                                },
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Floor'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Average: ${context.parsed.y} points`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Show the chart
+                container.style.display = 'block';
+                message.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error generating floor performance chart:', error);
+                const message = document.getElementById('floorPerfMessage');
+                message.style.display = 'block';
+                message.textContent = 'Error generating chart: ' + (error.message || 'Unknown error');
+                message.className = 'alert alert-danger';
+            }
+        }
+
+        async function renderTrendAnalysisChart() {
+            try {
+                const container = document.getElementById('trendChartContainer');
+                const message = document.getElementById('trendMessage');
+                const studentSelect = document.getElementById('trendStudentSelect');
+                const periodSelect = document.getElementById('trendPeriodSelect');
+                
+                // Show loading state
+                container.style.display = 'none';
+                message.style.display = 'block';
+                message.textContent = 'Generating trend analysis...';
+                message.className = 'alert alert-info';
+
+                // Get student ID and period
+                const studentId = studentSelect.value;
+                const periodDays = parseInt(periodSelect.value);
+                
+                if (!studentId) {
+                    throw new Error('Please select a student');
+                }
+
+                // Fetch student's history
+                const historySnapshot = await database.ref('history')
+                    .orderByChild('studentId')
+                    .equalTo(studentId)
+                    .once('value');
+                
+                const history = historySnapshot.val() || {};
+                const now = new Date();
+                const cutoffDate = periodDays === 'all' ? 0 : now.getTime() - (periodDays * 24 * 60 * 60 * 1000);
+                
+                // Process history data
+                const dataByDate = {};
+                Object.values(history).forEach(entry => {
+                    if (!entry.timestamp) return;
+                    if (entry.timestamp < cutoffDate) return;
+                    
+                    const date = new Date(entry.timestamp).toLocaleDateString();
+                    if (!dataByDate[date]) {
+                        dataByDate[date] = {
+                            points: 0,
+                            count: 0
+                        };
+                    }
+                    dataByDate[date].points += parseFloat(entry.pointsChange || 0);
+                    dataByDate[date].count++;
+                });
+
+                // Prepare chart data
+                const labels = Object.keys(dataByDate).sort();
+                const pointsData = labels.map(date => dataByDate[date].points);
+                
+                // Calculate cumulative points
+                let cumulativePoints = 0;
+                const cumulativeData = pointsData.map(points => {
+                    cumulativePoints += parseFloat(points);
+                    return cumulativePoints;
+                });
+
+                // Get or create chart
+                const ctx = document.getElementById('trendAnalysisChart').getContext('2d');
+                if (window.trendChart) {
+                    window.trendChart.destroy();
+                }
+
+                window.trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Daily Points Change',
+                                data: pointsData,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderWidth: 2,
+                                fill: true,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Cumulative Points',
+                                data: cumulativeData,
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Daily Points'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Cumulative Points'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Show the chart
+                container.style.display = 'block';
+                message.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error generating trend analysis chart:', error);
+                const message = document.getElementById('trendMessage');
+                message.style.display = 'block';
+                message.textContent = 'Error generating chart: ' + (error.message || 'Unknown error');
+                message.className = 'alert alert-danger';
+            }
+        }
+
+        async function renderAtRiskStudents() {
+            try {
+                const container = document.querySelector('#riskStudentsTable');
+                const message = document.getElementById('riskAnalysisMessage');
+                const floorFilter = document.getElementById('riskFloorFilter').value;
+                const threshold = parseInt(document.getElementById('riskThreshold').value) / 100;
+                
+                // Show loading state
+                container.innerHTML = '<tr><td colspan="8" class="text-center">Analyzing student data...</td></tr>';
+                message.style.display = 'none';
+                message.className = 'alert alert-info';
+
+                // Fetch student data
+                const snapshot = await database.ref('students').once('value');
+                const students = snapshot.val() || {};
+                
+                // Process students and calculate risk scores
+                const atRiskStudents = [];
+                Object.entries(students).forEach(([id, student]) => {
+                    if (!student || !student.name) return;
+                    if (floorFilter && student.floor != floorFilter) return;
+                    if (student.isActive === false) return; // Skip inactive students
+                    
+                    // Simple risk score calculation
+                    const points = parseFloat(student.points || 0);
+                    const negativeHistory = parseInt(student.negativePoints || 0);
+                    const totalActions = parseInt(student.totalActions || 1);
+                    
+                    // Risk factors: low points, high negative history, high negative-to-total ratio
+                    const pointsFactor = Math.max(0, 10 - points) / 10; // 0-1, higher is riskier
+                    const historyFactor = Math.min(1, negativeHistory / 5); // Cap at 1
+                    const ratioFactor = totalActions > 0 ? (negativeHistory / totalActions) : 0;
+                    
+                    // Weighted risk score (0-1)
+                    const riskScore = (pointsFactor * 0.6) + (historyFactor * 0.2) + (ratioFactor * 0.2);
+                    
+                    if (riskScore >= threshold) {
+                        atRiskStudents.push({
+                            id,
+                            name: student.name,
+                            floor: student.floor,
+                            points: points,
+                            riskScore: riskScore,
+                            negativeHistory: negativeHistory
+                        });
+                    }
+                });
+
+                // Sort by risk score (highest first)
+                atRiskStudents.sort((a, b) => b.riskScore - a.riskScore);
+
+                // Update the table
+                if (atRiskStudents.length === 0) {
+                    container.innerHTML = '<tr><td colspan="8" class="text-center">No at-risk students found based on current criteria.</td></tr>';
+                    message.style.display = 'block';
+                    message.textContent = 'No students match the current risk criteria. Try adjusting the risk threshold.';
+                    message.className = 'alert alert-info';
+                    return;
+                }
+
+                // Generate table rows
+                let tableHTML = '';
+                atRiskStudents.forEach(student => {
+                    const riskPercentage = Math.round(student.riskScore);
+                    let riskLevel, riskClass, displayText;
+                    
+                    // Handle E-rank case (points < 0 or riskScore = 100)
+                    if (student.points < 0 || riskPercentage >= 100) {
+                        riskLevel = 'E';
+                        riskClass = 'dark';
+                        displayText = 'E';
+                    } else if (riskPercentage >= 70) {
+                        riskLevel = 'High';
+                        riskClass = 'danger';
+                        displayText = `High (${riskPercentage}%)`;
+                    } else if (riskPercentage >= 40) {
+                        riskLevel = 'Medium';
+                        riskClass = 'warning';
+                        displayText = `Medium (${riskPercentage}%)`;
+                    } else {
+                        riskLevel = 'Low';
+                        riskClass = 'success';
+                        displayText = `Low (${riskPercentage}%)`;
+                    }
+                    
+                    // Generate trend indicator (simplified)
+                    const trend = student.riskScore > 0.7 ? 'fas fa-arrow-up text-danger' : 
+                                student.riskScore > 0.4 ? 'fas fa-arrow-up-right text-warning' : 
+                                'fas fa-arrow-right text-success';
+                    
+                    // Generate recommendation
+                    let recommendation = 'Monitor';
+                    if (riskLevel === 'E') {
+                        recommendation = 'Immediate action required - E Rank';
+                    } else if (riskLevel === 'High') {
+                        recommendation = 'Immediate intervention required';
+                    } else if (riskLevel === 'Medium') {
+                        recommendation = 'Schedule counseling session';
+                    }
+                    
+                    tableHTML += `
+                        <tr>
+                            <td><span class="badge bg-${riskClass}">${displayText}</span></td>
+                            <td>${student.id}</td>
+                            <td>${student.name}</td>
+                            <td>${student.floor || 'N/A'}</td>
+                            <td>${student.points}</td>
+                            <td>${riskPercentage}%</td>
+                            <td><i class="${trend}"></i></td>
+                            <td>${recommendation}</td>
+                        </tr>
+                    `;
+                });
+                
+                container.innerHTML = tableHTML;
+                message.style.display = 'block';
+                message.textContent = `Found ${atRiskStudents.length} at-risk student(s) based on current criteria.`;
+                message.className = 'alert alert-success';
+                
+            } catch (error) {
+                console.error('Error analyzing at-risk students:', error);
+                const message = document.getElementById('riskAnalysisMessage');
+                message.style.display = 'block';
+                message.textContent = 'Error analyzing at-risk students: ' + (error.message || 'Unknown error');
+                message.className = 'alert alert-danger';
+            }
+        }
+
+        // Initialize student dropdown for trend analysis
+        async function initializeStudentDropdown() {
+            try {
+                const select = document.getElementById('trendStudentSelect');
+                if (!select) return;
+                
+                // Clear existing options except the first one
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
+                
+                // Fetch students
+                const snapshot = await database.ref('students').once('value');
+                const students = snapshot.val() || {};
+                
+                // Add students to dropdown
+                Object.entries(students).forEach(([id, student]) => {
+                    if (student && student.name) {
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = `${student.name} (${id})`;
+                        select.appendChild(option);
+                    }
+                });
+                
+                // If there's only one student, select it by default
+                if (select.options.length === 2) {
+                    select.selectedIndex = 1;
+                }
+                
+            } catch (error) {
+                console.error('Error initializing student dropdown:', error);
+            }
+        }
+
+        // Update threshold display
+        const thresholdSlider = document.getElementById('riskThreshold');
+        const thresholdValue = document.getElementById('riskThresholdValue');
+        if (thresholdSlider && thresholdValue) {
+            thresholdSlider.addEventListener('input', function() {
+                thresholdValue.textContent = this.value;
+            });
+        }
+
+        // Initialize components when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStudentDropdown();
+            
+            // Auto-refresh at-risk students when filters change
+            const riskFilters = ['riskFloorFilter', 'riskThreshold'];
+            riskFilters.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', renderAtRiskStudents);
+                }
+            });
+        });
+
+        // Public Notes Management Functions
         let notesCurrentPage = 1;
         const notesPerPage = 5;
 
@@ -5607,6 +7013,107 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
         }
     </script>
 
+    <!-- Firebase initialization is now handled in the main script section -->
+
+    <!-- Automatic Student Import on Page Load -->
+    <script>
+        // Function to import student data from JSON file
+        async function importStudentData() {
+            try {
+                showLoading();
+                
+                // Fetch the student data from the JSON file
+                const response = await fetch('senior-data-researchinnovation-default-rtdb-students-export.json');
+                const studentData = await response.json();
+                
+                // Get a reference to the students in Firebase
+                const studentsRef = firebase.database().ref('students');
+                let importedCount = 0;
+                let updatedCount = 0;
+                let skippedCount = 0;
+                
+                // Process each student in the imported data
+                for (const [key, student] of Object.entries(studentData)) {
+                    // Skip if student data is invalid
+                    if (!student || !student.id) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    try {
+                        // Check if student with this ID already exists
+                        const snapshot = await studentsRef.orderByChild('id').equalTo(student.id).once('value');
+                        
+                        if (snapshot.exists()) {
+                            // Student exists, update their data
+                            const existingStudentKey = Object.keys(snapshot.val())[0];
+                            await studentsRef.child(existingStudentKey).update({
+                                name: student.name || '',
+                                class: student.class || '',
+                                floor: student.floor || '1', // Default to 1st floor if not specified
+                                room: student.room || '',
+                                points: student.points || 0,
+                                active: student.active !== false, // Default to true if not specified
+                                cupNo: student.cupNo || '' // Add empty cupNo if not provided
+                            });
+                            updatedCount++;
+                        } else {
+                            // Student doesn't exist, add them
+                            await studentsRef.push({
+                                id: student.id,
+                                name: student.name || '',
+                                class: student.class || '',
+                                floor: student.floor || '1', // Default to 1st floor if not specified
+                                room: student.room || '',
+                                points: student.points || 0,
+                                active: student.active !== false, // Default to true if not specified
+                                cupNo: student.cupNo || '' // Add empty cupNo if not provided
+                            });
+                            importedCount++;
+                        }
+                    } catch (error) {
+                        console.error(`Error processing student ${student.id}:`, error);
+                        skippedCount++;
+                    }
+                }
+                
+                console.log(`Student data imported successfully!\n` +
+                      `Imported: ${importedCount} students\n` +
+                      `Updated: ${updatedCount} students\n` +
+                      `Skipped: ${skippedCount} students`);
+                      
+                // Refresh the student management table
+                if (typeof renderStudentManagementTable === 'function') {
+                    renderStudentManagementTable();
+                }
+                
+                // Refresh the canteen view if it's open
+                if (document.getElementById('canteen-tab')?.classList.contains('active') && 
+                    typeof applyCanteenFilters === 'function') {
+                    applyCanteenFilters();
+                }
+                
+            } catch (error) {
+                console.error('Error importing student data:', error);
+                // Don't show alert to avoid being intrusive
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Automatically import student data when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to be ready
+            const checkFirebase = setInterval(() => {
+                if (firebase.apps.length) {
+                    clearInterval(checkFirebase);
+                    // Small delay to ensure everything else is loaded
+                    setTimeout(importStudentData, 2000);
+                }
+            }, 100);
+        });
+    </script>
+
 <script>
 function exportAllRankings() {
     const wb = XLSX.utils.book_new();
@@ -5703,5 +7210,1324 @@ function exportAllRankings() {
 }
 </script>
 
+<!-- Predictive Analytics & Comparative Analysis Scripts -->
+<script>
+// ============================================
+// PREDICTIVE ANALYTICS FUNCTIONS
+// ============================================
+
+// Calculate risk score for a student - Simple AI logic based on positive/negative balance
+function calculateRiskScore(student, studentHistory) {
+    if (!student || student.points === undefined) return 0;
+    
+    // If student is in E rank, return 100 which will be displayed as 'E'
+    if (student.points < 0) return 100; // Will be displayed as 'E'
+    
+    // Count positive and negative actions
+    const positiveCount = studentHistory.filter(e => e.pointsChanged > 0).length;
+    const negativeCount = studentHistory.filter(e => e.pointsChanged < 0).length;
+    const totalCount = studentHistory.length;
+    
+    // If no history, assess by current points only
+    if (totalCount === 0) {
+        if (student.points < 0) return 99; // E-rank
+        if (student.points < 30) return 70; // Low points, high risk
+        if (student.points < 60) return 40; // Moderate points, medium risk
+        return 15; // Good points, low risk
+    }
+    
+    // Calculate balance: more negatives = higher risk
+    let riskScore = 0;
+    
+    // Factor 1: Negative to Positive ratio (main indicator)
+    // If more negatives than positives, risk is high
+    const negativeRatio = negativeCount / totalCount; // 0 to 1
+    const positiveRatio = positiveCount / totalCount; // 0 to 1
+    
+    // Risk increases as negative ratio increases, but cap at 100%
+    riskScore = Math.min(100, negativeRatio * 100); // 0-100 scale
+    
+    // Factor 2: Current points modifier
+    if (student.points < 30) {
+        riskScore = Math.min(100, riskScore + 20);
+    } else if (student.points < 60) {
+        riskScore = Math.min(100, riskScore + 10);
+    } else if (student.points > 150) {
+        // Strong positive points reduce risk
+        riskScore = Math.max(0, riskScore - 20);
+    }
+    
+    // Factor 3: Recent trend (last 5 actions)
+    const recentEntries = studentHistory.slice(-5);
+    if (recentEntries.length >= 2) {
+        const recentNegatives = recentEntries.filter(e => e.pointsChanged < 0).length;
+        if (recentNegatives >= 3) {
+            // Consistently negative recently
+            riskScore = Math.min(100, riskScore + 15);
+        } else if (recentNegatives === 0 && recentEntries.length >= 2) {
+            // Recently positive trend
+            riskScore = Math.max(0, riskScore - 10);
+        }
+    }
+    
+    // Factor 4: Predict E-Rank - Look for steep decline trajectory
+    if (studentHistory.length >= 5 && student.points < 50) {
+        const last5 = studentHistory.slice(-5);
+        const recentSum = last5.reduce((sum, e) => sum + e.pointsChanged, 0);
+        // If declining and approaching/at negative
+        if (recentSum < -20) {
+            riskScore = 100; // Mark as E-rank risk
+        }
+    }
+    
+    return Math.round(riskScore);
+}
+
+// Get student history from responseHistory
+function getStudentHistory(studentId) {
+    return responseHistory.filter(entry => entry.studentId === studentId).sort((a, b) => {
+        const dateA = new Date(a.timestamp || 0);
+        const dateB = new Date(b.timestamp || 0);
+        return dateA - dateB;
+    });
+}
+
+// Get trend direction for a student
+function getTrendDirection(studentHistory) {
+    if (studentHistory.length < 2) return 'neutral';
+    
+    const recentEntries = studentHistory.slice(-5);
+    const positiveCount = recentEntries.filter(e => e.pointsChanged > 0).length;
+    const negativeCount = recentEntries.filter(e => e.pointsChanged < 0).length;
+    
+    if (positiveCount > negativeCount) return 'improving';
+    if (negativeCount > positiveCount) return 'declining';
+    return 'stable';
+}
+
+// Generate intervention recommendation
+function getInterventionRecommendation(student, riskScore, trend) {
+    if (riskScore >= 80) {
+        return 'Immediate intervention required. Schedule meeting with student.';
+    } else if (riskScore >= 60) {
+        return 'Monitor closely. Provide encouragement and support.';
+    } else if (riskScore >= 40) {
+        return 'Regular check-ins recommended.';
+    } else if (trend === 'declining') {
+        return 'Watch for negative trend. Provide guidance.';
+    } else {
+        return 'Continue current support level.';
+    }
+}
+
+// Render risk students table
+function renderRiskStudentsTable() {
+    const floorFilter = document.getElementById('riskFloorFilter').value;
+    const riskThreshold = parseInt(document.getElementById('riskThreshold').value);
+    const riskStudentsTable = document.getElementById('riskStudentsTable');
+    
+    const riskStudents = [];
+    
+    students.forEach(student => {
+        if (floorFilter && student.floor !== floorFilter) return;
+        
+        const studentHistory = getStudentHistory(student.id);
+        const riskScore = calculateRiskScore(student, studentHistory);
+        
+        if (riskScore >= riskThreshold) {
+            const trend = getTrendDirection(studentHistory);
+            const recommendation = getInterventionRecommendation(student, riskScore, trend);
+            
+            riskStudents.push({
+                student,
+                riskScore,
+                trend,
+                recommendation
+            });
+        }
+    });
+    
+    // Sort by risk score descending
+    riskStudents.sort((a, b) => b.riskScore - a.riskScore);
+    
+    riskStudentsTable.innerHTML = '';
+    
+    if (riskStudents.length === 0) {
+        riskStudentsTable.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No students at risk above ${riskThreshold}% threshold.</td></tr>`;
+        return;
+    }
+    
+    const fragment = document.createDocumentFragment();
+    riskStudents.forEach(item => {
+        const row = document.createElement('tr');
+        const isERank = item.student.points < 0;
+        const riskLevel = isERank ? 'E Rank' : 
+                         item.riskScore >= 80 ? 'Critical' : 
+                         item.riskScore >= 60 ? 'High' : 'Medium';
+        const riskColor = isERank ? 'dark' : 
+                         item.riskScore >= 80 ? 'danger' : 
+                         item.riskScore >= 60 ? 'warning' : 'info';
+        const trendIcon = item.trend === 'improving' ? '📈' : item.trend === 'declining' ? '📉' : '➡️';
+        
+        row.innerHTML = `
+            <td><span class="badge bg-${riskColor}">${riskLevel}</span></td>
+            <td>${item.student.id}</td>
+            <td>${item.student.name}</td>
+            <td><strong>${item.student.points}</strong></td>
+            <td><strong>${isERank ? 'E Rank' : item.riskScore + '%'}</strong></td>
+            <td>${trendIcon} ${item.trend.charAt(0).toUpperCase() + item.trend.slice(1)}</td>
+            <td><small>${isERank ? 'Immediate intervention required. Student is in E Rank.' : item.recommendation}</small></td>
+        `;
+        fragment.appendChild(row);
+    });
+    
+    riskStudentsTable.appendChild(fragment);
+}
+
+// Populate trend student select
+function populateTrendStudentSelect() {
+    const select = document.getElementById('trendStudentSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">Choose a student...</option>';
+    
+    students.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.id;
+        option.textContent = `${student.name} (${student.id})`;
+        select.appendChild(option);
+    });
+}
+
+// Generate trend chart
+if (document.getElementById('generateTrendChart')) {
+    document.getElementById('generateTrendChart').addEventListener('click', () => {
+        const studentId = document.getElementById('trendStudentSelect').value;
+        const period = parseInt(document.getElementById('trendPeriodSelect').value);
+        
+        if (!studentId) {
+            alert('Please select a student');
+            return;
+        }
+        
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        
+        let studentHistory = getStudentHistory(studentId);
+        
+        // Filter by period
+        if (period !== 'all') {
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - period);
+            studentHistory = studentHistory.filter(entry => {
+                const entryDate = new Date(entry.timestamp || entry.date || 0);
+                return entryDate >= cutoffDate;
+            });
+        }
+        
+        if (studentHistory.length === 0) {
+            document.getElementById('trendMessage').style.display = 'block';
+            document.getElementById('trendMessage').textContent = 'No data available for selected period.';
+            document.getElementById('trendChartContainer').style.display = 'none';
+            return;
+        }
+        
+        // Calculate cumulative points
+        let cumulativePoints = student.points;
+        const labels = [];
+        const data = [];
+        
+        // Work backwards to get starting point
+        let startingPoints = cumulativePoints;
+        studentHistory.forEach(entry => {
+            startingPoints -= entry.pointsChanged;
+        });
+        
+        cumulativePoints = startingPoints;
+        studentHistory.forEach((entry, index) => {
+            cumulativePoints += entry.pointsChanged;
+            const entryDate = new Date(entry.timestamp || entry.date || 0);
+            labels.push(entryDate.toLocaleDateString());
+            data.push(cumulativePoints);
+        });
+        
+        // Destroy existing chart
+        if (window.trendChart) {
+            window.trendChart.destroy();
+        }
+        
+        const ctx = document.getElementById('trendAnalysisChart').getContext('2d');
+        window.trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: `${student.name} - Points Over Time`,
+                    data: data,
+                    borderColor: '#4a90e2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#4a90e2',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    segment: {
+                        borderColor: (ctx) => {
+                            if (ctx.p0DataIndex !== undefined && ctx.p1DataIndex !== undefined) {
+                                const val1 = data[ctx.p0DataIndex];
+                                const val2 = data[ctx.p1DataIndex];
+                                if (val2 > val1) return '#5cb85c'; // Green for increase
+                                if (val2 < val1) return '#d9534f'; // Red for decrease
+                            }
+                            return '#4a90e2';
+                        }
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { 
+                        display: true, 
+                        position: 'top',
+                        labels: { usePointStyle: true, padding: 15, font: { size: 12, weight: 'bold' } }
+                    },
+                    title: { 
+                        display: true, 
+                        text: `${student.name} - Historical Trend Analysis`,
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
+                        titleFont: { size: 13, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        borderColor: '#4a90e2',
+                        borderWidth: 1,
+                        displayColors: true,
+                        callbacks: {
+                            afterLabel: (context) => {
+                                if (context.dataIndex > 0) {
+                                    const change = data[context.dataIndex] - data[context.dataIndex - 1];
+                                    return `Change: ${change > 0 ? '+' : ''}${change}`;
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0,0,0,0.05)', drawBorder: true },
+                        title: { display: true, text: 'Points', font: { size: 12, weight: 'bold' } },
+                        ticks: { font: { size: 11 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 }
+                    }
+                }
+            }
+        });
+        
+        document.getElementById('trendChartContainer').style.display = 'block';
+        document.getElementById('trendMessage').style.display = 'none';
+    });
+}
+
+// Update risk threshold display
+document.getElementById('riskThreshold').addEventListener('input', (e) => {
+    document.getElementById('riskThresholdValue').textContent = e.target.value;
+});
+
+// Populate trend student select when data loads
+if (students && students.length > 0) {
+    populateTrendStudentSelect();
+}
+
+// Refresh risk analysis
+document.getElementById('refreshRiskAnalysis').addEventListener('click', renderRiskStudentsTable);
+document.getElementById('riskFloorFilter').addEventListener('change', renderRiskStudentsTable);
+
+// Export risk report
+document.getElementById('exportRiskReport').addEventListener('click', () => {
+    const floorFilter = document.getElementById('riskFloorFilter').value;
+    const riskThreshold = parseInt(document.getElementById('riskThreshold').value);
+    
+    const wb = XLSX.utils.book_new();
+    const wsData = [];
+    wsData.push(['Risk Level', 'Student ID', 'Name', 'Floor', 'Current Points', 'Risk Score (%)', 'Trend', 'Recommendation']);
+    
+    const riskStudents = [];
+    students.forEach(student => {
+        if (floorFilter && student.floor !== floorFilter) return;
+        
+        const studentHistory = getStudentHistory(student.id);
+        const riskScore = calculateRiskScore(student, studentHistory);
+        
+        if (riskScore >= riskThreshold) {
+            const trend = getTrendDirection(studentHistory);
+            const recommendation = getInterventionRecommendation(student, riskScore, trend);
+            const riskLevel = riskScore >= 80 ? 'Critical' : riskScore >= 60 ? 'High' : 'Medium';
+            
+            riskStudents.push([
+                riskLevel,
+                student.id,
+                student.name,
+                student.floor,
+                student.points,
+                riskScore,
+                trend,
+                recommendation
+            ]);
+        }
+    });
+    
+    riskStudents.forEach(row => wsData.push(row));
+    
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Risk Analysis');
+    
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Risk_Analysis_Report_${dateStr}.xlsx`);
+});
+
+
+// ============================================
+// FLOOR PERFORMANCE COMPARISON FOR ADJUDICATORS
+// ============================================
+
+// Generate floor performance comparison chart
+if (document.getElementById('generateFloorPerfComparison')) {
+    document.getElementById('generateFloorPerfComparison').addEventListener('click', () => {
+    const metric = document.getElementById('floorPerfMetricSelect').value;
+    const activeFilter = document.getElementById('floorPerfActiveFilter').value;
+    
+    const floorData = {};
+    const floors = ['1', '2', '3', '4', '5', '6'];
+    
+    floors.forEach(floor => {
+        const floorStudents = students.filter(s => String(s.floor) === floor);
+        const totalPoints = floorStudents.reduce((sum, s) => sum + (s.points || 0), 0);
+        const avgPoints = floorStudents.length > 0 ? totalPoints / floorStudents.length : 0;
+        
+        const positiveEntries = responseHistory.filter(e => 
+            floorStudents.some(s => s.id === e.studentId) && e.pointsChanged > 0
+        ).length;
+        const totalEntries = responseHistory.filter(e => 
+            floorStudents.some(s => s.id === e.studentId)
+        ).length;
+        const positiveRatio = totalEntries > 0 ? (positiveEntries / totalEntries) * 100 : 0;
+        
+        floorData[floor] = {
+            avgPoints: parseFloat(avgPoints.toFixed(2)),
+            totalPoints: totalPoints,
+            studentCount: floorStudents.length,
+            positiveRatio: parseFloat(positiveRatio.toFixed(2))
+        };
+    });
+    
+    let data = [];
+    switch(metric) {
+        case 'avgPoints':
+            data = floors.map(f => floorData[f].avgPoints);
+            break;
+        case 'totalPoints':
+            data = floors.map(f => floorData[f].totalPoints);
+            break;
+        case 'studentCount':
+            data = floors.map(f => floorData[f].studentCount);
+            break;
+        case 'positiveRatio':
+            data = floors.map(f => floorData[f].positiveRatio);
+            break;
+    }
+    
+    // Destroy existing chart
+    if (window.floorPerfComparisonChart) {
+        window.floorPerfComparisonChart.destroy();
+    }
+    
+    const ctx = document.getElementById('floorPerfComparisonChart').getContext('2d');
+    
+    // Build scales for bar chart
+    const scales = {
+        y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            title: { display: true, text: metric === 'avgPoints' ? 'Average Points' : metric === 'totalPoints' ? 'Total Points' : metric === 'studentCount' ? 'Count' : 'Percentage (%)', font: { size: 12, weight: 'bold' } },
+            ticks: { font: { size: 11 } }
+        },
+        x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 } }
+        }
+    };
+    
+    const config = {
+        type: 'bar',
+        data: {
+            labels: floors.map(f => `Floor ${f}`),
+            datasets: [{
+                label: metric === 'avgPoints' ? 'Average Points' : 
+                       metric === 'totalPoints' ? 'Total Points' :
+                       metric === 'studentCount' ? 'Student Count' : 'Positive Actions %',
+                data: data,
+                backgroundColor: [
+                    'rgba(74, 144, 226, 0.8)',
+                    'rgba(92, 184, 92, 0.8)',
+                    'rgba(240, 173, 78, 0.8)',
+                    'rgba(217, 83, 79, 0.8)',
+                    'rgba(51, 122, 183, 0.8)',
+                    'rgba(155, 89, 182, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(74, 144, 226, 1)',
+                    'rgba(92, 184, 92, 1)',
+                    'rgba(240, 173, 78, 1)',
+                    'rgba(217, 83, 79, 1)',
+                    'rgba(51, 122, 183, 1)',
+                    'rgba(155, 89, 182, 1)'
+                ],
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: true, 
+                    position: 'top',
+                    labels: { font: { size: 12, weight: 'bold' }, padding: 15 }
+                },
+                title: { 
+                    display: true, 
+                    text: `Floor Comparison - ${metric === 'avgPoints' ? 'Average Points' : metric === 'totalPoints' ? 'Total Points' : metric === 'studentCount' ? 'Student Count' : 'Positive Actions Ratio'}`,
+                    font: { size: 14, weight: 'bold' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    borderColor: '#4a90e2',
+                    borderWidth: 1
+                }
+            },
+            scales: scales
+        }
+    };
+    
+    window.floorPerfComparisonChart = new Chart(ctx, config);
+    document.getElementById('floorPerfChartContainer').style.display = 'block';
+    document.getElementById('floorPerfMessage').style.display = 'none';
+    });
+}
+
+// Optional: Export floor comparison report
+if (document.getElementById('exportFloorComparison')) {
+    document.getElementById('exportFloorComparison').addEventListener('click', () => {
+    const wb = XLSX.utils.book_new();
+    const wsData = [];
+    wsData.push(['Floor', 'Total Students', 'Average Points', 'Total Points', 'Positive Actions', 'Negative Actions', 'Positive Ratio (%)']);
+    
+    const floors = ['1', '2', '3', '4', '5', '6'];
+    floors.forEach(floor => {
+        const floorStudents = students.filter(s => String(s.floor) === floor);
+        const totalPoints = floorStudents.reduce((sum, s) => sum + (s.points || 0), 0);
+        const avgPoints = floorStudents.length > 0 ? (totalPoints / floorStudents.length).toFixed(2) : 0;
+        
+        const positiveEntries = responseHistory.filter(e => 
+            floorStudents.some(s => s.id === e.studentId) && e.pointsChanged > 0
+        ).length;
+        const negativeEntries = responseHistory.filter(e => 
+            floorStudents.some(s => s.id === e.studentId) && e.pointsChanged < 0
+        ).length;
+        const totalEntries = positiveEntries + negativeEntries;
+        const positiveRatio = totalEntries > 0 ? ((positiveEntries / totalEntries) * 100).toFixed(2) : 0;
+        
+        wsData.push([
+            `Floor ${floor}`,
+            floorStudents.length,
+            avgPoints,
+            totalPoints,
+            positiveEntries,
+            negativeEntries,
+            positiveRatio
+        ]);
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Floor Comparison');
+    
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Floor_Comparison_Report_${dateStr}.xlsx`);
+    });
+}
+    
+    floors.forEach(floor => {
+        const floorStudents = students.filter(s => String(s.floor) === floor);
+        const floorHistory = responseHistory.filter(e => 
+            floorStudents.some(s => s.id === e.studentId)
+        );
+        
+        floorHistory.forEach(entry => {
+            const key = `${floor}-${entry.action}`;
+            if (!actionEffectiveness[key]) {
+                actionEffectiveness[key] = { positive: 0, total: 0 };
+            }
+            actionEffectiveness[key].total++;
+            if (entry.pointsChanged > 0) {
+                actionEffectiveness[key].positive++;
+            }
+        });
+    });
+    
+    const actions = [...new Set(Object.keys(actionEffectiveness).map(k => k.split('-')[1]))].sort();
+    
+    if (actions.length === 0) {
+        document.getElementById('heatmapMessage').style.display = 'block';
+        document.getElementById('heatmapMessage').textContent = 'No behavior data available.';
+        document.getElementById('heatmapContainer').style.display = 'none';
+        return;
+    }
+    
+    const heatmapData = [];
+    floors.forEach(floor => {
+        actions.forEach(action => {
+            const key = `${floor}-${action}`;
+            const data = actionEffectiveness[key];
+            const effectiveness = data ? (data.positive / data.total) * 100 : 0;
+            heatmapData.push({
+                x: action,
+                y: `Floor ${floor}`,
+                v: parseFloat(effectiveness.toFixed(2))
+            });
+        });
+    });
+    
+    // Destroy existing chart
+    if (window.heatmapChart) {
+        window.heatmapChart.destroy();
+    }
+    
+    const ctx = document.getElementById('behaviorHeatmapChart').getContext('2d');
+    window.heatmapChart = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: 'Effectiveness %',
+                data: heatmapData.map(d => ({
+                    x: actions.indexOf(d.x),
+                    y: floors.indexOf(d.y.replace('Floor ', '')),
+                    r: Math.max(8, d.v / 8),
+                    effectiveness: d.v
+                })),
+                backgroundColor: heatmapData.map(d => {
+                    if (d.v >= 70) return 'rgba(92, 184, 92, 0.8)';
+                    if (d.v >= 50) return 'rgba(240, 173, 78, 0.8)';
+                    return 'rgba(217, 83, 79, 0.8)';
+                }),
+                borderColor: heatmapData.map(d => {
+                    if (d.v >= 70) return 'rgba(92, 184, 92, 1)';
+                    if (d.v >= 50) return 'rgba(240, 173, 78, 1)';
+                    return 'rgba(217, 83, 79, 1)';
+                }),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: true,
+                    labels: { font: { size: 12, weight: 'bold' }, padding: 15 }
+                },
+                title: { 
+                    display: true, 
+                    text: 'Behavior Effectiveness Heatmap by Floor',
+                    font: { size: 14, weight: 'bold' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    padding: 12,
+                    titleFont: { size: 13, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: (context) => {
+                            const action = actions[Math.round(context.raw.x)];
+                            const floor = floors[Math.round(context.raw.y)];
+                            return `Floor ${floor} - ${action}: ${context.raw.effectiveness.toFixed(1)}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    min: -0.5,
+                    max: actions.length - 0.5,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    title: { display: true, text: 'Actions', font: { size: 12, weight: 'bold' } },
+                    ticks: { 
+                        callback: (value) => actions[Math.round(value)] || '',
+                        font: { size: 10 }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    min: -0.5,
+                    max: floors.length - 0.5,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    title: { display: true, text: 'Floors', font: { size: 12, weight: 'bold' } },
+                    ticks: { 
+                        callback: (value) => `Floor ${floors[Math.round(value)]}` || '',
+                        font: { size: 10 }
+                    }
+                }
+            }
+        }
+    });
+    
+    document.getElementById('heatmapContainer').style.display = 'block';
+    document.getElementById('heatmapMessage').style.display = 'none';
+;
+
+// Generate gap analysis
+document.getElementById('generateGapAnalysis').addEventListener('click', () => {
+    const floors = ['1', '2', '3', '4', '5', '6'];
+    const metrics = {};
+    
+    floors.forEach(floor => {
+        const floorStudents = students.filter(s => String(s.floor) === floor);
+        const totalPoints = floorStudents.reduce((sum, s) => sum + (s.points || 0), 0);
+        const avgPoints = floorStudents.length > 0 ? totalPoints / floorStudents.length : 0;
+        
+        metrics[floor] = {
+            avgPoints: parseFloat(avgPoints.toFixed(2)),
+            studentCount: floorStudents.length
+        };
+    });
+    
+    const maxAvg = Math.max(...floors.map(f => metrics[f].avgPoints));
+    const minAvg = Math.min(...floors.map(f => metrics[f].avgPoints));
+    const avgOfAvgs = floors.reduce((sum, f) => sum + metrics[f].avgPoints, 0) / floors.length;
+    
+    const container = document.getElementById('gapAnalysisContent');
+    container.innerHTML = '';
+    
+    // Create a row to contain all floor cards
+    const row = document.createElement('div');
+    row.className = 'row';
+    container.appendChild(row);
+    
+    floors.forEach(floor => {
+        const gap = metrics[floor].avgPoints - avgOfAvgs;
+        const gapPercent = ((gap / avgOfAvgs) * 100).toFixed(2);
+        const color = gap > 0 ? 'success' : 'danger';
+        const icon = gap > 0 ? '📈' : '📉';
+        
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4 mb-3';
+        col.innerHTML = `
+            <div class="card h-100 border-${color}">
+                <div class="card-header bg-${color} text-white">
+                    <h5 class="mb-0">Floor ${floor} ${icon}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Average Points:</strong> ${metrics[floor].avgPoints}</p>
+                    <p class="mb-1"><strong>Students:</strong> ${metrics[floor].studentCount}</p>
+                    <p class="mb-0"><strong>Gap from Average:</strong> 
+                        <span class="text-${color} fw-bold">${gap > 0 ? '+' : ''}${gap.toFixed(2)} (${gapPercent}%)</span>
+                    </p>
+                </div>
+            </div>`;
+        row.appendChild(col);
+    });
+    
+    // Show the container if it was hidden
+    container.style.display = 'block';
+    document.getElementById('gapAnalysisContainer').style.display = 'block';
+    document.getElementById('gapAnalysisMessage').style.display = 'none';
+});
+
+// Export gap analysis report
+document.getElementById('exportGapAnalysis').addEventListener('click', () => {
+    const wb = XLSX.utils.book_new();
+    const wsData = [];
+    wsData.push(['Floor', 'Average Points', 'Student Count', 'Gap from Average', 'Gap Percentage (%)']);
+    
+    const floors = ['1', '2', '3', '4', '5', '6'];
+    const metrics = {};
+    
+    floors.forEach(floor => {
+        const floorStudents = students.filter(s => String(s.floor) === floor);
+        const totalPoints = floorStudents.reduce((sum, s) => sum + (s.points || 0), 0);
+        const avgPoints = floorStudents.length > 0 ? totalPoints / floorStudents.length : 0;
+        
+        metrics[floor] = {
+            avgPoints: parseFloat(avgPoints.toFixed(2)),
+            studentCount: floorStudents.length
+        };
+    });
+    
+    const avgOfAvgs = floors.reduce((sum, f) => sum + metrics[f].avgPoints, 0) / floors.length;
+    
+    floors.forEach(floor => {
+        const gap = metrics[floor].avgPoints - avgOfAvgs;
+        const gapPercent = ((gap / avgOfAvgs) * 100).toFixed(2);
+        
+        wsData.push([
+            `Floor ${floor}`,
+            metrics[floor].avgPoints,
+            metrics[floor].studentCount,
+            gap.toFixed(2),
+            gapPercent
+        ]);
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Gap Analysis');
+    
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Gap_Analysis_Report_${dateStr}.xlsx`);
+});
+
+// Initialize analytics when students data is loaded
+function initializeAnalytics() {
+    if (students && students.length > 0) {
+        populateTrendStudentSelect();
+        renderRiskStudentsTable();
+    }
+}
+
+// Watch for students data to be loaded
+const analyticsObserver = setInterval(() => {
+    if (typeof students !== 'undefined' && students.length > 0) {
+        initializeAnalytics();
+        clearInterval(analyticsObserver);
+    }
+}, 500);
+
+// Also initialize on tab click
+document.addEventListener('shown.bs.tab', (e) => {
+    if (e.target.id === 'predictive-analytics-tab') {
+        initializeAnalytics();
+    }
+});
+
+// Face Recognition Functionality
+const STORAGE_KEY = 'studentFaces';
+let video;
+let canvas;
+let isCameraOn = false;
+let stream = null;
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    
+    // Load face-api models
+    Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri('models'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('models'),
+        faceapi.nets.faceRecognitionNet.loadFromUri('models')
+    ]).then(() => {
+        console.log('Face recognition models loaded');
+        document.getElementById('startButton').disabled = false;
+    }).catch(err => {
+        console.error('Error loading models:', err);
+        alert('Error loading face recognition models. Please check console for details.');
+    });
+    
+    // Event Listeners
+    document.getElementById('startButton').addEventListener('click', toggleCamera);
+    document.getElementById('captureButton').addEventListener('click', captureAndRecognize);
+    document.getElementById('addStudentForm').addEventListener('submit', handleAddStudent);
+    
+    // Load existing students
+    loadStudents();
+});
+
+// Toggle camera on/off
+async function toggleCamera() {
+    const startButton = document.getElementById('startButton');
+    const captureButton = document.getElementById('captureButton');
+    
+    if (!isCameraOn) {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { width: 640, height: 480 },
+                audio: false 
+            });
+            video.srcObject = stream;
+            isCameraOn = true;
+            startButton.innerHTML = '<i class="fas fa-stop"></i> Stop Camera';
+            captureButton.disabled = false;
+        } catch (err) {
+            console.error('Error accessing camera:', err);
+            alert('Could not access the camera. Please ensure you have granted camera permissions.');
+        }
+    } else {
+        stopCamera();
+        startButton.innerHTML = '<i class="fas fa-camera"></i> Start Camera';
+        captureButton.disabled = true;
+    }
+}
+
+// Stop camera
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+    isCameraOn = false;
+    video.srcObject = null;
+}
+
+// Capture and recognize face
+async function captureAndRecognize() {
+    if (!isCameraOn) return;
+    
+    // Show loading state
+    const captureButton = document.getElementById('captureButton');
+    captureButton.disabled = true;
+    captureButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+    
+    try {
+        // Draw video frame to canvas
+        const displaySize = { width: video.width, height: video.height };
+        faceapi.matchDimensions(canvas, displaySize);
+        
+        // Detect face
+        const detections = await faceapi.detectAllFaces(
+            video, 
+            new faceapi.TinyFaceDetectorOptions()
+        ).withFaceLandmarks().withFaceDescriptors();
+        
+        if (detections.length === 0) {
+            throw new Error('No face detected. Please try again.');
+        }
+        
+        // Get the first face
+        const detection = detections[0];
+        
+        // Recognize the face
+        const recognizedStudent = await recognizeFace(detection.descriptor);
+        
+        if (recognizedStudent) {
+            showStudentInfo(recognizedStudent);
+        } else {
+            throw new Error('No matching student found in the database.');
+        }
+    } catch (err) {
+        alert(err.message);
+    } finally {
+        captureButton.disabled = false;
+        captureButton.innerHTML = '<i class="fas fa-camera-retro"></i> Capture';
+    }
+}
+
+// Recognize face against stored students
+async function recognizeFace(descriptor) {
+    const students = getStudents();
+    let bestMatch = { student: null, distance: Infinity };
+    
+    for (const student of students) {
+        const studentDescriptor = new Float32Array(student.descriptor);
+        const distance = faceapi.euclideanDistance(descriptor, studentDescriptor);
+        
+        if (distance < bestMatch.distance) {
+            bestMatch = { student, distance };
+        }
+    }
+    
+    // Threshold for face matching (adjust as needed)
+    return bestMatch.distance < 0.6 ? bestMatch.student : null;
+}
+
+// Show student information
+function showStudentInfo(student) {
+    const studentInfo = document.getElementById('studentInfo');
+    const studentDetails = document.getElementById('studentDetails');
+    
+    studentDetails.innerHTML = `
+        <img src="${student.photo}" class="student-photo" alt="${student.name}">
+        <h4>${student.name}</h4>
+        <p class="text-muted">MID: ${student.mid}</p>
+        <div class="mt-3
+        <button class="btn btn-primary" onclick="awardPoints('${student.id}')">
+            <i class="fas fa-star"></i> Award Points
+        </button>
+    `;
+    
+    studentInfo.style.display = 'block';
+    
+    // Scroll to student info
+    studentInfo.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Handle add student form submission
+async function handleAddStudent(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('studentName').value.trim();
+    const mid = document.getElementById('studentMid').value.trim();
+    const file = document.getElementById('studentPhoto').files[0];
+    
+    if (!name || !mid || !file) {
+        alert('Please fill all fields and select a photo');
+        return;
+    }
+    
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+    
+    try {
+        // Convert image to base64
+        const photoData = await readFileAsDataURL(file);
+        
+        // Create image element to get dimensions
+        const img = await loadImage(photoData);
+        
+        // Create canvas for face detection
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+        
+        // Detect face and get descriptor
+        const detections = await faceapi.detectAllFaces(
+            canvas, 
+            new faceapi.TinyFaceDetectorOptions()
+        ).withFaceLandmarks().withFaceDescriptors();
+        
+        if (detections.length === 0) {
+            throw new Error('No face detected in the uploaded photo. Please try again with a clearer image.');
+        }
+        
+        // Save student data
+        const student = {
+            id: Date.now().toString(),
+            name,
+            mid,
+            photo: photoData,
+            descriptor: Array.from(detections[0].descriptor)
+        };
+        
+        saveStudent(student);
+        addStudentToTable(student);
+        
+        // Reset form
+        e.target.reset();
+        
+        // Show success message
+        alert('Student added successfully!');
+    } catch (err) {
+        console.error('Error adding student:', err);
+        alert(err.message || 'Error adding student. Please try again.');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+    }
+}
+
+// Save student to local storage
+function saveStudent(student) {
+    const students = getStudents();
+    students.push(student);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+}
+
+// Get all students from local storage
+function getStudents() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+}
+
+// Load students into the table
+function loadStudents() {
+    const students = getStudents();
+    const tbody = document.getElementById('studentsList');
+    tbody.innerHTML = '';
+    
+    if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">No students found. Add a student using the form above.</td></tr>';
+        return;
+    }
+    
+    students.forEach(student => addStudentToTable(student));
+}
+
+// Add a single student to the table
+function addStudentToTable(student) {
+    const tbody = document.getElementById('studentsList');
+    
+    // Remove the "no students" message if it exists
+    if (tbody.querySelector('td[colspan]')) {
+        tbody.innerHTML = '';
+    }
+    
+    const tr = document.createElement('tr');
+    tr.className = 'align-middle';
+    tr.innerHTML = `
+        <td><img src="${student.photo}" alt="${student.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;"></td>
+        <td>${student.name}</td>
+        <td>${student.mid}</td>
+        <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteStudent('${student.id}', this)">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(tr);
+}
+
+// Delete a student
+function deleteStudent(id, button) {
+    if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+        return;
+    }
+    
+    const students = getStudents().filter(s => s.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    
+    // Remove from table
+    const row = button.closest('tr');
+    row.style.opacity = '0.5';
+    setTimeout(() => {
+        row.remove();
+        
+        // Show "no students" message if table is empty
+        const tbody = document.getElementById('studentsList');
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No students found. Add a student using the form above.</td></tr>';
+        }
+    }, 300);
+}
+
+// Award points to a student (placeholder function)
+window.awardPoints = function(studentId) {
+    // This is a placeholder - you'll need to implement the actual points awarding logic
+    const student = getStudents().find(s => s.id === studentId);
+    if (student) {
+        alert(`Awarding points to ${student.name} (${student.mid}).\n\nThis is a placeholder. You'll need to implement the actual points awarding logic.`);
+    }
+};
+
+// Helper function to read file as data URL
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Helper function to load an image
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+// Initialize tooltips
+$(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+
+// ===== OFFLINE DATA ACCESS FUNCTIONS =====
+async function updateStudentPoints(studentId, points, reason) {
+    const updateData = { 
+        id: studentId, 
+        points: points,
+        updatedAt: new Date().toISOString(),
+        reason: reason || 'Points updated',
+        modifiedBy: currentUserEmail || 'Unknown',
+        modifiedAt: new Date().toISOString()
+    };
+    
+    try {
+        if (navigator.onLine) {
+            // If online, update Firebase directly
+            await updateStudentInFirebase(studentId, updateData);
+            // Also update local DB for consistency
+            await localDB.saveStudent(updateData);
+        } else {
+            // If offline, queue the update
+            await syncManager.queueAction('updateStudent', updateData);
+            // Also update local DB immediately for responsive UI
+            await localDB.saveStudent(updateData);
+            // Show offline indicator
+            showOfflineIndicator();
+        }
+        return true;
+    } catch (error) {
+        console.error('Error updating student points:', error);
+        // Even if there's an error, save to local DB to prevent data loss
+        await localDB.saveStudent(updateData);
+        throw error;
+    }
+}
+
+// Function to get student data, trying local DB first
+async function getStudentData(studentId) {
+    try {
+        // Try to get from local DB first for faster response
+        const localData = await localDB.getStudent(studentId);
+        
+        // If online, try to get fresh data from Firebase
+        if (navigator.onLine) {
+            try {
+                const snapshot = await database.ref(`students/${studentId}`).once('value');
+                const firebaseData = snapshot.val();
+                
+                // If we have data from Firebase, update local DB
+                if (firebaseData) {
+                    await localDB.saveStudent(firebaseData);
+                    return firebaseData;
+                }
+            } catch (error) {
+                console.warn('Could not fetch from Firebase, using local data:', error);
+            }
+        }
+        
+        // Return local data if available, or null if not found
+        return localData || null;
+    } catch (error) {
+        console.error('Error getting student data:', error);
+        return null;
+    }
+}
+
+// Function to show offline indicator
+function showOfflineIndicator() {
+    const offlineIndicator = document.getElementById('offlineIndicator');
+    if (offlineIndicator) {
+        offlineIndicator.style.display = 'block';
+        // Hide after 5 seconds
+        setTimeout(() => {
+            offlineIndicator.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// Add offline/online event listeners
+window.addEventListener('online', () => {
+    console.log('App is online');
+    // Try to sync any pending changes
+    syncManager.checkAndSync();
+    
+    // Update UI
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (onlineIndicator) {
+        onlineIndicator.textContent = 'Online';
+        onlineIndicator.className = 'badge bg-success';
+    }
+});
+
+window.addEventListener('offline', () => {
+    console.log('App is offline');
+    // Update UI
+    const onlineIndicator = document.getElementById('onlineIndicator');
+    if (onlineIndicator) {
+        onlineIndicator.textContent = 'Offline';
+        onlineIndicator.className = 'badge bg-danger';
+    }
+});
+
+// Initialize online status indicator
+function initOnlineStatus() {
+    const statusBar = document.createElement('div');
+    statusBar.id = 'statusBar';
+    statusBar.style.position = 'fixed';
+    statusBar.style.bottom = '10px';
+    statusBar.style.right = '10px';
+    statusBar.style.zIndex = '9999';
+    statusBar.style.padding = '5px 10px';
+    statusBar.style.borderRadius = '4px';
+    statusBar.style.fontSize = '12px';
+    statusBar.style.fontWeight = 'bold';
+    
+    const statusBadge = document.createElement('span');
+    statusBadge.id = 'onlineIndicator';
+    statusBadge.className = 'badge ' + (navigator.onLine ? 'bg-success' : 'bg-danger');
+    statusBadge.textContent = navigator.onLine ? 'Online' : 'Offline';
+    
+    statusBar.appendChild(statusBadge);
+    document.body.appendChild(statusBar);
+}
+
+// Initialize the app
+$(document).ready(function() {
+    initOnlineStatus();
+    // Your existing initialization code...
+});
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Check if service workers are supported and we're not in file:// protocol
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('sw.js')
+            .then(function(registration) {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              
+              // Check for updates to the service worker
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('New service worker found in state: ', newWorker.state);
+                
+                newWorker.addEventListener('statechange', () => {
+                  console.log('Service worker state changed to: ', newWorker.state);
+                });
+              });
+              
+              // Check if there's a new service worker waiting to be activated
+              if (registration.waiting) {
+                console.log('Service worker waiting to activate');
+              }
+              
+              // Check for updates every hour
+              setInterval(() => {
+                registration.update().catch(err => 
+                  console.log('Service worker update check failed: ', err)
+                );
+              }, 60 * 60 * 1000);
+              
+            }).catch(function(err) {
+              console.error('ServiceWorker registration failed: ', err);
+            });
+          
+          // Listen for controller changes (when a new service worker takes over)
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('Controller changed');
+            window.location.reload();
+          });
+        });
+      } else {
+        console.log('Service workers not supported or not in a secure context (HTTPS or localhost)');
+      }
+    </script>
 </body>
 </html>
