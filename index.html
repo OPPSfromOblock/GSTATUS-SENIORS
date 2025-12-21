@@ -6489,14 +6489,47 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             }
             points = percentage; // Use percentage directly as points
             actionText = `Exam Performance (${percentage}%)`;
+        } else if (positiveActionSelect.value === 'custom') {
+            const customPointsVal = document.getElementById('customPositivePoints').value;
+            const customReason = document.getElementById('customPositiveReason').value.trim();
+            const customPoints = parseInt(customPointsVal, 10);
+            
+            if (isNaN(customPoints) || customPoints <= 0) {
+                displayUpdateMessage('updateMessage', 'Please enter valid custom positive points.', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            points = customPoints;
+            actionText = customReason ? `Custom (+${points}): ${customReason}` : `Custom Points (+${points})`;
         } else {
             points = parseInt(positiveActionSelect.value, 10);
             actionText = positiveActionSelect.options[positiveActionSelect.selectedIndex].text;
         }
     } else if (negativeActionSelect.value) {
         isPositive = false;
-        points = -parseInt(negativeActionSelect.value, 10);
-        actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
+        
+        if (negativeActionSelect.value === 'custom') {
+            const customPointsVal = document.getElementById('customNegativePoints').value;
+            const customReason = document.getElementById('customNegativeReason').value.trim();
+            let customPoints = parseInt(customPointsVal, 10);
+            
+            // Ensure negative
+            if (customPoints > 0) customPoints = -customPoints;
+            
+            if (isNaN(customPoints) || customPoints === 0) {
+                displayUpdateMessage('updateMessage', 'Please enter valid custom negative points.', 'danger');
+                updatePointsButton.disabled = false;
+                updatePointsButton.innerHTML = '<i class="fas fa-save"></i> Update Points';
+                return;
+            }
+            points = customPoints;
+            actionText = customReason ? `Custom (${points}): ${customReason}` : `Custom Points (${points})`;
+        } else {
+            // Values are already negative in the HTML options
+            points = parseInt(negativeActionSelect.value, 10);
+            actionText = negativeActionSelect.options[negativeActionSelect.selectedIndex].text;
+        }
     } else {
         displayUpdateMessage('updateMessage', 'Please select an action.', 'danger');
         updatePointsButton.disabled = false;
@@ -11397,8 +11430,3 @@ $(document).ready(function() {
     </script>
 </body>
 </html>
-
-
-
-
-
