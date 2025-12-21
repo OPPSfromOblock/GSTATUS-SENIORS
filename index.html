@@ -1935,9 +1935,6 @@
                             <button type="button" class="btn btn-success ms-2" id="exportRankings" title="Download the current rankings table as an Excel file.">
                                 <i class="fas fa-file-excel"></i> Export to Excel
                             </button>
-                            <button type="button" class="btn btn-warning ms-2" id="debugRankingBtn" title="Debug the ranking system to see how grades are calculated.">
-                                <i class="fas fa-bug"></i> Debug Ranking
-                            </button>
                         </div>
                         <div class="filter-display-container" id="rankingsFilterDisplay"></div>
                     </div>
@@ -2034,9 +2031,15 @@
                                 <button type="button" id="applyHistoryFilters" class="btn btn-primary" title="Apply the selected floor and date filters to the history.">Apply Filters</button>
                                 <button type="button" id="resetHistoryFilters" class="btn btn-secondary ms-2" title="Clear all history filters and show all records.">Reset Filters</button>
                                 <!-- NEW EXPORT BUTTON -->
-                                <button type="button" class="btn btn-success ms-2" id="exportHistory" title="Download the current history records as an Excel file.">
-                                    <i class="fas fa-file-excel"></i> Export to Excel
-                                </button>
+                                <div class="d-inline-flex align-items-center ms-2">
+                                    <div class="input-group input-group-sm me-2" style="width: 200px;">
+                                        <span class="input-group-text">Export Date:</span>
+                                        <input type="date" class="form-control" id="historyExportDate">
+                                    </div>
+                                    <button type="button" class="btn btn-success" id="exportHistory" title="Download the current history records as an Excel file.">
+                                        <i class="fas fa-file-excel"></i> Export to Excel
+                                    </button>
+                                </div>
                                 <button type="button" class="btn btn-warning ms-2" id="exportHistorySheets" title="Export current history to Google Sheets">
                                     <i class="fas fa-table"></i> Export to Google Sheets
                                 </button>
@@ -2400,6 +2403,21 @@
                 <div class="tab-pane fade" id="canteen" role="tabpanel">
                     <h3><i class="fas fa-utensils"></i> Canteen Management</h3>
 
+                    <!-- Canteen Rules Section -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <i class="fas fa-gavel"></i> CANTEEN RULE
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantas )</li>
+                                <li class="list-group-item"><strong>2:</strong> Tacket / Sweater are not allowed and no Caps even</li>
+                                <li class="list-group-item"><strong>3:</strong> No one should come in civi dress</li>
+                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Tersey or any other gurukul dress code</li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <!-- Canteen Dates / Google Calendar Section -->
                     <div class="card mb-4">
                         <div class="card-header bg-white text-dark border-bottom">
@@ -2511,6 +2529,10 @@
                                             </button>
                                         </div>
                                         <div class="btn-group" role="group" aria-label="Export actions" id="canteenExportOptions">
+                                            <div class="input-group input-group-sm me-2" style="width: 200px;">
+                                                <span class="input-group-text">Export Date:</span>
+                                                <input type="date" class="form-control" id="canteenExportDate">
+                                            </div>
                                             <button class="btn btn-success" id="exportToExcel">
                                                 <i class="fas fa-file-excel"></i> Export to Excel
                                             </button>
@@ -2709,6 +2731,7 @@
     </footer>
 
     <!-- Rank Changer Modal -->
+    <!-- Rank Changer Modal -->
     <div class="modal fade" id="rankChangerModal" tabindex="-1" aria-labelledby="rankChangerModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -2735,8 +2758,16 @@
                             <input type="text" class="form-control" id="rankChangeCurrentGrade" readonly title="The student's current grade based on points." aria-label="Current grade for rank change"/>
                         </div>
                         <div class="mb-3">
-                            <label for="newRankInput" class="form-label">Desired New Rank (within floor):</label>
-                            <input type="number" class="form-control" id="newRankInput" min="1" required title="Enter the desired new rank for the student within their floor." aria-label="Desired new rank"/>
+                            <label for="newGradeSelect" class="form-label">Desired New Grade:</label>
+                            <select class="form-select" id="newGradeSelect" required title="Select the desired new grade for the student.">
+                                <option value="A+">A+</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="E">E</option>
+                                <option value="false">N/A (Remove Manual Grade)</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="rankChangeAdminSelector"><i class="fas fa-user-tie"></i> Modified By (Admin):</label>
@@ -2797,8 +2828,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Upgrade Account Modal -->
     <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -2908,7 +2937,7 @@ try {
 
         // --- AUTHENTICATION LOGIC (from auth.html) ---
         const CODES = {
-            'DRIPLITE': 'admin',
+            'Pa&&word': 'admin',
             'ENTROPHY': 'incharge'
         };
 
@@ -3192,7 +3221,7 @@ try {
         if (!loadingOverlay) {
             console.error('Loading overlay element not found');
         }
-        const rankChangerModal = new bootstrap.Modal(document.getElementById('rankChangerModal'));
+        const upgradeModal = new bootstrap.Modal(document.getElementById('upgradeModal'));
         const publicNoteModal = new bootstrap.Modal(document.getElementById('publicNoteModal'));
 
 
@@ -4381,74 +4410,6 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             });
         };
 
-        // Debug function to test ranking system for Rankings tab
-        function debugRankingSystem() {
-            console.log('=== DEBUG: Ranking System Test (Rankings Tab) ===');
-            console.log('Total students:', students.length);
-            
-            if (students.length === 0) {
-                console.log('No students loaded - cannot test ranking');
-                alert('No students loaded. Please make sure data is loaded first.');
-                return;
-            }
-            
-            // Find the specific student from the image (VINAAYAAK with 214 points)
-            const vinaayaaK = students.find(s => s.name === 'VINAAYAAK' || s.id === 'AC5460');
-            if (vinaayaaK) {
-                console.log('=== FOUND VINAAYAAK ===');
-                console.log('Name:', vinaayaaK.name);
-                console.log('ID:', vinaayaaK.id);
-                console.log('Points:', vinaayaaK.points);
-                console.log('Floor:', vinaayaaK.floor);
-                console.log('Current Grade:', vinaayaaK.rank);
-                console.log('Manual Grade:', vinaayaaK.manualGrade);
-                
-                // Calculate rank manually
-                const studentsOnFloor = students.filter(s => s.floor === vinaayaaK.floor && s.points >= 0);
-                const sorted = studentsOnFloor.sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
-                const rank = sorted.findIndex(s => s.id === vinaayaaK.id);
-                
-                console.log('Students on floor:', studentsOnFloor.length);
-                console.log('Rank position:', rank + 1, '(0-indexed:', rank, ')');
-                
-                // Show top 10 students on that floor
-                console.log('=== TOP 10 STUDENTS ON FLOOR ===');
-                sorted.slice(0, 10).forEach((student, index) => {
-                    console.log(`${index + 1}. ${student.name} - Points: ${student.points} - ID: ${student.id}`);
-                });
-                
-                // Test the new ranking logic
-                let expectedGrade;
-                if (rank < 10) expectedGrade = 'A+';
-                else if (rank < 50) expectedGrade = 'A';
-                else if (rank < 110) expectedGrade = 'B';
-                else if (rank < 165) expectedGrade = 'C';
-                else expectedGrade = 'D';
-                
-                console.log('Expected grade:', expectedGrade);
-                console.log('Actual grade:', getGradeForStudent(vinaayaaK));
-                
-                // Show alert with summary
-                alert(`VINAAYAAK Debug:\n\nName: ${vinaayaaK.name}\nPoints: ${vinaayaaK.points}\nFloor: ${vinaayaaK.floor}\nRank: ${rank + 1}\nExpected Grade: ${expectedGrade}\nActual Grade: ${getGradeForStudent(vinaayaaK)}\n\nCheck console for full details.`);
-            } else {
-                console.log('VINAAYAAK not found in student list');
-                alert('VINAAYAAK not found. Check console for student list details.');
-            }
-            
-            // Test first few students
-            console.log('=== FIRST 5 STUDENTS ===');
-            students.slice(0, 5).forEach((student, index) => {
-                const grade = getGradeForStudent(student);
-                console.log(`Student ${index + 1}: ${student.name} (${student.id})`);
-                console.log(`  Points: ${student.points}`);
-                console.log(`  Floor: ${student.floor}`);
-                console.log(`  Grade: ${grade}`);
-                console.log(`  Manual Grade: ${student.manualGrade}`);
-                console.log(`  Current Rank: ${student.rank}`);
-                console.log('---');
-            });
-        }
-
         // Centralized grade calculation logic
         function getGradeForStudent(student) {
             // If student already has rank set to 'false' (N/A students), return it
@@ -4466,12 +4427,12 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
 
             if (rank === -1) return 'D'; // Should not happen if student is in the list
 
-            // Original ranking system
+            // New ranking system
             if (rank < 10) return 'A+';
             if (rank < 50) return 'A';
-            if (rank < 110) return 'B';
-            if (rank < 165) return 'C';
-            return 'D'; // 166 and above
+            if (rank < 75) return 'B';
+            if (rank < 95) return 'C';
+            return 'D'; // 96 and above
         }
         
         // Display filtered students in the table
@@ -4948,10 +4909,17 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, desiredSheetName);
             
-            // Use tomorrow's date for the filename
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const dateStr = tomorrow.toISOString().split('T')[0];
+            // Use custom date if provided, otherwise default to tomorrow's date
+            const customDate = document.getElementById('canteenExportDate').value;
+            let dateStr = '';
+            
+            if (customDate) {
+                dateStr = customDate;
+            } else {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                dateStr = tomorrow.toISOString().split('T')[0];
+            }
             
             XLSX.writeFile(wb, `canteen_list_${dateStr}.xlsx`);
             try {
@@ -6615,90 +6583,62 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
 
 
          // ...existing code...
-        const GRADE_KEYWORDS = ['A+', 'A', 'B', 'C', 'D', 'E'];
-
         window.updateRemark = async function(studentId, newRemark) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
-            const oldRemark = student.remark || '';
-            const oldManualGrade = student.manualGrade;
-
-            // Check if the new remark contains a grade keyword
-            let detectedGrade = null;
-            for (const grade of GRADE_KEYWORDS) {
-                if (newRemark.toUpperCase().includes(grade)) {
-                    detectedGrade = grade;
-                    break;
-                }
-            }
-
-            let confirmed = true;
-            if (detectedGrade) {
-                confirmed = confirm(`WARNING: You are attempting to manually assign grade "${detectedGrade}" to ${student.name}. This will override their calculated grade and may affect rankings. Do you want to proceed?`);
-            }
-
-            if (confirmed) {
-                let updatedFields = { remark: newRemark };
-
-                if (detectedGrade) {
-                    updatedFields.manualGrade = detectedGrade;
-
-                    // Handle A+ specific logic (top 10)
-                    if (detectedGrade === 'A+') {
-                        const currentAPlusStudents = students.filter(s => s.floor === student.floor && (s.manualGrade === 'A+' || (s.manualGrade === undefined && getCalculatedGrade(s.points, s.floor) === 'A+')));
-                        if (currentAPlusStudents.length >= 10) {
-                            // Find the lowest ranked A+ student (by points, then by ID for tie-breaking)
-                            currentAPlusStudents.sort((a, b) => {
-                                if (a.points !== b.points) return a.points - b.points;
-                                return a.id.localeCompare(b.id);
-                            });
-                            const studentToDemote = currentAPlusStudents[currentAPlusStudents.length - 1];
-
-                            if (studentToDemote && studentToDemote.id !== studentId) { // Don't demote the same student if they were already A+
-                                const demoteConfirmed = confirm(`${student.name} is being manually set to A+. There are already 10 A+ students on this floor. ${studentToDemote.name} (ID: ${studentToDemote.id}) will be demoted to grade A. Proceed?`);
-                                if (demoteConfirmed) {
-                                    await updateStudentInFirebase(studentToDemote.id, { manualGrade: 'A' });
-                                    alert(`${studentToDemote.name} has been demoted to grade A.`);
-                                } else {
-                                    // If demotion is cancelled, don't set the new student to A+
-                                    updatedFields.manualGrade = oldManualGrade; // Revert
-                                    alert("A+ assignment cancelled as demotion was not confirmed.");
-                                    return; // Exit function
-                                }
-                            }
-                        }
-                    }
-                } else if (oldManualGrade && !newRemark.toUpperCase().includes(oldManualGrade)) {
-                    // If remark no longer contains the old manual grade, clear manualGrade
-                    updatedFields.manualGrade = null; // Clear the manual grade
-                }
-
-                await updateStudentInFirebase(studentId, updatedFields);
-                alert(`Remark and grade for ${student.name} updated successfully.`);
-            } else {
-                // If user cancels, revert the input field to old remark
-                const inputElement = document.querySelector(`input[data-id="${studentId}"]`);
-                if (inputElement) {
-                    inputElement.value = oldRemark;
-                }
-                alert("Remark update cancelled.");
+            try {
+                await updateStudentInFirebase(studentId, { remark: newRemark });
+                console.log(`Remark for ${student.name} updated successfully.`);
+            } catch (error) {
+                console.error("Error updating remark:", error);
+                alert("Failed to update remark. Please try again.");
             }
         };
 
-        // Helper function to get calculated grade (used for A+ demotion logic)
-        function getCalculatedGrade(points, floor) {
-            const floorStudents = students.filter(s => s.floor === floor && s.points >= 0);
-            floorStudents.sort((a, b) => b.points - a.points);
-            const studentIndex = floorStudents.findIndex(s => s.points === points); // Simplified, assumes unique points for rank
-            if (studentIndex === -1) return 'D'; // Default if not found
+        window.changeStudentRank = async function(studentId, currentPoints, studentName) {
+            const targetGrade = prompt(`Enter the desired rank for ${studentName} (A+, A, B, C, D, E):`);
+            if (targetGrade === null || targetGrade === "") return;
+            
+            const validGrades = ['A+', 'A', 'B', 'C', 'D', 'E'];
+            const normalizedGrade = targetGrade.toUpperCase().trim();
+            
+            if (!validGrades.includes(normalizedGrade)) {
+                alert("Please enter a valid rank (A+, A, B, C, D, or E).");
+                return;
+            }
 
-            if (studentIndex < 10) return 'A+';
-            else if (studentIndex < 40) return 'A';
-            else if (studentIndex < 80) return 'B';
-            else if (studentIndex < 130) return 'C';
-            else return 'D';
-        }
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            if (confirm(`Set ${studentName}'s rank to ${normalizedGrade}?`)) {
+                try {
+                    // Update manualGrade in Firebase
+                    await updateStudentInFirebase(studentId, { manualGrade: normalizedGrade });
+
+                    const now = new Date();
+                    const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
+                    const time = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata' });
+                    
+                    await addHistoryEntryToFirebase({
+                        date,
+                        time,
+                        studentId: studentId,
+                        name: studentName,
+                        action: 'Rank Change',
+                        points: 0,
+                        modifiedBy: auth.currentUser ? auth.currentUser.email : 'Unknown',
+                        remark: `Manual Rank set to ${normalizedGrade}`
+                    });
+
+                    if (typeof refreshRankings === 'function') refreshRankings();
+                    alert(`Rank updated successfully! ${studentName} is now set to ${normalizedGrade}.`);
+                } catch (error) {
+                    console.error("Error updating rank:", error);
+                    alert("Failed to update rank. Please try again.");
+                }
+            }
+        };
 
 // ...existing code...
             document.getElementById('exportRankings').addEventListener('click', exportToExcel);
@@ -7226,12 +7166,12 @@ function refreshRankings() {
         } else {
             const rank = sortedForRanking.findIndex(s => s.id === student.id);
 
-            // Original ranking system
+            // New ranking system
             if (rank < 10) student.assignedGrade = 'A+';
             else if (rank < 50) student.assignedGrade = 'A';
-            else if (rank < 110) student.assignedGrade = 'B';
-            else if (rank < 165) student.assignedGrade = 'C';
-            else student.assignedGrade = 'D'; // 166 and above
+            else if (rank < 75) student.assignedGrade = 'B';
+            else if (rank < 95) student.assignedGrade = 'C';
+            else student.assignedGrade = 'D'; // 96 and above
         }
     });
 
@@ -7312,9 +7252,9 @@ function refreshRankings() {
     </td>
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
-    <td>
-        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', false)">
-            <i class="fas fa-edit"></i> Change Grade
+    <td class="text-center">
+        <button class="btn btn-sm btn-outline-primary" onclick="changeStudentRank('${student.id}', ${student.points || 0}, '${(student.name || '').replace(/'/g, "\\'")}')" title="Manually change rank for ${student.name}">
+            <i class="fas fa-sort-numeric-up"></i> Change Rank
         </button>
     </td>
 </tr>
@@ -7346,9 +7286,9 @@ function refreshRankings() {
     </td>
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
-    <td>
-        <button class="btn btn-sm btn-warning" onclick="openRankChangeModal('${student.id}', true)">
-            <i class="fas fa-edit"></i> Change Grade
+    <td class="text-center">
+        <button class="btn btn-sm btn-outline-primary" onclick="changeStudentRank('${student.id}', ${student.points || 0}, '${(student.name || '').replace(/'/g, "\\'")}')" title="Manually change rank for ${student.name}">
+            <i class="fas fa-sort-numeric-up"></i> Change Rank
         </button>
     </td>
 </tr>
@@ -7536,7 +7476,15 @@ function refreshRankings() {
                 return;
             }
 
+            const customDate = document.getElementById('historyExportDate').value;
+            const exportDateStr = customDate ? customDate : new Date().toLocaleDateString('en-GB').split('/').reverse().join('-');
+
             const wsData = [];
+            // Add custom date row if provided
+            if (customDate) {
+                wsData.push(['Export Date:', exportDateStr]);
+                wsData.push([]); // Empty row
+            }
             // Add header row
             wsData.push(['Date', 'Time', 'Student ID', 'Name', 'Action', 'Points Changed', 'Floor', 'Modified By']);
 
@@ -7557,7 +7505,7 @@ function refreshRankings() {
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, 'Gurukul_Points_History.xlsx');
-            XLSX.writeFile(wb, 'Gurukul_Points_History.xlsx');
+            XLSX.writeFile(wb, `Gurukul_Points_History_${exportDateStr}.xlsx`);
         }
 
         async function exportHistoryToGoogleSheets() {
@@ -8294,6 +8242,122 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
             }
         }
 
+        async function submitRankChange(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('rankChangeStudentId').value;
+            const newDesiredRank = parseInt(document.getElementById('newRankInput').value);
+            const adminModifier = document.getElementById('rankChangeAdminSelector').value;
+            const adminEmail = currentUserEmail;
+            const isERank = document.getElementById('rankChangerForm').dataset.isERank === 'true';
+
+            if (isNaN(newDesiredRank)) {
+                displayUpdateMessage('rankChangerMessage', 'Please enter a valid rank.', 'danger');
+                return;
+            }
+
+            if (!adminModifier) {
+                displayUpdateMessage('rankChangerMessage', 'Please select who is modifying the rank.', 'danger');
+                return;
+            }
+
+            if (!adminEmail) {
+                displayUpdateMessage('rankChangerMessage', 'Your email ID is missing. Please log in again.', 'danger');
+                return;
+            }
+
+            const studentToUpdate = students.find(s => s.id === studentId);
+            if (!studentToUpdate) {
+                displayUpdateMessage('rankChangerMessage', 'Student not found.', 'danger');
+                return;
+            }
+
+            const oldPoints = studentToUpdate.points;
+            const oldRank = getStudentRank(studentToUpdate, isERank);
+
+            let targetPoints = 0;
+            let actionDescription = '';
+
+            if (isERank) {
+                const floorERankStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points < 0);
+                floorERankStudents.sort((a, b) => a.points - b.points);
+
+                if (newDesiredRank <= floorERankStudents.length) {
+                    targetPoints = floorERankStudents[newDesiredRank - 1].points;
+                    if (studentToUpdate.id === floorERankStudents[newDesiredRank - 1].id) {
+                        displayUpdateMessage('rankChangerMessage', `Student is already at E-Rank ${newDesiredRank} on their floor. No change needed.`, 'info');
+                        return;
+                    }
+                } else {
+                    targetPoints = floorERankStudents.length > 0 ? floorERankStudents[floorERankStudents.length - 1].points + 1 : 0;
+                }
+                actionDescription = `E-Rank Change (from E-Rank ${oldRank} to E-Rank ${newDesiredRank})`;
+
+            } else {
+                const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
+                floorStudents.sort((a, b) => b.points - a.points);
+
+                if (newDesiredRank <= floorStudents.length) {
+                    targetPoints = floorStudents[newDesiredRank - 1].points;
+                    if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
+                        displayUpdateMessage('rankChangerMessage', `Student is already at rank ${newDesiredRank} on their floor. No change needed.`, 'info');
+                        return;
+                    }
+                } else {
+                    targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
+                    targetPoints = Math.max(0, targetPoints);
+                }
+                actionDescription = `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`;
+            }
+
+            const pointsAdjustment = targetPoints - oldPoints;
+
+            try {
+                await updateStudentInFirebase(studentToUpdate.id, { points: studentToUpdate.points + pointsAdjustment });
+
+                const now = new Date();
+                const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
+                const time = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata' });
+
+                await addHistoryEntryToFirebase({
+                    date,
+                    time,
+                    studentId: studentToUpdate.id,
+                    name: studentToUpdate.name,
+                    action: actionDescription,
+                    pointsChanged: pointsAdjustment,
+                    oldPoints: oldPoints,
+                    newPoints: studentToUpdate.points + pointsAdjustment,
+                    modifiedBy: `${adminModifier} (${adminEmail})`
+                });
+
+                displayUpdateMessage('rankChangerMessage', `Done, rank changed for ${studentToUpdate.name} by ${adminModifier} (${adminEmail}).`, 'success');
+                setTimeout(() => {
+                    rankChangerModal.hide();
+                    // UI will update via real-time listeners
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error changing rank:", error);
+                displayUpdateMessage('rankChangerMessage', 'Error changing rank. Please try again.', 'danger');
+            }
+        }
+
+        function getStudentRank(student, isERank = false) {
+            let relevantStudents;
+            if (isERank) {
+                relevantStudents = students.filter(s => s.floor === student.floor && s.points < 0);
+                relevantStudents.sort((a, b) => a.points - b.points);
+            } else {
+                relevantStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
+                relevantStudents.sort((a, b) => b.points - a.points);
+            }
+
+            const rankIndex = relevantStudents.findIndex(s => s.id === student.id);
+            return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
+        }
+
+        const rankChangerModal = new bootstrap.Modal(document.getElementById('rankChangerModal'));
+
         function openRankChangeModal(studentId, isERank = false) {
             const student = students.find(s => s.id === studentId);
             if (!student) {
@@ -8398,7 +8462,7 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
             const pointsAdjustment = targetPoints - oldPoints;
 
             try {
-                await updateStudentInFirebase(studentToUpdate.id, { points: studentToUpdate.points + pointsAdjustment });
+                await updateStudentInFirebase(studentId, { points: studentToUpdate.points + pointsAdjustment });
 
                 const now = new Date();
                 const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
@@ -10114,37 +10178,12 @@ function exportAllRankings() {
                 const sorted = [...studentsOnFloor].filter(s => s.points >= 0)
                     .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
                 const rank = sorted.findIndex(s => s.id === student.id);
-                if (String(floorNum) === '1') {
-                    if (rank < 10) grade = 'A+';
-                    else if (rank < 50) grade = 'A';
-                    else if (rank < 110) grade = 'B';
-                    else if (rank < 165) grade = 'C';
-                    else grade = 'D';
-                } else if (String(floorNum) === '2') {
-                    if (rank < 10) grade = 'A+';
-                    else if (rank < 50) grade = 'A';
-                    else if (rank < 110) grade = 'B';
-                    else if (rank < 160) grade = 'C';
-                    else grade = 'D';
-                } else if (String(floorNum) === '4') {
-                    if (rank < 10) grade = 'A+';
-                    else if (rank < 45) grade = 'A';
-                    else if (rank < 105) grade = 'B';
-                    else if (rank < 155) grade = 'C';
-                    else grade = 'D';
-                } else if (String(floorNum) === '5') {
-                    if (rank < 5) grade = 'A+';
-                    else if (rank < 15) grade = 'A';
-                    else if (rank < 40) grade = 'B';
-                    else if (rank < 60) grade = 'C';
-                    else grade = 'D';
-                } else {
-                    if (rank < 10) grade = 'A+';
-                    else if (rank < 50) grade = 'A';
-                    else if (rank < 110) grade = 'B';
-                    else if (rank < 165) grade = 'C';
-                    else grade = 'D';
-                }
+                // New ranking system (consistent across all floors)
+                if (rank < 10) grade = 'A+';
+                else if (rank < 50) grade = 'A';
+                else if (rank < 75) grade = 'B';
+                else if (rank < 95) grade = 'C';
+                else grade = 'D'; // 96 and above
             }
 
             wsData.push([
