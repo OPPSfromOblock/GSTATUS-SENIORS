@@ -2410,10 +2410,10 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limit (no choco pie/Dark Fantasy )</li>
-                                <li class="list-group-item"><strong>2:</strong> Jacket / Sweater are not allowed and no Caps even</li>
-                                <li class="list-group-item"><strong>3:</strong> No one should come in civil dress</li>
-                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Jersey or any other gurukul dress code</li>
+                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantas )</li>
+                                <li class="list-group-item"><strong>2:</strong> Tacket / Sweater are not allowed and no Caps even</li>
+                                <li class="list-group-item"><strong>3:</strong> No one should come in civi dress</li>
+                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Tersey or any other gurukul dress code</li>
                             </ul>
                         </div>
                     </div>
@@ -2553,7 +2553,7 @@
                     </div>
 
                     <!-- New Manual Add Section -->
-                    <div class="card mb-4">
+                    <div class="card mb-4" id="manualCanteenAddCard">
                         <div class="card-header bg-secondary text-white">
                             <i class="fas fa-user-plus"></i> Add Student to Canteen List (Temporary)
                         </div>
@@ -5032,10 +5032,24 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
         
         function printFilteredCanteenList() {
             const title = 'Canteen Student List';
-            // Use tomorrow's date for the printed list
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const date = tomorrow.toLocaleDateString();
+            // Use custom date if provided, otherwise default to tomorrow's date
+            const customDate = document.getElementById('canteenExportDate').value;
+            let date = '';
+            
+            if (customDate) {
+                // customDate is YYYY-MM-DD
+                const parts = customDate.split('-');
+                if(parts.length === 3) {
+                    // Format as DD/MM/YYYY or use locale
+                    date = `${parts[2]}/${parts[1]}/${parts[0]}`; 
+                } else {
+                    date = customDate;
+                }
+            } else {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                date = tomorrow.toLocaleDateString();
+            }
             
             const amountsMap = new Map();
             document.querySelectorAll('.canteen-amount-input').forEach(input => {
@@ -8774,66 +8788,63 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
             // Canteen export buttons to control
             const exportToExcelBtn = document.getElementById('exportToExcel');
             const exportToGoogleSheetsBtn = document.getElementById('exportToGoogleSheets');
-                        const printCanteenListBtn = document.getElementById('printCanteenList');
-                        const manageCanteenDatesCard = document.getElementById('manageCanteenDatesCard');
-            
-                        // Canteen import and history elements to control for incharge
-            
-            const importStudentDataCard = document.querySelector('.card:has(#importStudentData)');
-            const dataChangeHistoryCard = document.querySelector('.card:has(#changeHistoryTable)');
-
-            // Hide all tabs and sections by default
-            tabsToControl.forEach(tabId => {
-                const tabElement = document.getElementById(tabId);
-                if (tabElement) {
-                    tabElement.style.display = "none";
-                }
-            });
-            if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none';
-            if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'none';
-            if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'none'; // Hide public note add button by default
-
-            // Hide canteen export buttons by default
-            if (exportToExcelBtn) exportToExcelBtn.style.display = 'none';
-            if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'none';
-                        if (printCanteenListBtn) printCanteenListBtn.style.display = 'none';
-                        if (manageCanteenDatesCard) manageCanteenDatesCard.style.display = 'none';
-            
-                        // Hide canteen import and history cards by default
-            
-            if (importStudentDataCard) importStudentDataCard.style.display = 'none';
-            if (dataChangeHistoryCard) dataChangeHistoryCard.style.display = 'none';
-
-            if (role === "admin") {
-                // Admin has access to everything including face scan and all canteen functions
-                tabsToControl.forEach(tabId => {
-                    const tabElement = document.getElementById(tabId);
-                    if (tabElement) {
-                        tabElement.style.display = ""; // Show all for admin
-                    }
-                });
-                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
-                if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
-                // Ensure both sections take half width
-                if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
-                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
-                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
-                if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'block'; // Show public note add button for admin
-
-                // Show all canteen export buttons for admin
-                if (exportToExcelBtn) exportToExcelBtn.style.display = 'inline-block';
-                if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'inline-block';
-                                if (printCanteenListBtn) printCanteenListBtn.style.display = 'inline-block';
-                                if (manageCanteenDatesCard) {
-                                    manageCanteenDatesCard.style.display = 'block';
-                                    renderCanteenManageTable();
-                                }
-                
-                                // Show canteen import and history cards for admin
-                
-                if (importStudentDataCard) importStudentDataCard.style.display = 'block';
-                if (dataChangeHistoryCard) dataChangeHistoryCard.style.display = 'block';
-
+                                    const printCanteenListBtn = document.getElementById('printCanteenList');
+                                    const manageCanteenDatesCard = document.getElementById('manageCanteenDatesCard');
+                                    const manualCanteenAddCard = document.getElementById('manualCanteenAddCard');
+                                    
+                                                // Canteen import and history elements to control for incharge
+                                    
+                                    const importStudentDataCard = document.querySelector('.card:has(#importStudentData)');
+                                    const dataChangeHistoryCard = document.querySelector('.card:has(#changeHistoryTable)');
+                        
+                                    // Hide all tabs and sections by default
+                                    tabsToControl.forEach(tabId => {
+                                        const tabElement = document.getElementById(tabId);
+                                        if (tabElement) {
+                                            tabElement.style.display = "none";
+                                        }
+                                    });
+                                    if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none';
+                                    if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'none';
+                                    if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'none'; // Hide public note add button by default
+                        
+                                    // Hide canteen export buttons by default
+                                    if (exportToExcelBtn) exportToExcelBtn.style.display = 'none';
+                                    if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'none';
+                                                if (printCanteenListBtn) printCanteenListBtn.style.display = 'none';
+                                                if (manageCanteenDatesCard) manageCanteenDatesCard.style.display = 'none';
+                                                if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'none';
+                                    
+                                                // Hide canteen import and history cards by default
+                                    
+                                    if (importStudentDataCard) importStudentDataCard.style.display = 'none';
+                                    if (dataChangeHistoryCard) dataChangeHistoryCard.style.display = 'none';
+                        
+                                    if (role === "admin") {
+                                        // Admin has access to everything including face scan and all canteen functions
+                                        tabsToControl.forEach(tabId => {
+                                            const tabElement = document.getElementById(tabId);
+                                            if (tabElement) {
+                                                tabElement.style.display = ""; // Show all for admin
+                                            }
+                                        });
+                                        if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
+                                        if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
+                                        // Ensure both sections take half width
+                                        if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
+                                        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
+                                        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
+                                        if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'block'; // Show public note add button for admin
+                        
+                                        // Show all canteen export buttons for admin
+                                        if (exportToExcelBtn) exportToExcelBtn.style.display = 'inline-block';
+                                        if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'inline-block';
+                                                        if (printCanteenListBtn) printCanteenListBtn.style.display = 'inline-block';
+                                                        if (manageCanteenDatesCard) {
+                                                            manageCanteenDatesCard.style.display = 'block';
+                                                            renderCanteenManageTable();
+                                                        }
+                                                        if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'block';
             } else if (role === "incharge") {
         // In-charge access: hide Rankings, History, Individual Data, Adjudicators, Face Scan
         // Allow: Home, Administration, Batch Discipline, Student Management, Notes, Canteen, Analytics
