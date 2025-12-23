@@ -2410,9 +2410,9 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantasy )</li>
+                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantas )</li>
                                 <li class="list-group-item"><strong>2:</strong> Tacket / Sweater are not allowed and no Caps even</li>
-                                <li class="list-group-item"><strong>3:</strong> No one should come in civil dress</li>
+                                <li class="list-group-item"><strong>3:</strong> No one should come in civi dress</li>
                                 <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Tersey or any other gurukul dress code</li>
                             </ul>
                         </div>
@@ -2549,6 +2549,24 @@
                                     <div id="canteenStatus" class="mt-2"></div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- New Manual Add Section -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <i class="fas fa-user-plus"></i> Add Student to Canteen List (Temporary)
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Enter Student IDs to temporarily add them to the canteen list below. This does not modify student records, only the view.</p>
+                            <div class="input-group">
+                                <span class="input-group-text">Student IDs</span>
+                                <input type="text" class="form-control" id="manualCanteenAddInput" placeholder="e.g. af5555, af3333, ae1234">
+                                <button class="btn btn-primary" type="button" id="addManualCanteenBtn">
+                                    <i class="fas fa-plus"></i> Add to List
+                                </button>
+                            </div>
+                            <div id="manualCanteenStatus" class="mt-2"></div>
                         </div>
                     </div>
 
@@ -2937,7 +2955,7 @@ try {
 
         // --- AUTHENTICATION LOGIC (from auth.html) ---
         const CODES = {
-            'Seva@!@#987': 'admin',
+            'Pa&&word': 'admin',
             'ENTROPHY': 'incharge'
         };
 
@@ -3980,6 +3998,16 @@ try {
                 return parseInt(cupA, 10) - parseInt(cupB, 10);
             });
 
+            // Merge manual additions
+            if (window.manualCanteenStudents && window.manualCanteenStudents.length > 0) {
+                 const currentIds = new Set(tempFiltered.map(s => s.id));
+                 window.manualCanteenStudents.forEach(ms => {
+                     if (!currentIds.has(ms.id)) {
+                         tempFiltered.push(ms);
+                     }
+                 });
+            }
+
             filteredCanteenStudents = tempFiltered;
 
             // Update the UI
@@ -3994,6 +4022,75 @@ try {
             } catch (_) {}
             hideLoading();
         }
+
+        // Manual Canteen Add Logic
+        window.manualCanteenStudents = [];
+
+        function addManualCanteenStudents() {
+            const input = document.getElementById('manualCanteenAddInput');
+            const status = document.getElementById('manualCanteenStatus');
+            if (!input || !status) return;
+
+            const val = input.value.trim();
+            if (!val) {
+                status.innerHTML = '<div class="alert alert-warning">Please enter at least one Student ID.</div>';
+                return;
+            }
+
+            const ids = val.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+            if (ids.length === 0) {
+                status.innerHTML = '<div class="alert alert-warning">No valid IDs found.</div>';
+                return;
+            }
+
+            let addedCount = 0;
+            let notFound = [];
+
+            ids.forEach(id => {
+                const student = students.find(s => (s.id || s.MID || '').toUpperCase() === id);
+                if (student) {
+                    if (!window.manualCanteenStudents.some(ms => (ms.id || ms.MID) === student.id)) {
+                        const canteenStudent = {
+                            id: student.id || student.MID,
+                            name: student.name || student.Name,
+                            class: student.class || student.Class,
+                            room: student.room || student['Room No'],
+                            cup: student.cup || student.cupNo || '', 
+                            roomNo: student.room || student['Room No'],
+                            floor: student.floor,
+                            firebaseKey: student.firebaseKey
+                        };
+                        // Ensure roomNo has the slash format for displayCanteenStudents parser
+                        if (canteenStudent.cup && canteenStudent.room && !canteenStudent.room.includes('/')) {
+                            canteenStudent.roomNo = `${canteenStudent.room}/${canteenStudent.cup}`;
+                        }
+                        window.manualCanteenStudents.push(canteenStudent);
+                        addedCount++;
+                    }
+                } else {
+                    notFound.push(id);
+                }
+            });
+
+            if (addedCount > 0) {
+                applyCanteenFilters(); 
+                input.value = '';
+                let msg = `<div class="alert alert-success">Added ${addedCount} students to the list.</div>`;
+                if (notFound.length > 0) msg += `<div class="alert alert-warning mt-1">Could not find: ${notFound.join(', ')}</div>`;
+                status.innerHTML = msg;
+            } else {
+                status.innerHTML = `<div class="alert alert-danger">No students found with IDs: ${notFound.join(', ')}</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('addManualCanteenBtn');
+            if (btn) btn.addEventListener('click', addManualCanteenStudents);
+            const input = document.getElementById('manualCanteenAddInput');
+            if (input) input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addManualCanteenStudents();
+            });
+        });
 
         // Debug function to check Firebase student data structure
         window.checkFirebaseData = function() {
@@ -7540,13 +7637,27 @@ function refreshRankings() {
                 });
                 
                 const title = `Gurukul Points History ${new Date().toISOString().split('T')[0]}`;
-                const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+                let createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ properties: { title: title } })
                 });
+
+                if (createRes.status === 403 || createRes.status === 401) {
+                    console.warn('Token permission issue, forcing re-auth...');
+                    await forceGoogleReauth();
+                    token = sessionStorage.getItem('googleAccessToken');
+                    createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ properties: { title: title } })
+                    });
+                }
                 
-                if (!createRes.ok) throw new Error('Failed to create spreadsheet');
+                if (!createRes.ok) {
+                    const errText = await createRes.text();
+                    throw new Error(`Failed to create spreadsheet (${createRes.status}): ${errText}`);
+                }
                 const spreadsheet = await createRes.json();
                 
                 const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheet.spreadsheetId}/values/Sheet1!A1?valueInputOption=USER_ENTERED`, {
