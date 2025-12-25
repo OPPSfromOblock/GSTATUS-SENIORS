@@ -58,8 +58,10 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
+    <link rel="apple-touch-icon" href="logo.png">
+    
     <!-- Fix Cross-Origin-Opener-Policy errors -->
     <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
     <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
@@ -1259,7 +1261,7 @@
     <div class="sidebar" id="sidebar">
         <div>
             <div class="logo text-center mb-4">
-                <img src="https://i.ibb.co/5hssxyVF/logo.png" alt="Gurukul Logo" style="width: 100%; max-width: 240px; height: auto; border-radius: 5px;">
+                <img src="https://i.ibb.co/nFJxHFz/Gemini-Generated-Image-qvhvnxqvhvnxqvhv.png" alt="Gurukul Logo" style="width: 100%; max-width: 240px; height: auto; border-radius: 5px; mix-blend-mode: multiply;">
             </div>
             <div class="user-info" id="userInfo">
                 <!-- User info will be populated here by JavaScript -->
@@ -2410,10 +2412,10 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limit (no choco pie/Dark Fantasy )</li>
-                                <li class="list-group-item"><strong>2:</strong> Jacket / Sweater are not allowed and no Caps even</li>
-                                <li class="list-group-item"><strong>3:</strong> No one should come in civil dress</li>
-                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Jersey or any other gurukul dress code</li>
+                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantas )</li>
+                                <li class="list-group-item"><strong>2:</strong> Tacket / Sweater are not allowed and no Caps even</li>
+                                <li class="list-group-item"><strong>3:</strong> No one should come in civi dress</li>
+                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Tersey or any other gurukul dress code</li>
                             </ul>
                         </div>
                     </div>
@@ -2552,21 +2554,33 @@
                         </div>
                     </div>
 
-                    <!-- New Manual Add Section -->
-                    <div class="card mb-4" id="manualCanteenAddCard">
+                    <!-- Consolidated Manual Manage Section -->
+                    <div class="card mb-4" id="manualCanteenManageCard">
                         <div class="card-header bg-secondary text-white">
-                            <i class="fas fa-user-plus"></i> Add Student to Canteen List (Temporary)
+                            <i class="fas fa-edit"></i> Manage Canteen List (Temporary)
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small">Enter Student IDs to temporarily add them to the canteen list below. This does not modify student records, only the view.</p>
-                            <div class="input-group">
+                            <p class="text-muted small">Temporarily add or remove students from the view. Changes are saved locally but do not affect the main database.</p>
+                            
+                            <!-- Add Section -->
+                            <h6 class="text-primary"><i class="fas fa-plus"></i> Add Student</h6>
+                            <div class="input-group mb-3">
                                 <span class="input-group-text">Student IDs</span>
-                                <input type="text" class="form-control" id="manualCanteenAddInput" placeholder="e.g. af5555, af3333, ae1234">
-                                <button class="btn btn-primary" type="button" id="addManualCanteenBtn">
-                                    <i class="fas fa-plus"></i> Add to List
-                                </button>
+                                <input type="text" class="form-control" id="manualCanteenAddInput" placeholder="e.g. af5555, ae1234">
+                                <button class="btn btn-primary" type="button" id="addManualCanteenBtn">Add</button>
                             </div>
-                            <div id="manualCanteenStatus" class="mt-2"></div>
+                            <div id="manualCanteenStatus" class="mb-3"></div>
+
+                            <!-- Remove Section (Admin Only) -->
+                            <div id="canteenRemoveSection" style="display: none;">
+                                <h6 class="text-danger"><i class="fas fa-minus"></i> Remove Student</h6>
+                                <div class="input-group">
+                                    <span class="input-group-text">Student IDs</span>
+                                    <input type="text" class="form-control" id="manualCanteenRemoveInput" placeholder="e.g. af5555, ae1234">
+                                    <button class="btn btn-warning" type="button" id="removeManualCanteenBtn">Remove</button>
+                                </div>
+                                <div id="manualCanteenRemoveStatus" class="mt-2"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -2899,7 +2913,18 @@
         </div>
     </div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Scripts -->
+    <script src="students.js"></script>
     <script>
         // --- FIREBASE INITIALIZATION ---
         const firebaseConfig = {
@@ -3248,7 +3273,7 @@ try {
         let currentUserUid = null; // Store UID for Firebase operations
 
         let recentModifications = {};
-        let students = [];
+        let students = (typeof initialStudents !== 'undefined') ? [...initialStudents] : [];
         let responseHistory = [];
         let notes = [];
         let publicNotes = [];
@@ -3854,12 +3879,13 @@ try {
         let filteredCanteenStudents = [];
         let canteenPageSize = 25;
         let canteenCurrentPage = 1;
+        window.manualCanteenExclusions = [];
 
         function applyCanteenFilters() {
             showLoading();
             validateCanteenData();
             const floorFilter = document.getElementById('canteenFloorFilter').value;
-            const classFilter = document.getElementById('canteenClassFilter').value.toLowerCase();
+            const classTokens = document.getElementById('canteenClassFilter').value.toLowerCase().split(',').map(s => s.trim()).filter(s => s.length > 0);
             const excludeERank = document.getElementById('excludeERank').checked;
             const excludeDRank = document.getElementById('excludeDRank').checked;
             const excludeAPlus = document.getElementById('excludeAPlus').checked;
@@ -3942,10 +3968,10 @@ try {
                 // Apply floor filter
                 if (floorFilter && String(student.floor) !== floorFilter) return false;
                 
-                // Apply class filter (fixed to handle class variations)
-                if (classFilter) {
-                    const studentClass = (student.class || student.Class || '').toLowerCase();
-                    if (!studentClass.includes(classFilter)) return false;
+                // Apply class filter
+                if (classTokens.length > 0) {
+                    const studentClass = (student.class || student.Class || '').toLowerCase().trim();
+                    if (!classTokens.includes(studentClass)) return false;
                 }
                 
                 // Apply room filter (enhanced logic)
@@ -3983,6 +4009,22 @@ try {
                 return true;
             });
 
+            // Merge manual additions
+            if (window.manualCanteenStudents && window.manualCanteenStudents.length > 0) {
+                 const currentIds = new Set(tempFiltered.map(s => s.id));
+                 window.manualCanteenStudents.forEach(ms => {
+                     if (!currentIds.has(ms.id)) {
+                         tempFiltered.push(ms);
+                     }
+                 });
+            }
+
+            // Apply manual exclusions
+            if (window.manualCanteenExclusions && window.manualCanteenExclusions.length > 0) {
+                const exclusionSet = new Set(window.manualCanteenExclusions);
+                tempFiltered = tempFiltered.filter(s => !exclusionSet.has(s.id));
+            }
+
             // Custom sort for room and cup number
             tempFiltered.sort((a, b) => {
                 const roomDataA = String(a.roomNo || a.room || '0/0');
@@ -3997,16 +4039,6 @@ try {
                 }
                 return parseInt(cupA, 10) - parseInt(cupB, 10);
             });
-
-            // Merge manual additions
-            if (window.manualCanteenStudents && window.manualCanteenStudents.length > 0) {
-                 const currentIds = new Set(tempFiltered.map(s => s.id));
-                 window.manualCanteenStudents.forEach(ms => {
-                     if (!currentIds.has(ms.id)) {
-                         tempFiltered.push(ms);
-                     }
-                 });
-            }
 
             filteredCanteenStudents = tempFiltered;
 
@@ -4073,6 +4105,9 @@ try {
             });
 
             if (addedCount > 0) {
+                // Save to localStorage
+                localStorage.setItem('manualCanteenStudents', JSON.stringify(window.manualCanteenStudents));
+
                 applyCanteenFilters(); 
                 input.value = '';
                 let msg = `<div class="alert alert-success">Added ${addedCount} students to the list.</div>`;
@@ -4090,6 +4125,67 @@ try {
             if (input) input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') addManualCanteenStudents();
             });
+
+            // Load manual additions from localStorage
+            const savedAdditions = localStorage.getItem('manualCanteenStudents');
+            if (savedAdditions) {
+                try {
+                    window.manualCanteenStudents = JSON.parse(savedAdditions);
+                    if (!Array.isArray(window.manualCanteenStudents)) window.manualCanteenStudents = [];
+                } catch (e) {
+                    console.error('Failed to parse saved additions', e);
+                    window.manualCanteenStudents = [];
+                }
+            }
+
+            // Load manual exclusions from localStorage
+            const savedExclusions = localStorage.getItem('manualCanteenExclusions');
+            if (savedExclusions) {
+                try {
+                    window.manualCanteenExclusions = JSON.parse(savedExclusions);
+                    if (!Array.isArray(window.manualCanteenExclusions)) window.manualCanteenExclusions = [];
+                } catch (e) {
+                    console.error('Failed to parse saved exclusions', e);
+                    window.manualCanteenExclusions = [];
+                }
+            }
+
+            // Remove Listener
+            const removeBtn = document.getElementById('removeManualCanteenBtn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    const removeInput = document.getElementById('manualCanteenRemoveInput');
+                    const statusDiv = document.getElementById('manualCanteenRemoveStatus');
+                    const rawIds = removeInput.value.split(',').map(s => s.trim()).filter(s => s);
+                    
+                    if (rawIds.length === 0) {
+                        statusDiv.innerHTML = '<div class="alert alert-warning">Please enter at least one Student ID.</div>';
+                        return;
+                    }
+
+                    if (!window.manualCanteenExclusions) window.manualCanteenExclusions = [];
+                    
+                    let count = 0;
+                    rawIds.forEach(id => {
+                        const lowerId = id.toLowerCase(); // consistent casing
+                        // Check against existing (using lowercase check if possible, or just exact)
+                        // Simple check:
+                        if (!window.manualCanteenExclusions.includes(id) && !window.manualCanteenExclusions.includes(lowerId)) {
+                            window.manualCanteenExclusions.push(id);
+                            count++;
+                        }
+                    });
+
+                    // Save to localStorage
+                    localStorage.setItem('manualCanteenExclusions', JSON.stringify(window.manualCanteenExclusions));
+
+                    removeInput.value = '';
+                    statusDiv.innerHTML = `<div class="alert alert-success">Temporarily removed ${count} student(s) from the list.</div>`;
+                    setTimeout(() => statusDiv.innerHTML = '', 3000);
+                    
+                    applyCanteenFilters();
+                });
+            }
         });
 
         // Debug function to check Firebase student data structure
@@ -8791,6 +8887,7 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
                                     const printCanteenListBtn = document.getElementById('printCanteenList');
                                     const manageCanteenDatesCard = document.getElementById('manageCanteenDatesCard');
                                     const manualCanteenAddCard = document.getElementById('manualCanteenAddCard');
+                                    const canteenRemoveSection = document.getElementById('canteenRemoveSection'); // New
                                     
                                                 // Canteen import and history elements to control for incharge
                                     
@@ -8813,7 +8910,8 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
                                     if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'none';
                                                 if (printCanteenListBtn) printCanteenListBtn.style.display = 'none';
                                                 if (manageCanteenDatesCard) manageCanteenDatesCard.style.display = 'none';
-                                                if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'none';
+                                                if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'none'; // This is the consolidated card now
+                                                if (canteenRemoveSection) canteenRemoveSection.style.display = 'none'; // Hide remove section by default
                                     
                                                 // Hide canteen import and history cards by default
                                     
@@ -8844,7 +8942,8 @@ filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name
                                                             manageCanteenDatesCard.style.display = 'block';
                                                             renderCanteenManageTable();
                                                         }
-                                                        if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'block';
+                                                        if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'block'; // Show the card
+                                                        if (canteenRemoveSection) canteenRemoveSection.style.display = 'block'; // Show remove section ONLY for admin
             } else if (role === "incharge") {
         // In-charge access: hide Rankings, History, Individual Data, Adjudicators, Face Scan
         // Allow: Home, Administration, Batch Discipline, Student Management, Notes, Canteen, Analytics
