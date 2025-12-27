@@ -1261,7 +1261,7 @@
     <div class="sidebar" id="sidebar">
         <div>
             <div class="logo text-center mb-4">
-                <img src="assets/logo.png" alt="Gurukul Logo" style="width: 100%; max-width: 180px; height: auto; border-radius: 5px;">
+                <img src="logo.png" alt="Gurukul Logo" style="width: 100%; max-width: 180px; height: auto; border-radius: 5px;">
             </div>
             <div class="user-info" id="userInfo">
                 <!-- User info will be populated here by JavaScript -->
@@ -8182,8 +8182,13 @@ let filteredStudents = students.filter(student => {
 
     return matchesSearch && matchesFloor && matchesClassFilter && matchesSectionFilter;
 });
-// ...inside renderBatchDisciplineTable...
-filteredStudents.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+// Sort by Room (numerically) so 301/1 comes before 301/2, and 301 comes before 408
+filteredStudents.sort((a, b) => {
+    const roomA = String(a.room || '');
+    const roomB = String(b.room || '');
+    return roomA.localeCompare(roomB, undefined, { numeric: true, sensitivity: 'base' });
+});
 
             const totalPages = Math.ceil(filteredStudents.length / batchDisciplineRowsPerPage);
             batchDisciplineCurrentPage = Math.min(batchDisciplineCurrentPage, totalPages > 0 ? totalPages : 1);
