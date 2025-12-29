@@ -9,208 +9,37 @@
 
     <!-- Firebase SDK - Local fallback -->
     <script>
-        // Enhanced Mock Firebase with LocalStorage Persistence for Offline Testing
-        // This runs if CDN scripts fail (offline/blocked) OR if forced for testing.
-        if (typeof firebase === 'undefined' || !navigator.onLine) {
-            console.log('Firebase unavailable or offline. Using Local Persistence Adapter (localStorage).');
-            
-            // Simple in-memory store backed by localStorage
-            const LOCAL_DB_KEY = 'gstatus_local_db_v1';
-            let localDb = JSON.parse(localStorage.getItem(LOCAL_DB_KEY) || '{}');
-            
-            const saveDb = () => {
-                localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(localDb));
-            };
-
+        // Mock Firebase for testing when external resources are blocked
+        // This runs after CDN scripts. If CDN loaded, firebase is defined.
+        // If CDN failed (offline/blocked), firebase is undefined, so we mock it.
+        if (typeof firebase === 'undefined') {
+            console.log('Firebase blocked by client, using mock implementation');
             window.firebase = {
                 initializeApp: () => ({
                     database: () => ({
-                        ref: (path) => {
-                            const getPathData = (p, data) => {
-                                if (!p) return data;
-                                const parts = p.split('/').filter(Boolean);
-                                let current = data;
-                                for (const part of parts) {
-                                    if (current === undefined || current === null) return null;
-                                    current = current[part];
-                                }
-                                return current;
-                            };
-
-                            const setPathData = (p, value, data) => {
-                                if (!p) return value; // Root replacement
-                                const parts = p.split('/').filter(Boolean);
-                                let current = data;
-                                for (let i = 0; i < parts.length - 1; i++) {
-                                    if (!current[parts[i]]) current[parts[i]] = {};
-                                    current = current[parts[i]];
-                                }
-                                current[parts[parts.length - 1]] = value;
-                                return data;
-                            };
-
-                            return {
-                                once: (eventType) => {
-                                    return new Promise((resolve) => {
-                                        const val = getPathData(path, localDb);
-                                        resolve({
-                                            val: () => val,
-                                            exists: () => val !== null && val !== undefined,
-                                            forEach: (cb) => {
-                                                if (typeof val === 'object' && val !== null) {
-                                                    Object.entries(val).forEach(([k, v]) => {
-                                                        cb({ val: () => v, key: k });
-                                                    });
-                                                }
-                                            }
-                                        });
-                                    });
-                                },
-                                on: (eventType, callback) => {
-                                    // Basic listener simulation - just calls back immediately with current state
-                                    const val = getPathData(path, localDb);
-                                    callback({
-                                        val: () => val,
-                                        exists: () => val !== null && val !== undefined,
-                                        forEach: (cb) => {
-                                            if (typeof val === 'object' && val !== null) {
-                                                Object.entries(val).forEach(([k, v]) => {
-                                                    cb({ val: () => v, key: k });
-                                                });
-                                            }
-                                        }
-                                    });
-                                },
-                                set: (data) => {
-                                    return new Promise((resolve) => {
-                                        if (!path) localDb = data;
-                                        else setPathData(path, data, localDb);
-                                        saveDb();
-                                        console.log('Saved to local DB:', path, data);
-                                        resolve();
-                                    });
-                                },
-                                update: (updates) => {
-                                    return new Promise((resolve) => {
-                                        // Handle update at path
-                                        Object.entries(updates).forEach(([k, v]) => {
-                                            const fullPath = path ? `${path}/${k}` : k;
-                                            setPathData(fullPath, v, localDb);
-                                        });
-                                        saveDb();
-                                        console.log('Updated local DB:', path, updates);
-                                        resolve();
-                                    });
-                                },
-                                push: (data) => {
-                                    const newKey = 'push_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                                    const fullPath = path ? `${path}/${newKey}` : newKey;
-                                    setPathData(fullPath, data, localDb);
-                                    saveDb();
-                                    return { key: newKey };
-                                },
-                                remove: () => {
-                                    return new Promise((resolve) => {
-                                         // Simplify remove by setting to null (not perfect but works for basic tests)
-                                         setPathData(path, null, localDb); 
-                                         saveDb();
-                                         resolve();
-                                    });
-                                }
-                            };
-                        },
-                        orderByChild: (childKey) => ({
-                            equalTo: (value) => ({
-                                once: (eventType) => {
-                                     // Basic filtering simulation
-                                     return Promise.resolve({
-                                         val: () => null, 
-                                         forEach: () => {} 
-                                     });
-                                }
+                        ref: () => ({
+                            once: () => Promise.resolve({val: () => ({})}),
+                            on: () => {},
+                            set: () => Promise.resolve(),
+                            update: () => Promise.resolve(),
+                            push: () => ({key: 'mock_' + Date.now()})
+                        }),
+                        orderByChild: () => ({
+                            equalTo: () => ({
+                                once: () => Promise.resolve({forEach: () => {}})
                             })
                         })
                     })
                 }),
                 auth: () => ({
-                    signInWithEmailAndPassword: (email, password) => {
-                        console.log('Offline Login Success:', email);
-                        const user = { uid: 'offline_user_' + Date.now(), email: email };
-                        sessionStorage.setItem('currentUser', JSON.stringify(user));
-                        return Promise.resolve({ user });
-                    },
-                    createUserWithEmailAndPassword: (email, password) => Promise.resolve({ user: { uid: 'offline_new_' + Date.now(), email: email } }),
-                    signInWithPopup: () => Promise.resolve({ user: { uid: 'offline_google_' + Date.now(), email: 'test@gmail.com' } }),
-                    signOut: () => {
-                        sessionStorage.removeItem('currentUser');
-                        return Promise.resolve();
-                    },
-                    onAuthStateChanged: (observer) => {
-                        const savedUser = JSON.parse(sessionStorage.getItem('currentUser'));
-                        if (savedUser) observer(savedUser);
-                        else observer(null);
-                    },
-                    GoogleAuthProvider: class {}
+                    signInWithEmailAndPassword: () => Promise.resolve({user: {uid: 'mock_uid', email: 'test@test.com'}}),
+                    createUserWithEmailAndPassword: () => Promise.resolve({user: {uid: 'mock_uid', email: 'test@test.com'}}),
+                    signInWithPopup: () => Promise.resolve({user: {uid: 'mock_uid', email: 'test@test.com'}}),
+                    signOut: () => Promise.resolve(),
+                    GoogleAuthProvider: () => {}
                 }),
                 analytics: () => {}
             };
-        } else {
-            // We are ONLINE and Real Firebase is loaded.
-            // Automatic Synchronization Manager
-            const performAutoSync = async () => {
-                const LOCAL_DB_KEY = 'gstatus_local_db_v1';
-                const localDbString = localStorage.getItem(LOCAL_DB_KEY);
-                
-                if (localDbString) {
-                    const localDb = JSON.parse(localDbString);
-                    if (Object.keys(localDb).length > 0) {
-                        console.log("Automatic Sync: Offline data detected, starting sync...");
-                        
-                        // Show a small non-intrusive status indicator
-                        const syncStatus = document.createElement('div');
-                        syncStatus.id = 'autoSyncStatus';
-                        syncStatus.style = 'position: fixed; bottom: 20px; right: 20px; background: #4a90e2; color: white; padding: 10px 20px; border-radius: 50px; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 14px; display: flex; align-items: center;';
-                        syncStatus.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> Auto-syncing changes...';
-                        document.body.appendChild(syncStatus);
-
-                        try {
-                            const dbRef = firebase.database().ref();
-                            await dbRef.update(localDb);
-                            
-                            // Success state
-                            syncStatus.style.background = '#28a745';
-                            syncStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i> Changes synced automatically!';
-                            localStorage.removeItem(LOCAL_DB_KEY);
-                            console.log("Automatic Sync: Success!");
-                            
-                            // Remove indicator after 3 seconds and reload to refresh UI
-                            setTimeout(() => {
-                                syncStatus.remove();
-                                location.reload();
-                            }, 3000);
-                        } catch (error) {
-                            console.error("Automatic Sync Failed:", error);
-                            syncStatus.style.background = '#dc3545';
-                            syncStatus.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Sync failed. Retrying later...';
-                            setTimeout(() => syncStatus.remove(), 5000);
-                        }
-                    }
-                }
-            };
-
-            // Run on load and whenever connection is restored
-            window.addEventListener('load', performAutoSync);
-            window.addEventListener('online', performAutoSync);
-
-            // Hide loader on window load
-            window.addEventListener('load', () => {
-                const loader = document.getElementById('appLoader');
-                if (loader) {
-                    setTimeout(() => { // Add a small delay for a smoother feel
-                        loader.classList.add('hidden');
-                    }, 500);
-                }
-            });
         }
     </script>
 
@@ -271,209 +100,24 @@
 
     <style>
         :root {
-            --primary-color: #0faff2; /* New main blue */
-            --secondary-color: #334a6d; /* Original dark blue for sidebar */
-            --success-color: #67DA5B; /* New green */
-            --danger-color: #7A0D1C; /* New red */
-            --warning-color: #E59935; /* New yellow */
-            --info-color: #0faff2; /* Mapped to new primary blue */
-            --light-bg: #ffffff; /* Updated background to white */
-            --dark-bg: #0F191A; /* New dark background/text color */
-            --text-color: #0F191A; /* New default text color */
-            --text-light: #8DF0E4; /* New light/white tone */
-
-            /* Retain these variables from the existing files, but ensure their values are derived from the new palette where logical */
-            --card-shadow: 0 18px 40px rgba(15, 23, 42, 0.06); 
-            --card-hover-shadow: 0 22px 48px rgba(15, 23, 42, 0.12); 
-            --radius-lg: 18px;
-            --radius-md: 12px;
-            --radius-pill: 999px;
-            --border-subtle: rgba(141, 240, 228, 0.2); /* Use text-light for subtle borders */
-            --accent: var(--primary-color); 
-
-            --text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1); 
-            --gradient-start: #8DF0E4; /* New light/white tone */
-            --gradient-end: #f0f8ff; 
-        }
-
-        /* --- Animation Keyframes --- */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes popout {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.1); opacity: 1; }
-            70% { transform: scale(0.9); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .alert-success, .update-message, .save-success, .animate-popout {
-            animation: popout 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
-            display: block !important;
-        }
-        
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(15, 175, 242, 0.2); }
-            70% { box-shadow: 0 0 0 10px rgba(15, 175, 242, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(15, 175, 242, 0); }
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* --- Global Animations --- */
-        .card, .btn, .form-control {
-            animation: fadeIn 0.6s ease-out backwards;
-        }
-        
-        .student-card {
-            animation: fadeIn 0.5s ease-out backwards;
-        }
-        
-        /* Stagger animations for cards */
-        .card:nth-child(1) { animation-delay: 0.1s; }
-        .card:nth-child(2) { animation-delay: 0.2s; }
-        .card:nth-child(3) { animation-delay: 0.3s; }
-
-        /* --- Sidebar Brand Styles (GO2025 Format) --- */
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 30px;
-            padding: 0 10px;
-        }
-        
-        .logo {
-            position: relative;
-            width: 50px; /* Adjusted for sidebar */
-            height: 50px;
-            border-radius: 12px;
-            background: #ffffff;
-            border: 2px solid var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent);
-            font-weight: 900;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            overflow: hidden;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-        
-        .logo:hover {
-            transform: scale(1.05) rotate(2deg);
-        }
-
-        .logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand-title {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--text-light);
-            letter-spacing: 0.05em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .brand-subtitle {
-            font-size: 0.75rem;
-            color: rgba(141, 240, 228, 0.7);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        /* --- Loading Screen Styles --- */
-        .app-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--gradient-start) 0%, #8DF0E4 100%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
-        }
-        
-        .app-loader.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loader-logo {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 16px;
-            padding: 5px;
-            box-shadow: 0 10px 25px rgba(15, 175, 242, 0.25);
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .loader-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .loader-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--secondary-color);
-            margin-bottom: 10px;
-            letter-spacing: 0.1em;
-        }
-
-        .loader-bar {
-            width: 200px;
-            height: 4px;
-            background: rgba(15, 175, 242, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .loader-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 30%;
-            background: var(--primary-color);
-            border-radius: 4px;
-            animation: loadingProgress 2s ease-in-out infinite;
-        }
-
-        @keyframes loadingProgress {
-            0% { left: -30%; width: 30%; }
-            50% { left: 35%; width: 30%; }
-            100% { left: 100%; width: 30%; }
+            --primary-color: #4a90e2; /* Softer blue */
+            --secondary-color: #334a6d; /* Darker, richer blue */
+            --success-color: #5cb85c; /* Standard green */
+            --danger-color: #d9534f; /* Standard red */
+            --warning-color: #f0ad4e; /* Standard orange */
+            --info-color: #5bc0de; /* Standard info blue */
+            --light-bg: #f0f2f5; /* Light grey background */
+            --dark-bg: #2c3e50;
+            --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+            --text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            --gradient-start: #e0f2f7; /* Light blue for gradient */
+            --gradient-end: #f0f8ff; /* Very light blue/white for gradient */
         }
 
         body {
-            background-color: #ffffff; /* Solid white background */
+            background-color: var(--light-bg);
             font-family: 'Poppins', sans-serif; /* Modern font */
-            color: var(--text-color);
+            color: #333;
             overflow-x: hidden; /* Prevent horizontal scroll */
             min-height: 100vh;
             font-size: 1.05rem; /* Slightly larger base font size */
@@ -481,7 +125,24 @@
             flex-direction: column; /* Allow footer to push to bottom */
         }
 
-        /* Removed animated-background styles */
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            background-size: 400% 400%;
+            animation: gradientAnimation 25s ease infinite; /* Slower animation */
+            z-index: -1; /* Send to back */
+            opacity: 0.6; /* More subtle transparency */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
         .sidebar {
             width: 280px; /* Increased width for better content display */
@@ -514,7 +175,7 @@
             color: rgba(255, 255, 255, 0.8);
             padding: 12px 20px;
             margin-bottom: 8px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -544,19 +205,19 @@
             border-color: var(--danger-color);
             color: white;
             padding: 10px;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             transition: background-color 0.3s ease;
         }
 
         .sidebar .logout-section .btn-logout:hover {
-            background-color: #5a0a15;
-            border-color: #5a0a15;
+            background-color: #c9302c;
+            border-color: #c9302c;
         }
 
         .main-content {
             margin-left: 0; /* No margin on mobile by default */
             flex-grow: 1;
-            padding: 20px; /* Reduced padding for mobile */
+            padding: 15px; /* Reduced padding for mobile */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -568,7 +229,7 @@
         .auth-container {
             max-width: 500px; /* Slightly wider for better form display */
             background-color: rgba(255, 255, 255, 0.95);
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             padding: 30px;
             animation: fadeInScale 0.8s ease-out;
@@ -581,34 +242,25 @@
         }
 
         .form-control, .form-select {
-            border-radius: 10px; /* Modern rounded inputs */
-            padding: 14px; /* Increased padding for better touch targets */
+            border-radius: 6px;
+            padding: 10px; /* Adjusted from 14px in dashboard for consistency with auth */
             border: 1px solid #ced4da;
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
-            transition: border-color 0.18s ease, box-shadow 0.18s ease;
-            font-size: 16px; /* Prevent zoom on iOS */
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
-            outline: none;
+            box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
         }
 
         .btn {
             font-weight: 600;
-            border-radius: var(--radius-pill); /* Pill buttons */
-            padding: 12px 28px; /* Larger touch area */
+            border-radius: 8px;
+            padding: 10px 20px; /* Adjusted from 12px 25px in dashboard for consistency with auth */
             transition: all 0.2s ease-in-out;
             position: relative;
             overflow: hidden;
             z-index: 1;
-            letter-spacing: 0.02em;
-            animation: glowing 1.5s infinite; /* Add this line to the existing .btn rule */
-        }
-
-        .btn:active {
-            transform: scale(0.95); /* Click feedback */
         }
 
         .btn::before {
@@ -626,17 +278,6 @@
         .btn:hover::before {
             left: 0;
         }
-        
-        .btn:hover {
-            box-shadow: 0 0 8px var(--primary-color); /* Subtler glow on hover */
-            transform: translateY(-1px);
-        }
-
-        @keyframes glowing {
-            0% { box-shadow: 0 0 5px rgba(15, 175, 242, 0.2); }
-            50% { box-shadow: 0 0 15px rgba(15, 175, 242, 0.4); }
-            100% { box-shadow: 0 0 5px rgba(15, 175, 242, 0.2); }
-        }
 
         .btn-primary {
             background-color: var(--primary-color);
@@ -646,22 +287,24 @@
         .btn-primary:hover {
             background-color: #3a7bd5;
             border-color: #3a7bd5;
+            transform: translateY(-1px);
         }
 
         .btn-google {
-            background-color: var(--danger-color); /* Updated to danger-color */
-            border-color: var(--danger-color);
+            background-color: #db4437; /* Google Red */
+            border-color: #db4437;
             color: white;
         }
 
         .btn-google:hover {
-            background-color: #5a0a15;
-            border-color: #5a0a15;
+            background-color: #c23321;
+            border-color: #c23321;
+            transform: translateY(-1px);
         }
 
         .role-option {
             border: 1px solid #e0e0e0;
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
             cursor: pointer;
@@ -677,7 +320,7 @@
         .role-option.selected {
             border-color: var(--primary-color);
             background-color: var(--gradient-start);
-            box-shadow: 0 2px 5px rgba(15, 175, 242, 0.2);
+            box-shadow: 0 2px 5px rgba(74, 144, 226, 0.2);
         }
 
         .role-option input[type="radio"] {
@@ -713,17 +356,17 @@
         }
 
         .alert {
-            border-radius: var(--radius-md);
-            padding: 15px; 
-            font-size: 0.95rem; 
+            border-radius: 8px;
+            padding: 15px; /* Adjusted from 20px 25px in dashboard for consistency with auth */
+            font-size: 0.95rem; /* Adjusted from 1.15rem in dashboard for consistency with auth */
         }
 
-        /* Dashboard specific styles */
+        /* Dashboard specific styles (merged and adjusted) */
         .dashboard-container {
             margin-top: 15px; /* Reduced margin for mobile */
             max-width: 100%; /* Full width on mobile */
             background-color: rgba(255, 255, 255, 0.95);
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             padding: 15px; /* Reduced padding for mobile */
             animation: fadeInScale 0.8s ease-out;
@@ -734,7 +377,7 @@
             padding: 15px; /* Reduced padding for mobile */
             background-color: transparent;
             border: none;
-            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            border-radius: 0 0 12px 12px;
             box-shadow: none;
         }
 
@@ -753,7 +396,7 @@
             border: none;
             padding: 12px 15px; /* Reduced padding for mobile */
             transition: all 0.3s ease-in-out;
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            border-radius: 8px 8px 0 0;
             position: relative;
             overflow: hidden;
             white-space: nowrap; /* Prevent text wrapping in tabs */
@@ -779,7 +422,7 @@
             color: white;
             background-color: var(--primary-color);
             border: none;
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            border-radius: 8px 8px 0 0;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
@@ -812,17 +455,17 @@
         }
 
         .card {
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             margin-bottom: 15px; /* Reduced margin for mobile */
-            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             background-color: #ffffff;
         }
 
         .card:hover {
             transform: translateY(-5px) scale(1.005);
-            box-shadow: var(--card-hover-shadow);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .tab-pane#responses .card:hover {
@@ -839,8 +482,8 @@
             background-color: var(--primary-color);
             color: white;
             font-weight: 600;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
-            padding: 18px 20px;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 12px 15px; /* Reduced padding for mobile */
             font-size: 1.1rem; /* Reduced font size for mobile */
             display: flex;
             align-items: center;
@@ -858,6 +501,7 @@
         .btn-success:hover {
             background-color: #4cae4c;
             border-color: #4cae4c;
+            transform: translateY(-1px);
         }
 
         .btn-danger {
@@ -868,6 +512,7 @@
         .btn-danger:hover {
             background-color: #d43f3a;
             border-color: #d43f3a;
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -878,6 +523,7 @@
         .btn-secondary:hover {
             background-color: #5a6268;
             border-color: #545b62;
+            transform: translateY(-1px);
         }
 
         .table {
@@ -999,7 +645,7 @@
         .action-section {
             background-color: #f8faff;
             padding: 15px; /* Reduced padding for mobile */
-            border-radius: var(--radius-md);
+            border-radius: 10px;
             margin-bottom: 15px; /* Reduced margin for mobile */
             border: 1px solid #e6f0ff;
         }
@@ -1012,7 +658,7 @@
         .filter-section {
             background-color: #ffffff;
             padding: 15px; /* Reduced padding for mobile */
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             margin-bottom: 15px; /* Reduced margin for mobile */
         }
@@ -1023,7 +669,7 @@
             justify-content: center;
             padding: 15px; /* Reduced padding for mobile */
             background-color: #ffffff;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             margin-bottom: 15px; /* Reduced margin for mobile */
             border-left: 5px solid var(--info-color);
@@ -1188,7 +834,7 @@
         /* Quick Stats */
         .quick-stats .text-center {
             padding: 15px; /* Reduced padding for mobile */
-            border-radius: var(--radius-md);
+            border-radius: 8px;
             background-color: #f7f9fc;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         }
@@ -1203,13 +849,13 @@
 
         /* Login Modal */
         .modal-content {
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
         .modal-header {
             background-color: var(--primary-color);
             color: white;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            border-radius: 12px 12px 0 0;
             border-bottom: none;
         }
         .modal-title {
@@ -1245,20 +891,13 @@
         /* Mobile-specific adjustments */
         @media (max-width: 767.98px) {
             body {
-                font-size: 1rem; /* Slightly larger for readability */
+                font-size: 0.95rem; /* Base font size for mobile */
             }
 
             .sidebar {
-                position: fixed;
-                z-index: 4000;
-                left: 0; top: 0; bottom: 0;
-                background: #ffffff !important;
-                width: 260px;
-                box-shadow: 16px 0 40px rgba(15, 23, 42, 0.12);
-                transform: translateX(-100%);
-                transition: transform 0.32s cubic-bezier(0.25, 0.9, 0.35, 1.2), box-shadow 0.28s ease;
-                will-change: transform;
-                display: flex;
+                width: 250px; /* Slightly smaller sidebar for mobile */
+                transform: translateX(-250px); /* Hidden by default */
+                z-index: 1050; /* Higher z-index to appear over content */
             }
 
             .sidebar.active {
@@ -1266,91 +905,22 @@
             }
 
             .main-content {
-                margin-left: 0;
-                padding: 15px;
-                padding-top: 70px; /* Space for hamburger */
-                transition: transform 0.28s cubic-bezier(0.25, 0.9, 0.35, 1.2), filter 0.28s ease, opacity 0.28s ease;
-            }
-
-            .mobile-backdrop {
-                position: fixed;
-                inset: 0;
-                background: rgba(15, 23, 42, 0.35);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.28s ease;
-                z-index: 3500;
-            }
-
-            body.sidebar-open .mobile-backdrop {
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            body.sidebar-open .main-content {
-                transform: translateX(8px) scale(0.98);
-                filter: blur(1px);
-                opacity: 0.96;
-            }
-
-            .navbar-toggler {
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                position: fixed;
-                top: 15px;
-                left: 15px;
-                z-index: 1500;
-                background-color: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 12px;
-                width: 48px;
-                height: 48px;
-                box-shadow: 0 4px 12px rgba(15, 175, 242, 0.3);
-                transition: all 0.2s ease;
-            }
-
-            .navbar-toggler:active {
-                transform: scale(0.9);
+                margin-left: 0; /* No margin when sidebar is hidden */
+                padding: 10px; /* Even less padding for very small screens */
             }
 
             .dashboard-container {
-                padding: 15px;
-                margin-top: 5px;
-                border-radius: 16px;
-                box-shadow: none;
-                border: 1px solid rgba(0,0,0,0.05);
+                padding: 10px;
             }
 
             h1 {
-                font-size: 1.6rem;
-                margin-bottom: 20px;
-            }
-
-            .card {
-                margin-bottom: 20px;
-                border-radius: 16px;
-                border: 1px solid rgba(0,0,0,0.08);
+                font-size: 1.8rem;
+                margin-bottom: 15px;
             }
 
             .card-header {
-                font-size: 1.1rem;
-                padding: 15px;
-            }
-
-            .btn {
-                width: 100%;
-                padding: 16px;
-                font-size: 1.1rem;
-                margin-bottom: 15px;
-                border-radius: 14px;
-            }
-
-            .form-control, .form-select {
-                 min-height: 56px;
-                 font-size: 16px;
-                 border-radius: 12px;
+                font-size: 1rem;
+                padding: 10px 12px;
             }
 
             .table-responsive-stack thead {
@@ -1364,35 +934,51 @@
                 width: 100%;
             }
             .table-responsive-stack tr {
-                margin-bottom: 1.5rem;
+                margin-bottom: 1rem; /* Reduced margin */
                 border: 1px solid #dee2e6;
-                border-radius: 1rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                overflow: hidden;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             }
             .table-responsive-stack td {
-                padding: 12px 15px;
-                padding-left: 45%;
-                text-align: left;
+                text-align: right;
+                padding: 0.6rem 0.8rem; /* Reduced padding */
+                padding-left: 45%; /* Adjusted for smaller screens */
                 position: relative;
-                border-bottom: 1px solid #eee;
             }
             .table-responsive-stack td::before {
                 content: attr(data-label);
                 position: absolute;
-                left: 15px;
-                width: 40%;
+                left: 0.8rem; /* Adjusted for smaller screens */
+                width: calc(45% - 1.6rem); /* Adjusted width */
+                padding-right: 0.8rem;
                 white-space: nowrap;
                 text-align: left;
-                font-weight: 700;
+                font-weight: 600;
                 color: var(--secondary-color);
             }
             .table-responsive-stack td:last-child {
                 border-bottom: 0;
             }
-            
+            .table-responsive-stack .btn {
+                width: auto;
+                margin-top: 0.5rem; /* Reduced margin */
+                padding: 0.6rem 1rem; /* Reduced padding */
+                font-size: 0.9rem; /* Reduced font size */
+            }
+            .table-responsive-stack .remark-input {
+                width: 100%;
+                padding: 0.6rem;
+            }
+            .pagination .page-item .page-link {
+                padding: 0.6rem 1rem;
+                font-size: 1rem;
+            }
+            .form-control, .form-select, .btn {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
             .search-container .form-control {
-                padding-right: 3rem;
+                padding-right: 3rem; /* Adjusted for smaller screens */
             }
             .search-icon {
                 font-size: 1.2rem;
@@ -1400,10 +986,27 @@
             }
             .star-rating label {
                 padding: 0 5px;
-                font-size: 2rem;
+                font-size: 2rem; /* Slightly larger for easier tapping */
             }
             .modal-body {
                 padding: 15px;
+            }
+
+            /* Hamburger menu for mobile */
+            .navbar-toggler {
+                display: block; /* Show hamburger menu on mobile */
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 1060; /* Above sidebar */
+                background-color: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 8px;
+            }
+            .navbar-toggler:focus {
+                box-shadow: none;
             }
         }
 
@@ -1644,15 +1247,7 @@
     </style>
 </head>
 <body>
-    <div class="app-loader" id="appLoader">
-        <div class="loader-logo">
-            <img src="https://i.ibb.co/WNFFg5BX/Gemini-Generated-Image-tmx0ddtmx0ddtmx0.png" alt="Loading Logo">
-        </div>
-        <div class="loader-text">G-STATUS</div>
-        <div class="loader-bar">
-            <div class="loader-progress"></div>
-        </div>
-    </div>
+    <div class="animated-background"></div>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
     </div>
@@ -1662,19 +1257,11 @@
         <span class="fas fa-bars"></span>
     </button>
 
-    <div id="mobileNavBackdrop" class="mobile-backdrop"></div>
-
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div>
-            <div class="brand">
-                <div class="logo">
-                    <img src="https://i.ibb.co/WNFFg5BX/Gemini-Generated-Image-tmx0ddtmx0ddtmx0.png" alt="G-STATUS Logo">
-                </div>
-                <div class="brand-text">
-                    <div class="brand-title">G-STATUS</div>
-                    <div class="brand-subtitle">Gurukul Points</div>
-                </div>
+            <div class="logo text-center mb-4">
+                <img src="logo.png" alt="Gurukul Logo" style="width: 100%; max-width: 180px; height: auto; border-radius: 5px;">
             </div>
             <div class="user-info" id="userInfo">
                 <!-- User info will be populated here by JavaScript -->
@@ -1709,11 +1296,6 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link" data-bs-toggle="tab" href="#batch-discipline" id="batch-discipline-tab" role="tab" title="Assign discipline ratings to multiple students at once">
                         <i class="fas fa-clipboard-list"></i> Batch Discipline
-                    </a>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link" data-bs-toggle="tab" href="#sunday-cleaning" id="sunday-cleaning-tab" role="tab" title="Award points for Sunday cleaning tasks">
-                        <i class="fas fa-broom"></i> Sunday Cleaning
                     </a>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -2175,131 +1757,133 @@
 
                 <!-- Removed Discipline Review Tab Content -->
 
-                <!-- Sunday Cleaning Tab -->
-                <div class="tab-pane fade" id="sunday-cleaning" role="tabpanel">
-                    <h3><i class="fas fa-broom"></i> Sunday Cleaning Tasks</h3>
+                <!-- New Batch Discipline Tab -->
+                <div class="tab-pane fade" id="batch-discipline" role="tabpanel">
+                    <h3><i class="fas fa-clipboard-list"></i> Batch Discipline Review</h3>
                     <div class="card mb-4">
                         <div class="card-header">
-                            <i class="fas fa-search"></i> Search Students for Cleaning Tasks
+                            <i class="fas fa-search"></i> Search and Filter Students for Batch Review
                         </div>
                         <div class="card-body">
                             <div class="search-container">
-                                <input class="form-control" id="searchQuerySundayCleaning" placeholder="Search by Name, ID, Floor, Room, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Enter student name, ID, floor, room, class, or section to find students for cleaning tasks." aria-label="Search students for sunday cleaning"/>
+                                <input class="form-control" id="searchQueryBatchDiscipline" placeholder="Search by Name, ID, Floor, Room, Class (e.g., X), or Section (e.g., A). You can also search by Class-Section (e.g., X-A)..." type="text" title="Enter student name, ID, floor, room, class, or section to find students for batch review." aria-label="Search students for batch discipline"/>
                                 <i class="fas fa-search search-icon"></i>
                             </div>
-                            <div class="mb-3 row" id="searchResultsSundayCleaning"></div>
+                            <div class="mb-3 row">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="batchDisciplineFloorFilter">Filter by Floor</label>
+                                    <select class="form-select" id="batchDisciplineFloorFilter" title="Filter students by their floor." aria-label="Filter by floor">
+                                        <option value="1" selected>Floor 1</option>
+  <option value="2">Floor 2</option>
+  <option value="3">Floor 3</option>
+  <option value="4">Floor 4</option>
+  <option value="5">Floor 5</option>
+  <option value="6">Floor 6</option>
+</select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="batchDisciplineClassFilter">Filter by Class</label>
+                                    <input type="text" class="form-control" id="batchDisciplineClassFilter" placeholder="e.g., X, IX" title="Filter students by their class (e.g., X, IX)." aria-label="Filter by class"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="batchDisciplineSectionFilter">Filter by Section</label>
+                                    <input type="text" class="form-control" id="batchDisciplineSectionFilter" placeholder="e.g., A, B" title="Filter students by their section (e.g., A, B)." aria-label="Filter by section"/>
+                                </div>
+                            </div>
+                            <div class="text-end mb-3">
+                                <button class="btn btn-secondary" id="resetBatchDisciplineFilters" title="Clear all search and filter settings." aria-label="Reset batch discipline filters">Reset Filters</button>
+                            </div>
+                            <div class="filter-display-container" id="batchDisciplineFilterDisplay"></div>
                         </div>
                     </div>
 
-                    <div class="card mb-4">
+                    <div class="card">
                         <div class="card-header">
-                            <i class="fas fa-plus-circle"></i> Award Cleaning Points
+                            <i class="fas fa-users"></i> All Students for Discipline Rating
                         </div>
                         <div class="card-body">
-                            <form id="sundayCleaningForm">
-                                <div class="action-section">
-                                    <h4><i class="fas fa-tasks text-primary"></i> Select Cleaning Tasks</h4>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="5" id="taskWindow" data-task-name="Window Cleaning">
-                                                <label class="form-check-label" for="taskWindow">Window Cleaning (+5)</label>
-                                            </div>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="5" id="taskFloor" data-task-name="Floor Mopping">
-                                                <label class="form-check-label" for="taskFloor">Floor Mopping (+5)</label>
-                                            </div>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="5" id="taskDusting" data-task-name="Dusting Shelves">
-                                                <label class="form-check-label" for="taskDusting">Dusting Shelves (+5)</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="10" id="taskDeepClean" data-task-name="Deep Room Cleaning">
-                                                <label class="form-check-label" for="taskDeepClean">Deep Room Cleaning (+10)</label>
-                                            </div>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="5" id="taskBathroom" data-task-name="Bathroom Cleaning">
-                                                <label class="form-check-label" for="taskBathroom">Bathroom Cleaning (+5)</label>
-                                            </div>
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input cleaning-task" type="checkbox" value="custom" id="taskCustom" data-task-name="Custom Cleaning">
-                                                <label class="form-check-label" for="taskCustom">Custom Task</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="customCleaningInput" style="display: none;" class="mt-3">
-                                        <label class="form-label" for="customCleaningPoints">Enter Custom Points</label>
-                                        <input class="form-control mb-2" id="customCleaningPoints" type="number" min="1" placeholder="e.g., 7" title="Enter points for the custom task." aria-label="Custom cleaning points"/>
-                                        <label class="form-label" for="customCleaningTaskName">Task Description</label>
-                                        <input class="form-control" id="customCleaningTaskName" type="text" placeholder="e.g., Veranda Cleaning" title="Enter the name of the custom cleaning task." aria-label="Custom cleaning task name"/>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3 mt-4">
-                                    <label class="form-label" for="sundayCleaningAdminSelector">Modified By (Incharge):</label>
-                                    <select class="form-select" id="sundayCleaningAdminSelector" title="Select the incharge who is awarding these points." aria-label="Select incharge for sunday cleaning">
-                                        <option value="">Select Incharge</option>
-                                        <option value="BHAVESHBHAI JOLIYA">BHAVESHBHAI JOLIYA</option>
-                                        <option value="RAUNAK KUMAR">RAUNAK KUMAR</option>
-                                        <option value="PRAVINBHAI SOLANKI">PRAVINBHAI SOLANKI</option>
-                                        <option value="THIRUPATHI VASANTH REDDY">THIRUPATHI VASANTH REDDY</option>
-                                        <option value="SUNIL VINAYAK LUTE">SUNIL VINAYAK LUTE</option>
-                                        <option value="Balaji AshokRao More">Balaji AshokRao More</option>
-                                        <option value="JOLIYA VIPUL RAMJIBHAI">JOLIYA VIPUL RAMJIBHAI</option>
-                                        <option value="LALJI TIWARI">LALJI TIWARI</option>
-                                        <option value="Ranveer Singh">Ranveer Singh</option>
-                                        <option value="BANOTH VAMSHI">BANOTH VAMSHI</option>
-                                        <option value="P Ananth Reddy">P Ananth Reddy</option>
-                                        <option value="AMAN KUMAR">AMAN KUMAR</option>
-                                        <option value="LOKESH YADAV">LOKESH YADAV</option>
-                                        <option value="SUNNY SINGH">SUNNY SINGH</option>
-                                        <option value="Anirudh Kumar">Anirudh Kumar</option>
-                                        <option value="Gauri Shankar Sah">Gauri Shankar Sah</option>
-                                        <option value="CHANDAN KUMAR THAKUR">CHANDAN KUMAR THAKUR</option>
-                                        <option value="BALRAM KUMAR">BALRAM KUMAR</option>
-                                        <option value="KOTAM HARISH KUMAR REDDY">KOTAM HARISH KUMAR REDDY</option>
-                                        <option value="M.VITTAL">M.VITTAL</option>
-                                        <option value="ROHIT KUMAR SINGH">ROHIT KUMAR SINGH</option>
-                                        <option value="PALLA SOMASANKAR">PALLA SOMASANKAR</option>
-                                        <option value="PATLOLLA VINAY REDDY">PATLOLLA VINAY REDDY</option>
-                                        <option value="DESH PANDE AKHIL">DESH PANDE AKHIL</option>
-                                        <option value="CHAKRADHAR SAHOO">CHAKRADHAR SAHOO</option>
-                                        <option value="MANISH">MANISH</option>
-                                        <option value="CH.VINOD KUMAR">CH.VINOD KUMAR</option>
-                                        <option value="G.SHANKER RAO">G.SHANKER RAO</option>
-                                        <option value="V.ADITHYA">V.ADITHYA</option>
-                                        <option value="V.DEVRAJ">V.DEVRAJ</option>
-                                        <option value="B.GIRI PRASAD">B.GIRI PRASAD</option>
-                                        <option value="VENU GOPAL KRISHNA">VENU GOPAL KRISHNA</option>
-                                        <option value="G.NAGARAJU">G.NAGARAJU</option>
-                                        <option value="ADINARAYANA RAO">ADINARAYANA RAO</option>
-                                        <option value="SATISH BHALKE">SATISH BHALKE</option>
-                                        <option value="B.ANIL">B.ANIL</option>
-                                        <option value="RAJIV">RAJIV</option>
-                                        <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
-                                        <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
-                                        <option value="RONAK SIR">RONAK SIR</option>
-                                        <option value="Manoj">Manoj</option>
-                                        <option value="Testing Admin">Testing admin</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label" for="sundayCleaningTeacherAdminName">Teacher's Name (if not an Incharge):</label>
-                                    <input type="text" class="form-control" id="sundayCleaningTeacherAdminName" placeholder="Enter Teacher's Name" title="Enter the name of the teacher awarding these points, if applicable." aria-label="Teacher's name for sunday cleaning"/>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label" for="sundayCleaningAdminEmail">Your Email ID:</label>
-                                    <input type="email" class="form-control" id="sundayCleaningAdminEmail" placeholder="Enter your email ID" required readonly title="Your email ID will be automatically filled from login." aria-label="Your email ID for sunday cleaning"/>
-                                </div>
-                                <div class="text-center mt-3">
-                                    <button type="submit" class="btn btn-primary btn-lg" id="updateSundayCleaningPointsBtn" title="Click to award cleaning points to the chosen students.">
-                                        <i class="fas fa-save"></i> Award Points
-                                    </button>
-                                </div>
-                            </form>
-                            <div class="update-message alert mt-3" id="sundayCleaningUpdateMessage" role="alert"></div>
+                            <div class="table-responsive table-responsive-stack">
+                                <table class="table table-hover table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th><i class="fas fa-id-card"></i> ID</th>
+                                            <th><i class="fas fa-user"></i> Name</th>
+                                            <th><i class="fas fa-door-open"></i> Room</th>
+                                            <th><i class="fas fa-building"></i> Floor</th>
+                                            <th><i class="fas fa-chalkboard"></i> Class</th>
+                                            <th><i class="fas fa-tag"></i> Section</th>
+                                            <th><i class="fas fa-coins"></i> Current Points</th>
+                                            <th><i class="fas fa-star"></i> Discipline Rating (1-10 Stars)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="batchDisciplineTable">
+                                        <!-- Student data with star ratings will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <nav aria-label="Page navigation for batch discipline">
+                                <ul class="pagination justify-content-center" id="batchDisciplinePagination"></ul>
+                            </nav>
+                            <div class="mb-3">
+                                <label class="form-label" for="batchDisciplineAdminSelector">Modified By (Incharge):</label>
+                                <select class="form-select" id="batchDisciplineAdminSelector" title="Select the incharge who is making this point change." aria-label="Select incharge for batch discipline">
+                                    <option value="">Select Incharge</option>
+                                    <option value="BHAVESHBHAI JOLIYA">BHAVESHBHAI JOLIYA</option>
+                                    <option value="PRAVINBHAI SOLANKI">PRAVINBHAI SOLANKI</option>
+                                    <option value="THIRUPATHI VASANTH REDDY">THIRUPATHI VASANTH REDDY</option>
+                                    <option value="SUNIL VINAYAK LUTE">SUNIL VINAYAK LUTE</option>
+                                    <option value="Balaji AshokRao More">Balaji AshokRao More</option>
+                                    <option value="JOLIYA VIPUL RAMJIBHAI">JOLIYA VIPUL RAMJIBHAI</option>
+                                    <option value="LALJI TIWARI">LALJI TIWARI</option>
+                                    <option value="Ranveer Singh">Ranveer Singh</option>
+                                    <option value="BANOTH VAMSHI">BANOTH VAMSHI</option>
+                                    <option value="P Ananth Reddy">P Ananth Reddy</option>
+                                    <option value="AMAN KUMAR">AMAN KUMAR</option>
+                                    <option value="LOKESH YADAV">LOKESH YADAV</option>
+                                    <option value="SUNNY SINGH">SUNNY SINGH</option>
+                                    <option value="Anirudh Kumar">Anirudh Kumar</option>
+                                    <option value="Gauri Shankar Sah">Gauri Shankar Sah</option>
+                                    <option value="CHANDAN KUMAR THAKUR">CHANDAN KUMAR THAKUR</option>
+                                    <option value="BALRAM KUMAR">BALRAM KUMAR</option>
+                                    <option value="KOTAM HARISH KUMAR REDDY">KOTAM HARISH KUMAR REDDY</option>
+                                    <option value="M.VITTAL">M.VITTAL</option>
+                                    <option value="ROHIT KUMAR SINGH">ROHIT KUMAR SINGH</option>
+                                    <option value="PALLA SOMASANKAR">PALLA SOMASANKAR</option>
+                                    <option value="PATLOLLA VINAY REDDY">PATLOLLA VINAY REDDY</option>
+                                    <option value="DESH PANDE AKHIL">DESH PANDE AKHIL</option>
+                                    <option value="CHAKRADHAR SAHOO">CHAKRADHAR SAHOO</option>
+                                    <option value="MANISH">MANISH</option>
+                                    <option value="CH.VINOD KUMAR">CH.VINOD KUMAR</option>
+                                    <option value="G.SHANKER RAO">G.SHANKER RAO</option>
+                                    <option value="V.ADITHYA">V.ADITHYA</option>
+                                    <option value="V.DEVRAJ">V.DEVRAJ</option>
+                                    <option value="B.GIRI PRASAD">B.GIRI PRASAD</option>
+                                    <option value="VENU GOPAL KRISHNA">VENU GOPAL KRISHNA</option>
+                                    <option value="G.NAGARAJU">G.NAGARAJU</option>
+                                    <option value="ADINARAYANA RAO">ADINARAYANA RAO</option>
+                                    <option value="SATISH BHALKE">SATISH BHALKE</option>
+                                    <option value="B.ANIL">B.ANIL</option>
+                                    <option value="RAJIV">RAJIV</option>
+                                    <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
+                                    <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
+                                    <option value="Manoj">Manoj</option>
+                                    <option value="Testing Admin">Testing admin</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="batchDisciplineTeacherAdminName">Teacher's Name (if not an Incharge):</label>
+                                <input type="text" class="form-control" id="batchDisciplineTeacherAdminName" placeholder="Enter Teacher's Name" title="Enter the name of the teacher making this point change, if applicable." aria-label="Teacher's name for batch discipline"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="batchDisciplineAdminEmail">Your Email ID:</label>
+                                <input type="email" class="form-control" id="batchDisciplineAdminEmail" placeholder="Enter your email ID" required readonly title="Your email ID will be automatically filled from login." aria-label="Your email ID for batch discipline"/>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" id="saveBatchDisciplineRatings" title="Click to save all discipline ratings entered in the table.">
+                                    <i class="fas fa-save"></i> Save All Ratings
+                                </button>
+                            </div>
+                            <div class="update-message alert mt-3" id="batchDisciplineUpdateMessage" role="alert"></div>
                         </div>
                     </div>
                 </div>
@@ -2553,9 +2137,6 @@
                                 <i class="fas fa-search search-icon"></i>
                             </div>
                             <div class="text-end mb-3">
-                                <button type="button" class="btn btn-success me-2" id="exportStudentsExcelBtn" title="Export student data to an Excel file.">
-                                    <i class="fas fa-file-export"></i> Export to Excel
-                                </button>
                                 <button type="button" class="btn btn-info" id="importStudentsExcelBtn" title="Import student data from an Excel file.">
                                     <i class="fas fa-file-import"></i> Import from Excel
                                 </button>
@@ -3374,25 +2955,6 @@ try {
     auth = app.auth();
     database = app.database();
     storage = app.storage();
-
-    // Manage online/offline state to prevent console errors
-    const handleConnectionChange = () => {
-        if (navigator.onLine) {
-            console.log("Going online...");
-            database.goOnline();
-        } else {
-            console.log("Going offline...");
-            database.goOffline();
-        }
-    };
-    
-    window.addEventListener('online', handleConnectionChange);
-    window.addEventListener('offline', handleConnectionChange);
-    
-    // Initial check
-    if (!navigator.onLine) {
-        database.goOffline();
-    }
 } catch (e) {
     console.error("Error initializing Firebase:", e);
     alert("Could not initialize Firebase. Please check your configuration.");
@@ -4564,31 +4126,29 @@ try {
                 if (e.key === 'Enter') addManualCanteenStudents();
             });
 
-            // Load manual additions from localStorage - DISABLED (Reset on reload)
-            // const savedAdditions = localStorage.getItem('manualCanteenStudents');
-            // if (savedAdditions) {
-            //     try {
-            //         window.manualCanteenStudents = JSON.parse(savedAdditions);
-            //         if (!Array.isArray(window.manualCanteenStudents)) window.manualCanteenStudents = [];
-            //     } catch (e) {
-            //         console.error('Failed to parse saved additions', e);
-            //         window.manualCanteenStudents = [];
-            //     }
-            // }
-            window.manualCanteenStudents = [];
+            // Load manual additions from localStorage
+            const savedAdditions = localStorage.getItem('manualCanteenStudents');
+            if (savedAdditions) {
+                try {
+                    window.manualCanteenStudents = JSON.parse(savedAdditions);
+                    if (!Array.isArray(window.manualCanteenStudents)) window.manualCanteenStudents = [];
+                } catch (e) {
+                    console.error('Failed to parse saved additions', e);
+                    window.manualCanteenStudents = [];
+                }
+            }
 
-            // Load manual exclusions from localStorage - DISABLED (Reset on reload)
-            // const savedExclusions = localStorage.getItem('manualCanteenExclusions');
-            // if (savedExclusions) {
-            //     try {
-            //         window.manualCanteenExclusions = JSON.parse(savedExclusions);
-            //         if (!Array.isArray(window.manualCanteenExclusions)) window.manualCanteenExclusions = [];
-            //     } catch (e) {
-            //         console.error('Failed to parse saved exclusions', e);
-            //         window.manualCanteenExclusions = [];
-            //     }
-            // }
-            window.manualCanteenExclusions = [];
+            // Load manual exclusions from localStorage
+            const savedExclusions = localStorage.getItem('manualCanteenExclusions');
+            if (savedExclusions) {
+                try {
+                    window.manualCanteenExclusions = JSON.parse(savedExclusions);
+                    if (!Array.isArray(window.manualCanteenExclusions)) window.manualCanteenExclusions = [];
+                } catch (e) {
+                    console.error('Failed to parse saved exclusions', e);
+                    window.manualCanteenExclusions = [];
+                }
+            }
 
             // Remove Listener
             const removeBtn = document.getElementById('removeManualCanteenBtn');
@@ -6963,47 +6523,6 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
         }
 
         function initializeEventListeners() {
-            // Mobile sidebar toggle
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('mobileNavBackdrop');
-            
-            if (sidebarToggle && sidebar) {
-                sidebarToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isOpen = sidebar.classList.toggle('active');
-                    document.body.classList.toggle('sidebar-open', isOpen);
-                });
-
-                if (backdrop) {
-                    backdrop.addEventListener('click', () => {
-                        sidebar.classList.remove('active');
-                        document.body.classList.remove('sidebar-open');
-                    });
-                }
-
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', (e) => {
-                    if (window.innerWidth < 768 && 
-                        sidebar.classList.contains('active') && 
-                        !sidebar.contains(e.target) && 
-                        e.target !== sidebarToggle) {
-                        sidebar.classList.remove('active');
-                        document.body.classList.remove('sidebar-open');
-                    }
-                });
-            }
-
-            // Close sidebar when a nav link is clicked (on mobile)
-            document.querySelectorAll('#dashboardTabs .nav-link, #authTabs .nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 768 && sidebar) {
-                        sidebar.classList.remove('active');
-                        document.body.classList.remove('sidebar-open');
-                    }
-                });
-            });
-
             document.getElementById('positiveAction').addEventListener('change', function() {
                 document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
                 document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
@@ -7336,103 +6855,6 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             }
 
             // Debounced search inputs
-            document.getElementById('searchQuerySundayCleaning').addEventListener('input', debounce(function() {
-                handleSearch('searchQuerySundayCleaning', 'searchResultsSundayCleaning', 'selectedStudentsCleaning');
-            }, 300));
-
-            document.getElementById('taskCustom').addEventListener('change', function() {
-                document.getElementById('customCleaningInput').style.display = this.checked ? 'block' : 'none';
-            });
-
-            document.getElementById('sundayCleaningForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const updateButton = document.getElementById('updateSundayCleaningPointsBtn');
-                updateButton.disabled = true;
-                updateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Awarding...';
-
-                const selectedStudentIds = Array.from(document.querySelectorAll('#searchResultsSundayCleaning input[name="selectedStudentsCleaning"]:checked')).map(input => input.value);
-                const adminModifier = document.getElementById('sundayCleaningAdminSelector').value;
-                const teacherAdminName = document.getElementById('sundayCleaningTeacherAdminName').value.trim();
-                const adminEmail = currentUserEmail;
-
-                if (!selectedStudentIds.length) {
-                    displayUpdateMessage('sundayCleaningUpdateMessage', 'Please select at least one student.', 'danger');
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = '<i class="fas fa-save"></i> Award Points';
-                    return;
-                }
-
-                let modifiedBy = adminModifier || teacherAdminName;
-                if (!modifiedBy) {
-                    displayUpdateMessage('sundayCleaningUpdateMessage', 'Please select an Incharge or enter a Teacher\'s Name.', 'danger');
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = '<i class="fas fa-save"></i> Award Points';
-                    return;
-                }
-                modifiedBy += ` (${adminEmail})`;
-
-                const tasks = [];
-                let totalPoints = 0;
-                document.querySelectorAll('.cleaning-task:checked').forEach(task => {
-                    if (task.value === 'custom') {
-                        const customPoints = parseInt(document.getElementById('customCleaningPoints').value);
-                        const customName = document.getElementById('customCleaningTaskName').value.trim();
-                        if (!isNaN(customPoints) && customName) {
-                            tasks.push(customName);
-                            totalPoints += customPoints;
-                        }
-                    } else {
-                        tasks.push(task.dataset.taskName);
-                        totalPoints += parseInt(task.value);
-                    }
-                });
-
-                if (totalPoints === 0) {
-                    displayUpdateMessage('sundayCleaningUpdateMessage', 'Please select at least one task with points.', 'danger');
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = '<i class="fas fa-save"></i> Award Points';
-                    return;
-                }
-
-                try {
-                    const now = new Date();
-                    const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
-                    const time = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata' });
-                    const actionText = `Sunday Cleaning: ${tasks.join(', ')}`;
-
-                    const updatePromises = [];
-                    for (const studentId of selectedStudentIds) {
-                        const student = students.find(s => s.id === studentId);
-                        if (student) {
-                            updatePromises.push(updateStudentInFirebase(studentId, { points: student.points + totalPoints }));
-                            updatePromises.push(addHistoryEntryToFirebase({
-                                date, time, studentId, name: student.name,
-                                action: actionText, pointsChanged: totalPoints,
-                                oldPoints: student.points, newPoints: student.points + totalPoints,
-                                modifiedBy: modifiedBy
-                            }));
-                        }
-                    }
-
-                    await Promise.all(updatePromises);
-                    displayUpdateMessage('sundayCleaningUpdateMessage', `Awarded ${totalPoints} cleaning points to selected students.`, 'success');
-                    document.getElementById('sundayCleaningForm').reset();
-                    document.getElementById('customCleaningInput').style.display = 'none';
-                    document.getElementById('searchResultsSundayCleaning').innerHTML = '';
-                    document.getElementById('searchQuerySundayCleaning').value = '';
-                } catch (error) {
-                    console.error("Error awarding cleaning points:", error);
-                    displayUpdateMessage('sundayCleaningUpdateMessage', 'Error awarding points. Please try again.', 'danger');
-                } finally {
-                    updateButton.disabled = false;
-                    updateButton.innerHTML = '<i class="fas fa-save"></i> Award Points';
-                }
-            });
-
-            document.getElementById('sunday-cleaning-tab').addEventListener('shown.bs.tab', function () {
-                document.getElementById('sundayCleaningAdminEmail').value = currentUserEmail;
-            });
-
             document.getElementById('searchQueryPoints').addEventListener('input', debounce(function() {
                 handleSearch('searchQueryPoints', 'searchResultsPoints', 'selectedStudents');
             }, 300)); // 300ms debounce
@@ -7716,11 +7138,19 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             });
 
 
-            // Export Excel for Student Management
-            const exportStudentsExcelBtn = document.getElementById('exportStudentsExcelBtn');
-            if (exportStudentsExcelBtn) {
-                exportStudentsExcelBtn.addEventListener('click', exportStudentsToExcel);
-            }
+            // Mobile sidebar toggle
+            document.getElementById('sidebarToggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+
+            // Close sidebar when a nav link is clicked (on mobile)
+            document.querySelectorAll('#dashboardTabs .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) { // Only on mobile
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                });
+            });
 
             // Import Excel for Student Management
             document.getElementById('importStudentsExcelBtn').addEventListener('click', function() {
@@ -9447,7 +8877,7 @@ filteredStudents.sort((a, b) => {
 
             const tabsToControl = [
                 "rankings-tab", "responses-tab", "student-management-tab",
-                "administration-tab", "batch-discipline-tab", "sunday-cleaning-tab",
+                "administration-tab", "batch-discipline-tab",
                 "individual-data-tab", "canteen-tab", "predictive-analytics-tab", "notes-tab", "adjudicators-tab", "face-recognition-tab", "support-tab"
             ];
 
@@ -9521,9 +8951,9 @@ filteredStudents.sort((a, b) => {
                                                         if (canteenRemoveSection) canteenRemoveSection.style.display = 'block'; // Show remove section ONLY for admin
             } else if (role === "incharge") {
         // In-charge access: hide Rankings, History, Individual Data, Adjudicators, Face Scan
-        // Allow: Home, Administration, Batch Discipline, Sunday Cleaning, Student Management, Notes, Canteen, Analytics
+        // Allow: Home, Administration, Batch Discipline, Student Management, Notes, Canteen, Analytics
         const allowedTabs = [
-            "home-tab", "administration-tab", "batch-discipline-tab", "sunday-cleaning-tab",
+            "home-tab", "administration-tab", "batch-discipline-tab",
             "student-management-tab", "notes-tab", "canteen-tab", "predictive-analytics-tab", "support-tab"
         ];
         allowedTabs.forEach(tabId => {
@@ -9556,7 +8986,7 @@ filteredStudents.sort((a, b) => {
             } else if (role === "teacher") {
                 // Teacher has access to specific tabs and only negative points
                 const allowedTabs = [
-                    "home-tab", "administration-tab", "batch-discipline-tab", "sunday-cleaning-tab",
+                    "home-tab", "administration-tab", "batch-discipline-tab",
                     "notes-tab" // Added notes-tab
                 ];
                 allowedTabs.forEach(tabId => {
@@ -10583,34 +10013,6 @@ filteredStudents.sort((a, b) => {
 
         // Add event listener to the new export to graph button
         document.getElementById('exportHistoryGraph').addEventListener('click', generateHistoryGraph);
-
-        // Function to export students to Excel
-        function exportStudentsToExcel() {
-            if (!students || students.length === 0) {
-                alert('No students data to export.');
-                return;
-            }
-
-            // Prepare data for export
-            const exportData = students.map(s => ({
-                'ID': s.id || '',
-                'Name': s.name || '',
-                'Room': s.room || '',
-                'Floor': s.floor || '',
-                'Class': s.class || '',
-                'Section': s.section || '',
-                'Points': s.points || 0,
-                'Active': s.active ? 'Yes' : 'No'
-            }));
-
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Students");
-            
-            // Format filename with date
-            const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `students_export_${date}.xlsx`);
-        }
 
         // Function to import students from Excel
         async function importStudentsFromExcel(event) {
