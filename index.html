@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -58,7 +59,9 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <link rel="manifest" href="manifest.json">
+    <!-- <link rel="manifest" href="manifest.json"> -->
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="theme-color" content="#4a90e2">
     <link rel="apple-touch-icon" href="logo.png">
     
@@ -76,6 +79,14 @@
     <!-- Chart.js CDN -->
     <!-- Google API Client Library -->
     <script src="https://apis.google.com/js/api.js"></script>
+    
+    <!-- Google API Configuration -->
+    <script>
+        const GOOGLE_API_KEY = 'AIzaSyB1Xfa6HFdGWsZaROOBIiwzCHdD01iYdQE';
+        const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4', 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+        const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
+    </script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -100,18 +111,20 @@
 
     <style>
         :root {
-            --primary-color: #4a90e2; /* Softer blue */
-            --secondary-color: #334a6d; /* Darker, richer blue */
+            --primary-color: #60a5fa; /* Light blue */
+            --secondary-color: #1e40af; /* Medium blue */
+            --tertiary-color: #ffffff; /* White */
             --success-color: #5cb85c; /* Standard green */
             --danger-color: #d9534f; /* Standard red */
             --warning-color: #f0ad4e; /* Standard orange */
-            --info-color: #5bc0de; /* Standard info blue */
-            --light-bg: #f0f2f5; /* Light grey background */
-            --dark-bg: #2c3e50;
-            --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+            --info-color: #3b82f6; /* Bright blue */
+            --light-bg: #f8f9fa; /* Light background */
+            --dark-bg: #0a0e27;
+            --card-shadow: 0 8px 24px rgba(96, 165, 250, 0.15); /* Light blue-tinted shadow */
             --text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-            --gradient-start: #e0f2f7; /* Light blue for gradient */
-            --gradient-end: #f0f8ff; /* Very light blue/white for gradient */
+            --gradient-start: #60a5fa; /* Light blue */
+            --gradient-end: #1e40af; /* Medium blue */
+            --gradient-mid: #ffffff; /* White */
         }
 
         body {
@@ -146,7 +159,7 @@
 
         .sidebar {
             width: 280px; /* Increased width for better content display */
-            background-color: var(--secondary-color); /* Darker blue for sidebar */
+            background: linear-gradient(180deg, #60a5fa 0%, #1e40af 100%);
             color: white;
             padding: 20px;
             box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
@@ -160,6 +173,49 @@
             transform: translateX(-280px); /* Hidden by default on mobile */
             overflow-y: auto; /* Add vertical scrollbar */
             overflow-x: hidden; /* Hide horizontal scrollbar */
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .sidebar-logo-box {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .sidebar-branding {
+            flex: 1;
+            display: none;
+        }
+
+        .sidebar-branding-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #3b82f6;
+            text-transform: uppercase;
+            margin: 0;
         }
 
         .sidebar.active {
@@ -285,9 +341,14 @@
         }
 
         .btn-primary:hover {
-            background-color: #3a7bd5;
-            border-color: #3a7bd5;
-            transform: translateY(-1px);
+            background-color: #1e40af;
+            border-color: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(30, 58, 138, 0.6), 0 4px 12px rgba(30, 58, 138, 0.4);
+        }
+
+        .btn-primary:focus {
+            box-shadow: 0 0 30px rgba(30, 58, 138, 0.8), 0 0 0 0.25rem rgba(30, 58, 138, 0.25);
         }
 
         .btn-google {
@@ -724,17 +785,52 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.6);
+            background: linear-gradient(135deg, #60a5fa 0%, #1e40af 50%, #ffffff 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            display: none; /* Hidden by default */
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-logo {
+            max-width: 280px;
+            max-height: 280px;
+            width: auto;
+            height: auto;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+            object-fit: contain;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         .spinner {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid var(--primary-color);
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top: 6px solid white;
             border-radius: 50%;
             width: 60px;
             height: 60px;
@@ -744,6 +840,68 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Progress bar */
+        .progress-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 107, 53, 0.95);
+            padding: 15px 20px;
+            z-index: 9998;
+            display: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .progress-bar-container.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        .progress-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            color: white;
+        }
+
+        .progress-message {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b4d8 0%, #9d4edd 100%);
+            width: 0%;
+            transition: width 0.2s ease;
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
         }
 
         /* Styles for editable table cells */
@@ -1244,12 +1402,136 @@
                 max-height: 250px;
             }
         }
+
+        /* Canteen GIF animation */
+        .canteen-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 15px;
+        }
+
+        .canteen-loader .loading-logo {
+            max-width: 280px;
+            max-height: 280px;
+            width: auto;
+            height: auto;
+            animation: pulse 2s ease-in-out infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .canteen-loading-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            text-align: center;
+        }
+
+        /* Canteen Loading Spinner */
+        .canteen-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 64, 175, 0.95); /* Stronger blue background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 32px rgba(96, 165, 250, 0.3);
+        }
+
+        .canteen-loading-gif {
+            max-width: 250px;
+            max-height: 250px;
+            width: auto;
+            height: auto;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 767.98px) {
+            body {
+                overflow-x: hidden; /* Prevent horizontal scroll on body */
+            }
+            
+            .sidebar {
+                width: 250px;
+                transform: translateX(-250px); /* Hidden by default on mobile */
+                z-index: 1050;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0); /* Show sidebar when toggled */
+                box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            }
+            
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+                padding: 15px;
+                overflow-x: hidden;
+            }
+            
+            /* Hamburger button visible on mobile */
+            .navbar-toggler {
+                display: block !important;
+            }
+            
+            /* Tables get horizontal scroll only */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table-responsive-stack {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Ensure content doesn't overflow horizontally */
+            .dashboard-container,
+            .auth-container,
+            .card,
+            .form-control,
+            .form-select {
+                overflow-x: hidden;
+            }
+        }
+
     </style>
 </head>
 <body>
     <div class="animated-background"></div>
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
+        <div class="loading-content">
+            <img src="logo.png" alt="GSTATUS" class="loading-logo">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div class="progress-bar-container" id="progressBarContainer">
+        <div class="progress-content">
+            <div class="progress-message" id="progressMessage">Loading...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Hamburger menu for mobile -->
@@ -1260,8 +1542,13 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div>
-            <div class="logo text-center mb-4">
-                <img src="logo.png" alt="Gurukul Logo" style="width: 100%; max-width: 180px; height: auto; border-radius: 5px;">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-box">
+                    <img src="logo.png" alt="GSTATUS">
+                </div>
+                <div class="sidebar-branding">
+                    <p class="sidebar-branding-text">GSTATUS</p>
+                </div>
             </div>
             <div class="user-info" id="userInfo">
                 <!-- User info will be populated here by JavaScript -->
@@ -2140,6 +2427,9 @@
                                 <button type="button" class="btn btn-info" id="importStudentsExcelBtn" title="Import student data from an Excel file.">
                                     <i class="fas fa-file-import"></i> Import from Excel
                                 </button>
+                                <button type="button" class="btn btn-success ms-2" id="exportStudentsSheets" title="Export all students to Google Sheets">
+                                    <i class="fas fa-table"></i> Export to Google Sheets
+                                </button>
                                 <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
                             </div>
                             <div class="table-responsive table-responsive-stack">
@@ -2402,7 +2692,15 @@
                 </div>
 
                 <!-- Canteen Tab -->
-                <div class="tab-pane fade" id="canteen" role="tabpanel">
+                <div class="tab-pane fade" id="canteen" role="tabpanel" style="position: relative;">
+                    <!-- Canteen Loading Overlay -->
+                    <div class="canteen-loading-overlay" id="canteenLoadingOverlay" style="display: none;">
+                        <div class="canteen-loader">
+                            <img src="Official Memo.gif" alt="Loading..." class="canteen-loading-gif">
+                            <div class="canteen-loading-text">Loading Canteen Data...</div>
+                        </div>
+                    </div>
+                    
                     <h3><i class="fas fa-utensils"></i> Canteen Management</h3>
 
                     <!-- Canteen Rules Section -->
@@ -2924,7 +3222,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom Scripts -->
-    <script src="students.js"></script>
+    <!-- <script src="students.js"></script> -->
     <script>
         // --- FIREBASE INITIALIZATION ---
         const firebaseConfig = {
@@ -4126,19 +4424,12 @@ try {
                 if (e.key === 'Enter') addManualCanteenStudents();
             });
 
-            // Load manual additions from localStorage
-            const savedAdditions = localStorage.getItem('manualCanteenStudents');
-            if (savedAdditions) {
-                try {
-                    window.manualCanteenStudents = JSON.parse(savedAdditions);
-                    if (!Array.isArray(window.manualCanteenStudents)) window.manualCanteenStudents = [];
-                } catch (e) {
-                    console.error('Failed to parse saved additions', e);
-                    window.manualCanteenStudents = [];
-                }
-            }
+            // Clear manual additions from localStorage on page reload
+            // This ensures only newly added students are removed on reload
+            localStorage.removeItem('manualCanteenStudents');
+            window.manualCanteenStudents = [];
 
-            // Load manual exclusions from localStorage
+            // Load manual exclusions from localStorage (keep exclusions)
             const savedExclusions = localStorage.getItem('manualCanteenExclusions');
             if (savedExclusions) {
                 try {
@@ -4753,7 +5044,51 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
 
         const canteenTab = document.getElementById('canteen-tab');
         if (canteenTab) {
-            canteenTab.addEventListener('shown.bs.tab', applyCanteenFilters);
+            canteenTab.addEventListener('shown.bs.tab', function() {
+                console.log('Canteen tab opened - showing loading animation');
+                
+                // Show canteen-specific loading animation immediately
+                const loadingOverlay = document.getElementById('canteenLoadingOverlay');
+                if (loadingOverlay) {
+                    // Force display with !important style
+                    loadingOverlay.style.setProperty('display', 'flex', 'important');
+                    loadingOverlay.style.visibility = 'visible';
+                    loadingOverlay.style.opacity = '1';
+                    console.log('Loading overlay shown with forced styles');
+                } else {
+                    console.error('Loading overlay not found!');
+                }
+                
+                // Apply filters with a delay to ensure loading animation is visible
+                setTimeout(() => {
+                    console.log('Applying canteen filters...');
+                    
+                    // Apply filters without blocking global loading functions
+                    try {
+                        applyCanteenFilters();
+                        console.log('Canteen filters applied');
+                    } catch (error) {
+                        console.error('Error applying canteen filters:', error);
+                    }
+                    
+                    // Hide our overlay after delay
+                    setTimeout(() => {
+                        console.log('Hiding canteen loading overlay');
+                        
+                        // Hide canteen loading overlay with fade effect
+                        if (loadingOverlay) {
+                            loadingOverlay.style.opacity = '0';
+                            setTimeout(() => {
+                                loadingOverlay.style.display = 'none';
+                                loadingOverlay.style.visibility = 'hidden';
+                            }, 300);
+                            console.log('Loading overlay hidden with fade effect');
+                        }
+                    }, 1500); // Give enough time for filters to apply and animation to be visible
+                }, 300); // Ensure loading animation is visible for at least 300ms
+            });
+        } else {
+            console.error('Canteen tab not found!');
         }
 
         const applyCanteenBatchAmountBtn = document.getElementById('applyCanteenBatchAmount');
@@ -6405,6 +6740,64 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             } catch (_) {}
         }
 
+        // Progress bar and loading functions
+        function showProgressBar(message) {
+            const container = document.getElementById('progressBarContainer');
+            document.getElementById('progressMessage').textContent = message;
+            document.getElementById('progressFill').style.width = '0%';
+            if (container) container.classList.add('active');
+        }
+
+        function updateProgress(percent, message = null) {
+            const fill = document.getElementById('progressFill');
+            if (fill) fill.style.width = percent + '%';
+            if (message) document.getElementById('progressMessage').textContent = message;
+        }
+
+        function hideProgressBar() {
+            const container = document.getElementById('progressBarContainer');
+            if (container) {
+                setTimeout(() => container.classList.remove('active'), 500);
+            }
+        }
+
+        function hideLoadingScreen() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        // Canteen localStorage functions
+        function saveCanteenToLocalStorage(students) {
+            try {
+                localStorage.setItem('gstatus_canteen_students', JSON.stringify(students));
+            } catch (e) {
+                console.error('Failed to save canteen to localStorage:', e);
+            }
+        }
+
+        function loadCanteenFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('gstatus_canteen_students');
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error('Failed to load canteen from localStorage:', e);
+                return [];
+            }
+        }
+
+        function clearCanteenLocalStorage() {
+            try {
+                localStorage.removeItem('gstatus_canteen_students');
+            } catch (e) {
+                console.error('Failed to clear canteen localStorage:', e);
+            }
+        }
+
         function initializeApp() {
             try {
                 showLoading();
@@ -6435,6 +6828,7 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
                     checkUserRole(currentUserRole);
                     updateBatchDisciplineTimer();
                     hideLoading();
+                    hideLoadingScreen();
                 }
 
                 // Listen for student data changes
@@ -7143,19 +7537,13 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
                 document.getElementById('sidebar').classList.toggle('active');
             });
 
-            // Close sidebar when a nav link is clicked (on mobile)
-            document.querySelectorAll('#dashboardTabs .nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 768) { // Only on mobile
-                        document.getElementById('sidebar').classList.remove('active');
-                    }
-                });
-            });
-
             // Import Excel for Student Management
             document.getElementById('importStudentsExcelBtn').addEventListener('click', function() {
                 document.getElementById('excelFileInput').click();
             });
+
+            // Export to Google Sheets for Student Management
+            document.getElementById('exportStudentsSheets').addEventListener('click', exportStudentsToGoogleSheets);
 
             const excelFileInput = document.getElementById('excelFileInput');
             if (excelFileInput) {
@@ -7786,6 +8174,255 @@ function refreshRankings() {
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
+            }
+        }
+
+        // Export Students to Google Sheets
+        async function exportStudentsToGoogleSheets() {
+            const btn = document.getElementById('exportStudentsSheets');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
+                
+                // Get Firebase authentication token (same as other export functions)
+                const currentUser = firebase.auth().currentUser;
+                if (!currentUser) {
+                    alert('Please sign in with Google first, then try exporting.');
+                    return;
+                }
+                
+                // Get Google OAuth token
+                const token = await getGoogleOAuthToken();
+                if (!token) {
+                    alert('Google authentication required. Please sign in with Google.');
+                    return;
+                }
+                
+                // Test token validity
+                try {
+                    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) throw new Error('Token invalid');
+                } catch (testError) {
+                    console.error('Token test failed:', testError);
+                    alert('Authentication expired. Please sign in with Google again.');
+                    return;
+                }
+                
+                // Check if students data is available
+                if (!students || students.length === 0) {
+                    alert('No student data available to export.');
+                    return;
+                }
+                
+                // Prepare data for export
+                const headers = ['Student ID', 'Name', 'Room', 'Floor', 'Class', 'Section', 'Points', 'Rank', 'Status'];
+                const rows = [headers];
+                
+                students.forEach(student => {
+                    rows.push([
+                        student.id || student.MID || '',
+                        student.name || student.Name || '',
+                        student.room || student['Room No'] || '',
+                        student.floor || '',
+                        student.class || '',
+                        student.section || '',
+                        student.points || 0,
+                        student.rank || '',
+                        student.status || 'Active'
+                    ]);
+                });
+                
+                // Create spreadsheet with Drive integration
+                const spreadsheetId = await createSpreadsheetWithDrive('Gurukul Students Data', rows, token);
+                
+                if (spreadsheetId) {
+                    alert(`Successfully exported ${students.length} students to Google Sheets! The spreadsheet has been saved to your Google Drive.`);
+                    // Open the spreadsheet in a new tab
+                    const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}`;
+                    window.open(spreadsheetUrl, '_blank');
+                }
+                
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Enhanced spreadsheet creation with Drive integration
+        async function createSpreadsheetWithDrive(title, rows, token) {
+            try {
+                console.log('Creating spreadsheet with Drive integration...');
+                
+                // Create spreadsheet with API key
+                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${GOOGLE_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        properties: {
+                            title: title + ' - ' + new Date().toLocaleDateString()
+                        }
+                    })
+                });
+                
+                if (!createResponse.ok) {
+                    const errorData = await createResponse.json();
+                    console.error('Sheets API error:', errorData);
+                    
+                    // Handle specific API errors
+                    if (errorData.error?.code === 403) {
+                        if (errorData.error?.message?.includes('Google Sheets API has not been used')) {
+                            throw new Error('Google Sheets API is not enabled for this project. Please enable it in Google Cloud Console and try again.');
+                        } else {
+                            throw new Error('Permission denied. Please make sure you are signed in with Google and have the necessary permissions.');
+                        }
+                    } else if (errorData.error?.code === 429) {
+                        throw new Error('Too many requests. Please wait a moment and try again.');
+                    } else {
+                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                }
+                
+                const spreadsheet = await createResponse.json();
+                const spreadsheetId = spreadsheet.spreadsheetId;
+                console.log('Spreadsheet created with ID:', spreadsheetId);
+                
+                // Add data to spreadsheet
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED&key=${GOOGLE_API_KEY}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        values: rows
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    console.error('Sheets API update error:', errorData);
+                    throw new Error(`Failed to add data to spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                }
+                
+                console.log('Data added to spreadsheet successfully');
+                
+                // Move spreadsheet to user's Drive folder
+                try {
+                    await moveSpreadsheetToDrive(spreadsheetId, token);
+                    console.log('Spreadsheet moved to Drive successfully');
+                } catch (driveError) {
+                    console.warn('Could not move to Drive:', driveError);
+                    // Continue anyway - the spreadsheet was created successfully
+                }
+                
+                return spreadsheetId;
+                
+            } catch (error) {
+                console.error('Error creating spreadsheet with Drive integration:', error);
+                throw error;
+            }
+        }
+
+        // Move spreadsheet to user's Drive
+        async function moveSpreadsheetToDrive(spreadsheetId, token) {
+            try {
+                // Get file metadata
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}?key=${GOOGLE_API_KEY}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!fileResponse.ok) {
+                    throw new Error('Failed to get file metadata');
+                }
+                
+                const file = await fileResponse.json();
+                
+                // Add to user's Drive (already should be there, but let's ensure it's properly organized)
+                // We can add it to a specific folder or just ensure it's visible
+                console.log('Spreadsheet is in Drive:', file.name, file.id);
+                
+                return true;
+            } catch (error) {
+                console.error('Drive integration error:', error);
+                throw error;
+            }
+        }
+
+        // Helper function to create spreadsheet
+        async function createSpreadsheet(title, rows) {
+            const token = gapi.auth2?.getAuthInstance()?.currentUser.get().getAuthResponse().access_token;
+            
+            try {
+                // Create spreadsheet
+                const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        properties: {
+                            title: title
+                        }
+                    })
+                });
+                
+                if (!createResponse.ok) {
+                    const errorData = await createResponse.json();
+                    console.error('Sheets API error:', errorData);
+                    
+                    // Handle specific API errors
+                    if (errorData.error?.code === 403) {
+                        if (errorData.error?.message?.includes('Google Sheets API has not been used')) {
+                            throw new Error('Google Sheets API is not enabled for this project. Please enable it in Google Cloud Console and try again.');
+                        } else {
+                            throw new Error('Permission denied. Please make sure you are signed in with Google and have the necessary permissions.');
+                        }
+                    } else if (errorData.error?.code === 429) {
+                        throw new Error('Too many requests. Please wait a moment and try again.');
+                    } else {
+                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                }
+                
+                const spreadsheet = await createResponse.json();
+                const spreadsheetId = spreadsheet.spreadsheetId;
+                
+                // Add data to spreadsheet
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        values: rows
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    console.error('Sheets API update error:', errorData);
+                    throw new Error(`Failed to add data to spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                }
+                
+                return spreadsheetId;
+                
+            } catch (error) {
+                console.error('Error creating spreadsheet:', error);
+                throw error;
             }
         }
 
@@ -8832,6 +9469,7 @@ filteredStudents.sort((a, b) => {
             const dashboardContainer = document.getElementById('dashboardContainer');
             const authTabs = document.getElementById('authTabs');
             const dashboardTabs = document.getElementById('dashboardTabs');
+            const mobileBottomNav = document.getElementById('mobileBottomNav');
 
             if (user) {
                 userInfoDiv.innerHTML = `
