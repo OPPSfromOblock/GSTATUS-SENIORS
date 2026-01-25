@@ -1705,12 +1705,12 @@
                         <div class="mb-3">
                             <label class="form-label"><i class="fas fa-user-tag"></i> Your Position</label>
                             <div id="roleSelection">
-                                <div class="role-option selected" data-role="teacher">
+                                <div class="role-option selected" data-role="parent">
                                     <label>
-                                        <input type="radio" name="role" value="teacher" checked aria-label="Select Teacher Role"/>
+                                        <input type="radio" name="role" value="parent" checked aria-label="Select Parent Role"/>
                                         <div>
-                                            <span class="d-block title">Teacher</span>
-                                            <span class="d-block description">Can manage classes and submit grades</span>
+                                            <span class="d-block title">Parent</span>
+                                            <span class="d-block description">View student progress and rankings</span>
                                         </div>
                                     </label>
                                 </div>
@@ -1740,7 +1740,35 @@
                     <div class="greeting">
                         <i class="fas fa-hands-praying"></i> Jay Swaminarayan <i class="fas fa-hands-praying"></i>
                     </div>
-                    <div class="row">
+                    <!-- Parent Portal Tab (Initially Hidden) -->
+                    <div id="parent-portal-content" style="display: none;">
+                        <div class="card shadow-sm border-primary mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0"><i class="fas fa-user-graduate"></i> Student Progress Portal</h4>
+                            </div>
+                            <div class="card-body text-center p-5">
+                                <h5 class="card-title mb-3">View Your Child's Progress</h5>
+                                <p class="card-text text-muted mb-4">Enter the Student MID provided by the school to view points and rank.</p>
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6">
+                                        <div class="input-group mb-3 input-group-lg">
+                                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            <input type="text" class="form-control" id="parentStudentMid" placeholder="Enter Student MID (e.g. AC1234)">
+                                            <button class="btn btn-primary" type="button" id="btnCheckStudentStats">
+                                                <i class="fas fa-search"></i> Check Progress
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="parentStudentResult" class="mt-4" style="display:none;">
+                            <!-- Result Card Will Be Injected Here -->
+                        </div>
+                    </div>
+
+                    <div class="row" id="home-dashboard-content">
                         <div class="col-md-6">
                             <div class="system-status">
                                 <i class="fas fa-check-circle"></i>
@@ -1777,7 +1805,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card mt-4">
+                    <div class="card mt-4" id="homeAnnouncements">
                         <div class="card-header">
                             <i class="fas fa-bullhorn"></i> Announcements
                         </div>
@@ -1794,7 +1822,7 @@
                     </div>
 
                     <!-- Support Section (moved from Support Tab) -->
-                    <div class="card mt-4">
+                    <div class="card mt-4" id="homeSupportSection">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div><i class="fas fa-life-ring"></i> Support</div>
                             <button class="btn btn-outline-secondary btn-sm" id="refreshIssuesBtn">
@@ -1830,14 +1858,36 @@
                                 
                                 <!-- Right Panel: Issues List -->
                                 <div class="col-md-8 d-flex flex-column bg-light p-0">
-                                    <div class="p-3 bg-white border-bottom d-flex justify-content-between align-items-center shadow-sm" style="z-index: 1;">
-                                        <h5 class="m-0"><i class="fas fa-list text-secondary"></i> Issue Tracker</h5>
-                                        <!-- refresh button kept in header for parity -->
+                                    <div class="p-2 bg-white border-bottom shadow-sm" style="z-index: 1;">
+                                        <ul class="nav nav-pills nav-fill" id="supportIssueTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active py-2" id="internal-issues-tab" data-bs-toggle="pill" data-bs-target="#internal-issues-pane" type="button" role="tab">
+                                                    <i class="fas fa-user-shield me-1"></i> Internal
+                                                </button>
+                                            </li>
+                                            <li class="nav-item" role="presentation" id="parent-issues-tab-item" style="display: none;">
+                                                <button class="nav-link py-2" id="parent-issues-tab" data-bs-toggle="pill" data-bs-target="#parent-issues-pane" type="button" role="tab">
+                                                    <i class="fas fa-user-graduate me-1"></i> Parent
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </div>
-                                    <div class="flex-grow-1 overflow-auto p-3" id="issuesList">
-                                        <div class="text-center p-5 text-muted">
-                                            <div class="spinner-border text-primary mb-2" role="status"></div>
-                                            <div>Loading issues...</div>
+                                    <div class="tab-content flex-grow-1 overflow-auto p-3" id="supportIssueTabContent">
+                                        <div class="tab-pane fade show active" id="internal-issues-pane" role="tabpanel">
+                                            <div id="issuesList">
+                                                <div class="text-center p-5 text-muted">
+                                                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                                                    <div>Loading issues...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="parent-issues-pane" role="tabpanel">
+                                            <div id="parentIssuesList">
+                                                <div class="text-center p-5 text-muted">
+                                                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                                    <div>No parent issues reported.</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1846,7 +1896,7 @@
                     </div>
 
                     <!-- New section for Batch Discipline Timer -->
-                    <div class="card mt-4">
+                    <div class="card mt-4" id="homeBatchTimer">
                         <div class="card-header">
                             <i class="fas fa-clock"></i> Batch Discipline Window
                         </div>
@@ -1856,7 +1906,7 @@
                     </div>
 
                     <!-- Public Announcements / Notes Section -->
-                    <div class="card mt-4">
+                    <div class="card mt-4" id="homePublicNotes">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div><i class="fas fa-globe"></i> Public Announcements / Notes</div>
                             <button class="btn btn-sm btn-success" id="addPublicNoteBtn" style="display: none;" title="Add a new public announcement or note.">
@@ -2009,7 +2059,6 @@
                                         <option value="RONAK SIR">RONAK SIR</option>
                                         <option value="Manoj">Manoj</option>
                                         <option value="Testing Admin">Testing admin</option>
-                                        <option value="Rahul sir">Rahul</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
@@ -2027,6 +2076,93 @@
                                 </div>
                             </form>
                             <div class="update-message alert alert-success mt-3" id="updateMessage" role="alert"></div>
+                        </div>
+                    </div>
+
+                    <!-- Roles Manager Section (Admin Only) -->
+                    <div class="card mb-4" id="rolesManagerCard" style="display: none;">
+                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                            <div><i class="fas fa-users-cog"></i> Roles Manager</div>
+                            <button class="btn btn-sm btn-outline-light" id="lockRolesManagerBtn" title="Lock Roles Manager">
+                                <i class="fas fa-lock"></i> Lock
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Password Prompt -->
+                            <div id="rolesManagerAuth">
+                                <p class="text-muted text-center mb-3">Please enter the password to access Roles Manager.</p>
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="rolesManagerPassword" placeholder="Enter Password">
+                                            <button class="btn btn-primary" type="button" id="unlockRolesManagerBtn">Unlock</button>
+                                        </div>
+                                        <div id="rolesManagerAuthError" class="text-danger mt-2 text-center" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Roles Manager Content -->
+                            <div id="rolesManagerContent" style="display: none;">
+                                <ul class="nav nav-tabs mb-3" id="rolesTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="tab-teachers" data-bs-toggle="tab" data-bs-target="#content-teachers" type="button" role="tab">Teachers</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="tab-admins" data-bs-toggle="tab" data-bs-target="#content-admins" type="button" role="tab">Admins</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="tab-incharges" data-bs-toggle="tab" data-bs-target="#content-incharges" type="button" role="tab">Incharges</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="rolesTabsContent">
+                                    <div class="tab-pane fade show active" id="content-teachers" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Role</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="list-teachers"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="content-admins" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Role</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="list-admins"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="content-incharges" role="tabpanel">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Role</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="list-incharges"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2723,10 +2859,10 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limilt (no choco pie/Dark Fantasy )</li>
-                                <li class="list-group-item"><strong>2:</strong> Jacket / Sweater are not allowed and no Caps even</li>
-                                <li class="list-group-item"><strong>3:</strong> No one should come in civil dress</li>
-                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Jersey or any other gurukul dress code</li>
+                                <li class="list-group-item"><strong>1:</strong> Only 5 biscuit packets- limil (no choco pie/Dark Fantasy )</li>
+                                <li class="list-group-item"><strong>2:</strong> Tacket / Sweater are not allowed and no Caps even</li>
+                                <li class="list-group-item"><strong>3:</strong> No one should come in civi dress</li>
+                                <li class="list-group-item"><strong>4:</strong> Only Gurukul T-shirt , No other gurukul Jersey or any Other Gurukul Dress Code</li>
                             </ul>
                         </div>
                     </div>
@@ -3155,6 +3291,7 @@
                                 <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
                                 <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
                                 <option value="Manoj">Manoj</option>
+                                <option value="Rahul sir">Rahul sir</option>
                                 <option value="Testing Admin">Testing admin</option>
                             </select>
                         </div>
@@ -3292,10 +3429,11 @@ try {
         // --- AUTHENTICATION LOGIC (from auth.html) ---
         const CODES = {
             'Pa&&word': 'admin',
-            'ENTROPHY': 'incharge'
+            'ENTROPHY': 'incharge',
+            'VAPE': 'teacher'
         };
 
-        let selectedRole = 'teacher'; // Default role for registration
+        let selectedRole = 'parent'; // Default role for registration
 
         document.querySelectorAll('.role-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -6921,6 +7059,18 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
         }
 
         function initializeEventListeners() {
+            // Parent Portal Listener
+            const btnCheckStudentStats = document.getElementById('btnCheckStudentStats');
+            if (btnCheckStudentStats) {
+                btnCheckStudentStats.addEventListener('click', checkStudentProgress);
+            }
+            const parentStudentMid = document.getElementById('parentStudentMid');
+            if (parentStudentMid) {
+                parentStudentMid.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') checkStudentProgress();
+                });
+            }
+
             document.getElementById('positiveAction').addEventListener('change', function() {
                 document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
                 document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
@@ -9517,128 +9667,132 @@ filteredStudents.sort((a, b) => {
                 "individual-data-tab", "canteen-tab", "predictive-analytics-tab", "notes-tab", "adjudicators-tab", "face-recognition-tab", "support-tab"
             ];
 
-
             const positivePointsSectionContainer = document.getElementById('positivePointsSectionContainer');
             const negativePointsSectionContainer = document.getElementById('negativePointsSectionContainer');
             const addPublicNoteBtn = document.getElementById('addPublicNoteBtn');
+            const dashboardTabs = document.getElementById('dashboardTabs');
+            const parentPortalContent = document.getElementById('parent-portal-content');
+            const homeDashboardContent = document.getElementById('home-dashboard-content');
+            const rolesManagerCard = document.getElementById('rolesManagerCard');
+            
+            // Home Tab Sections to Toggle
+            const homeAnnouncements = document.getElementById('homeAnnouncements');
+            const homeSupportSection = document.getElementById('homeSupportSection');
+            const homeBatchTimer = document.getElementById('homeBatchTimer');
+            const homePublicNotes = document.getElementById('homePublicNotes');
 
             // Canteen export buttons to control
             const exportToExcelBtn = document.getElementById('exportToExcel');
             const exportToGoogleSheetsBtn = document.getElementById('exportToGoogleSheets');
-                                    const printCanteenListBtn = document.getElementById('printCanteenList');
-                                    const manageCanteenDatesCard = document.getElementById('manageCanteenDatesCard');
-                                    const manualCanteenAddCard = document.getElementById('manualCanteenAddCard');
-                                    const canteenRemoveSection = document.getElementById('canteenRemoveSection'); // New
-                                    
-                                                // Canteen import and history elements to control for incharge
-                                    
-                                    const importStudentDataCard = document.querySelector('.card:has(#importStudentData)');
-                                    const dataChangeHistoryCard = document.querySelector('.card:has(#changeHistoryTable)');
-                        
-                                    // Hide all tabs and sections by default
-                                    tabsToControl.forEach(tabId => {
-                                        const tabElement = document.getElementById(tabId);
-                                        if (tabElement) {
-                                            tabElement.style.display = "none";
-                                        }
-                                    });
-                                    if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none';
-                                    if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'none';
-                                    if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'none'; // Hide public note add button by default
-                        
-                                    // Hide canteen export buttons by default
-                                    if (exportToExcelBtn) exportToExcelBtn.style.display = 'none';
-                                    if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'none';
-                                                if (printCanteenListBtn) printCanteenListBtn.style.display = 'none';
-                                                if (manageCanteenDatesCard) manageCanteenDatesCard.style.display = 'none';
-                                                if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'none'; // This is the consolidated card now
-                                                if (canteenRemoveSection) canteenRemoveSection.style.display = 'none'; // Hide remove section by default
-                                    
-                                                // Hide canteen import and history cards by default
-                                    
-                                    if (importStudentDataCard) importStudentDataCard.style.display = 'none';
-                                    if (dataChangeHistoryCard) dataChangeHistoryCard.style.display = 'none';
-                        
-                                    if (role === "admin") {
-                                        // Admin has access to everything including face scan and all canteen functions
-                                        tabsToControl.forEach(tabId => {
-                                            const tabElement = document.getElementById(tabId);
-                                            if (tabElement) {
-                                                tabElement.style.display = ""; // Show all for admin
-                                            }
-                                        });
-                                        if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
-                                        if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
-                                        // Ensure both sections take half width
-                                        if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
-                                        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
-                                        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
-                                        if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'block'; // Show public note add button for admin
-                        
-                                        // Show all canteen export buttons for admin
-                                        if (exportToExcelBtn) exportToExcelBtn.style.display = 'inline-block';
-                                        if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'inline-block';
-                                                        if (printCanteenListBtn) printCanteenListBtn.style.display = 'inline-block';
-                                                        if (manageCanteenDatesCard) {
-                                                            manageCanteenDatesCard.style.display = 'block';
-                                                            renderCanteenManageTable();
-                                                        }
-                                                        if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'block'; // Show the card
-                                                        if (canteenRemoveSection) canteenRemoveSection.style.display = 'block'; // Show remove section ONLY for admin
+            const printCanteenListBtn = document.getElementById('printCanteenList');
+            const manageCanteenDatesCard = document.getElementById('manageCanteenDatesCard');
+            const manualCanteenAddCard = document.getElementById('manualCanteenAddCard');
+            const canteenRemoveSection = document.getElementById('canteenRemoveSection');
+            
+            const importStudentDataCard = document.querySelector('.card:has(#importStudentData)');
+            const dataChangeHistoryCard = document.querySelector('.card:has(#changeHistoryTable)');
+            const parentIssuesTabItem = document.getElementById('parent-issues-tab-item');
+
+            // Reset visibility
+            if (dashboardTabs) dashboardTabs.style.display = 'flex';
+            if (parentPortalContent) parentPortalContent.style.display = 'none';
+            if (homeDashboardContent) homeDashboardContent.style.display = 'flex';
+            if (parentIssuesTabItem) parentIssuesTabItem.style.display = 'none';
+
+            // Show all home sections by default
+            if (homeAnnouncements) homeAnnouncements.style.display = 'block';
+            if (homeSupportSection) homeSupportSection.style.display = 'block';
+            if (homeBatchTimer) homeBatchTimer.style.display = 'block';
+            if (homePublicNotes) homePublicNotes.style.display = 'block';
+            if (rolesManagerCard) rolesManagerCard.style.display = 'none';
+
+            // Hide all tabs and sections by default
+            tabsToControl.forEach(tabId => {
+                const tabElement = document.getElementById(tabId);
+                if (tabElement) {
+                    tabElement.style.display = "none";
+                }
+            });
+            if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none';
+            if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'none';
+            if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'none';
+
+            // Hide canteen export buttons by default
+            if (exportToExcelBtn) exportToExcelBtn.style.display = 'none';
+            if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'none';
+            if (printCanteenListBtn) printCanteenListBtn.style.display = 'none';
+            if (manageCanteenDatesCard) manageCanteenDatesCard.style.display = 'none';
+            if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'none';
+            if (canteenRemoveSection) canteenRemoveSection.style.display = 'none';
+
+            if (importStudentDataCard) importStudentDataCard.style.display = 'none';
+            if (dataChangeHistoryCard) dataChangeHistoryCard.style.display = 'none';
+
+            if (role === "admin") {
+                tabsToControl.forEach(tabId => {
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) tabElement.style.display = ""; 
+                });
+                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
+                if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
+                if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
+                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
+                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
+                if (addPublicNoteBtn) addPublicNoteBtn.style.display = 'block';
+                if (rolesManagerCard) rolesManagerCard.style.display = 'block';
+                if (parentIssuesTabItem) parentIssuesTabItem.style.display = 'block';
+
+                if (exportToExcelBtn) exportToExcelBtn.style.display = 'inline-block';
+                if (exportToGoogleSheetsBtn) exportToGoogleSheetsBtn.style.display = 'inline-block';
+                if (printCanteenListBtn) printCanteenListBtn.style.display = 'inline-block';
+                if (manageCanteenDatesCard) {
+                    manageCanteenDatesCard.style.display = 'block';
+                    renderCanteenManageTable();
+                }
+                if (manualCanteenAddCard) manualCanteenAddCard.style.display = 'block';
+                if (canteenRemoveSection) canteenRemoveSection.style.display = 'block';
+
             } else if (role === "incharge") {
-        // In-charge access: hide Rankings, History, Individual Data, Adjudicators, Face Scan
-        // Allow: Home, Administration, Batch Discipline, Student Management, Notes, Canteen, Analytics
-        const allowedTabs = [
-            "home-tab", "administration-tab", "batch-discipline-tab",
-            "student-management-tab", "notes-tab", "canteen-tab", "predictive-analytics-tab", "support-tab"
-        ];
-        allowedTabs.forEach(tabId => {
-            const tabElement = document.getElementById(tabId);
-            if (tabElement) {
-                tabElement.style.display = "";
-            }
-        });
-        if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
-        if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
-        if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
-        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
-        if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
-
-        // Explicitly hide restricted tabs for incharge
-        const rankingsTab = document.getElementById('rankings-tab');
-        if (rankingsTab) rankingsTab.style.display = 'none';
-        const responsesTab = document.getElementById('responses-tab');
-        if (responsesTab) responsesTab.style.display = 'none';
-        const individualDataTab = document.getElementById('individual-data-tab');
-        if (individualDataTab) individualDataTab.style.display = 'none';
-        const adjudicatorsTab = document.getElementById('adjudicators-tab');
-        if (adjudicatorsTab) adjudicatorsTab.style.display = 'none';
-        const faceRecognitionTab = document.getElementById('face-recognition-tab');
-        if (faceRecognitionTab) faceRecognitionTab.style.display = 'none';
-
-        // Hide canteen export buttons for incharge (no export functions)
-        // exportToExcelBtn, exportToGoogleSheetsBtn, printCanteenListBtn already hidden by default
-
-            } else if (role === "teacher") {
-                // Teacher has access to specific tabs and only negative points
                 const allowedTabs = [
                     "home-tab", "administration-tab", "batch-discipline-tab",
-                    "notes-tab" // Added notes-tab
+                    "student-management-tab", "notes-tab", "canteen-tab", "predictive-analytics-tab", "support-tab"
                 ];
                 allowedTabs.forEach(tabId => {
                     const tabElement = document.getElementById(tabId);
-                    if (tabElement) {
-                        tabElement.style.display = "";
-                    }
+                    if (tabElement) tabElement.style.display = "";
                 });
-                // Only negative points section is visible for teachers and centered
-                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none'; // Hide positive points
+                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'block';
+                if (negativePointsSectionContainer) negativePointsSectionContainer.style.display = 'block';
+                if (positivePointsSectionContainer) positivePointsSectionContainer.classList.add('col-md-6');
+                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.add('col-md-6');
+                if (negativePointsSectionContainer) negativePointsSectionContainer.classList.remove('offset-md-3');
+
+                const rankingsTab = document.getElementById('rankings-tab');
+                if (rankingsTab) rankingsTab.style.display = 'none';
+                const responsesTab = document.getElementById('responses-tab');
+                if (responsesTab) responsesTab.style.display = 'none';
+                const individualDataTab = document.getElementById('individual-data-tab');
+                if (individualDataTab) individualDataTab.style.display = 'none';
+                const adjudicatorsTab = document.getElementById('adjudicators-tab');
+                if (adjudicatorsTab) adjudicatorsTab.style.display = 'none';
+                const faceRecognitionTab = document.getElementById('face-recognition-tab');
+                if (faceRecognitionTab) faceRecognitionTab.style.display = 'none';
+
+            } else if (role === "teacher") {
+                const allowedTabs = [
+                    "home-tab", "administration-tab", "batch-discipline-tab",
+                    "notes-tab"
+                ];
+                allowedTabs.forEach(tabId => {
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) tabElement.style.display = "";
+                });
+                if (positivePointsSectionContainer) positivePointsSectionContainer.style.display = 'none';
                 if (negativePointsSectionContainer) {
-                    negativePointsSectionContainer.style.display = 'block'; // Show negative points
-                    negativePointsSectionContainer.classList.remove('col-md-6'); // Remove half width
-                    negativePointsSectionContainer.classList.add('col-md-6', 'offset-md-3'); // Center it
+                    negativePointsSectionContainer.style.display = 'block';
+                    negativePointsSectionContainer.classList.remove('col-md-6');
+                    negativePointsSectionContainer.classList.add('col-md-6', 'offset-md-3');
                 }
-                // Student Management, Rankings, Individual Data, and History are hidden for teacher
                 const studentManagementTab = document.getElementById('student-management-tab');
                 if (studentManagementTab) studentManagementTab.style.display = 'none';
                 const rankingsTab = document.getElementById('rankings-tab');
@@ -9647,12 +9801,222 @@ filteredStudents.sort((a, b) => {
                 if (individualDataTab) individualDataTab.style.display = 'none';
                 const responsesTab = document.getElementById('responses-tab');
                 if (responsesTab) responsesTab.style.display = 'none';
-                const adjudicatorsTab = document.getElementById('adjudicators-tab'); // Hide adjudicators tab for teacher
+                const adjudicatorsTab = document.getElementById('adjudicators-tab');
                 if (adjudicatorsTab) adjudicatorsTab.style.display = 'none';
+
+            } else if (role === "parent") {
+                // Parent View: Show dashboard, but hide restricted tabs
+                const allowedTabs = ["home-tab", "support-tab"];
+                allowedTabs.forEach(tabId => {
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) tabElement.style.display = "";
+                });
+                
+                // Hide restricted tabs
+                const restrictedTabs = ["rankings-tab", "responses-tab", "student-management-tab", "administration-tab", "batch-discipline-tab", "individual-data-tab", "canteen-tab", "predictive-analytics-tab", "notes-tab", "adjudicators-tab", "face-recognition-tab"];
+                restrictedTabs.forEach(tabId => {
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) tabElement.style.display = "none";
+                });
+
+                if (dashboardTabs) dashboardTabs.style.display = 'flex'; // Show sidebar
+                if (homeDashboardContent) homeDashboardContent.style.display = 'none'; // Hide normal home content
+                if (parentPortalContent) parentPortalContent.style.display = 'block'; // Show parent portal
+                
+                // Hide specific home sections
+                if (homeAnnouncements) homeAnnouncements.style.display = 'none';
+                if (homeSupportSection) homeSupportSection.style.display = 'none';
+                if (homeBatchTimer) homeBatchTimer.style.display = 'none';
+                if (homePublicNotes) homePublicNotes.style.display = 'none';
             }
-            // Re-check discipline tab access after role-based display is set
+
             checkDisciplineTabAccess();
-            renderPublicNotes(); // Re-render public notes to update button visibility
+            renderPublicNotes();
+        }
+
+        // Parent Portal Logic
+        function checkStudentProgress() {
+            const midInput = document.getElementById('parentStudentMid');
+            const resultDiv = document.getElementById('parentStudentResult');
+            const mid = midInput.value.trim().toUpperCase(); // Input is MID, but we match against ID/MID
+
+            if (!mid) {
+                alert("Please enter a valid Student MID.");
+                return;
+            }
+
+            const student = students.find(s => (s.id || s.MID || '').toUpperCase() === mid);
+
+            if (student) {
+                const grade = getGradeForStudent(student);
+                const badgeClass = getRankBadgeClass(grade);
+                
+                // Fetch History
+                const studentHistory = responseHistory.filter(entry => entry.studentId === student.id)
+                    .sort((a, b) => {
+                        const dateA = new Date(`${a.date.split('/').reverse().join('-')}T${a.time}`);
+                        const dateB = new Date(`${b.date.split('/').reverse().join('-')}T${b.time}`);
+                        return dateB - dateA;
+                    });
+
+                let historyHTML = '';
+                if (studentHistory.length === 0) {
+                    historyHTML = '<tr><td colspan="4" class="text-center">No history found for this student.</td></tr>';
+                } else {
+                    studentHistory.forEach(entry => {
+                        historyHTML += `
+                            <tr>
+                                <td>${entry.date} ${entry.time}</td>
+                                <td>${entry.action}</td>
+                                <td class="${entry.pointsChanged >= 0 ? 'text-success' : 'text-danger'}">
+                                    ${entry.pointsChanged > 0 ? '+' : ''}${entry.pointsChanged}
+                                </td>
+                                <td>${entry.modifiedBy || 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="card border-info shadow mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-user-graduate"></i> Student Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h2 class="card-title text-primary mb-3">${student.name}</h2>
+                                    <p class="card-text fs-5"><strong>ID:</strong> ${student.id}</p>
+                                    <p class="card-text fs-5"><strong>Class:</strong> ${student.class || 'N/A'} - ${student.section || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <div class="p-3 bg-light rounded border mb-3">
+                                        <h4 class="text-muted">Current Performance</h4>
+                                        <h1 class="display-4 fw-bold text-primary my-2">${student.points || 0} <small class="fs-6 text-muted">Pts</small></h1>
+                                        <span class="badge ${badgeClass} fs-5 px-4 py-2">Rank Grade: ${grade}</span>
+                                    </div>
+                                    <div class="row text-start px-3">
+                                        <div class="col-6">
+                                            <p class="mb-1 text-muted small uppercase fw-bold">Room No</p>
+                                            <p class="fs-5 fw-bold">${student.room || 'N/A'}</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="mb-1 text-muted small uppercase fw-bold">Floor</p>
+                                            <p class="fs-5 fw-bold">${student.floor || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="fas fa-history"></i> Points History</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th>Action</th>
+                                            <th>Points</th>
+                                            <th>Modified By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${historyHTML}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="fas fa-headset"></i> Parent Support</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Report an issue specifically regarding this student or the portal.</p>
+                            <form id="parentSupportForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Issue Title</label>
+                                    <input type="text" class="form-control" id="parentIssueTitle" required placeholder="Brief summary of the issue">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Description</label>
+                                    <textarea class="form-control" id="parentIssueDescription" rows="4" required placeholder="Detailed description..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-paper-plane"></i> Submit Issue
+                                </button>
+                            </form>
+                            <div id="parentSupportMessage" class="mt-3 alert" style="display:none;"></div>
+                        </div>
+                    </div>
+                `;
+                
+                // Bind Parent Support Form
+                const pForm = document.getElementById('parentSupportForm');
+                if (pForm) {
+                    pForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const title = document.getElementById('parentIssueTitle').value.trim();
+                        const desc = document.getElementById('parentIssueDescription').value.trim();
+                        const msgEl = document.getElementById('parentSupportMessage');
+                        
+                        if(!title || !desc) return;
+                        
+                        const btn = pForm.querySelector('button');
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+                        
+                        const newIssue = {
+                            title: `[Parent Portal] ${title}`,
+                            description: `Student ID: ${student.id}\nName: ${student.name}\n\n${desc}`,
+                            status: 'open',
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            createdBy: {
+                                uid: currentUserUid || 'parent_user',
+                                email: currentUserEmail || 'parent_email',
+                                name: 'Parent User',
+                                role: 'parent'
+                            },
+                            upvotes: {}
+                        };
+                        
+                        database.ref('supportIssues').push(newIssue)
+                            .then(() => {
+                                msgEl.className = 'alert alert-success mt-3';
+                                msgEl.innerHTML = 'Issue reported successfully!';
+                                msgEl.style.display = 'block';
+                                pForm.reset();
+                            })
+                            .catch(err => {
+                                msgEl.className = 'alert alert-danger mt-3';
+                                msgEl.textContent = 'Error: ' + err.message;
+                                msgEl.style.display = 'block';
+                            })
+                            .finally(() => {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Issue';
+                                setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+                            });
+                    });
+                }
+
+                resultDiv.style.display = 'block';
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i><br>
+                        <strong>Student Not Found</strong><br>
+                        No student found with MID: <strong>${mid}</strong>. Please check the ID and try again.
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+            }
         }
 
         // New function for Batch Discipline Timer
@@ -12212,15 +12576,18 @@ async function submitSupportIssue(e) {
 // Render issues list
 function renderSupportIssues(issuesData) {
     const issuesList = document.getElementById('issuesList');
+    const parentIssuesList = document.getElementById('parentIssuesList');
     if (!issuesList) return;
     
     if (!issuesData) {
-        issuesList.innerHTML = `
+        const emptyMsg = `
             <div class="text-center p-5 text-muted">
                 <i class="fas fa-clipboard-check fa-3x mb-3 text-secondary" style="opacity: 0.5;"></i>
                 <h5>No issues found</h5>
                 <p>Everything is running smoothly!</p>
             </div>`;
+        issuesList.innerHTML = emptyMsg;
+        if (parentIssuesList) parentIssuesList.innerHTML = emptyMsg;
         return;
     }
 
@@ -12233,6 +12600,7 @@ function renderSupportIssues(issuesData) {
     issues.sort((a, b) => b.timestamp - a.timestamp);
 
     issuesList.innerHTML = '';
+    if (parentIssuesList) parentIssuesList.innerHTML = '';
     
     issues.forEach(issue => {
         const date = issue.timestamp ? new Date(issue.timestamp).toLocaleString() : 'N/A';
@@ -12241,6 +12609,7 @@ function renderSupportIssues(issuesData) {
         const isUpvoted = currentUserUid && upvotes[currentUserUid];
         const isFixed = issue.status === 'fixed';
         const isAdmin = currentUserRole === 'admin';
+        const isParentIssue = issue.createdBy && (issue.createdBy.role === 'parent' || String(issue.title).includes('[Parent Portal]'));
         
         const card = document.createElement('div');
         card.className = `card mb-3 border-0 shadow-sm ${isFixed ? 'bg-light' : 'bg-white'}`;
@@ -12251,7 +12620,8 @@ function renderSupportIssues(issuesData) {
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <h6 class="card-title mb-1 fw-bold ${isFixed ? 'text-success' : 'text-dark'}">
-                            ${isFixed ? '<i class="fas fa-check-circle me-1"></i>' : ''} ${issue.title}
+                            ${isFixed ? '<i class="fas fa-check-circle me-1"></i>' : ''} 
+                            ${issue.title}
                         </h6>
                         <div class="text-muted small">
                             <i class="fas fa-user-circle me-1"></i> ${issue.createdBy ? issue.createdBy.name : 'Unknown'} 
@@ -12284,8 +12654,21 @@ function renderSupportIssues(issuesData) {
                 </div>
             </div>
         `;
-        issuesList.appendChild(card);
+        
+        if (isParentIssue) {
+            if (parentIssuesList) parentIssuesList.appendChild(card);
+        } else {
+            issuesList.appendChild(card);
+        }
     });
+
+    // Check if lists are empty after sorting
+    if (issuesList.innerHTML === '') {
+        issuesList.innerHTML = '<div class="text-center p-5 text-muted">No internal issues found.</div>';
+    }
+    if (parentIssuesList && parentIssuesList.innerHTML === '') {
+        parentIssuesList.innerHTML = '<div class="text-center p-5 text-muted">No parent issues found.</div>';
+    }
 }
 
 // Toggle Upvote
@@ -12322,10 +12705,126 @@ function toggleIssueStatus(issueId, isFixed) {
     });
 }
 
+// --- ROLES MANAGER LOGIC ---
+let rolesManagerUnlocked = false;
+
+function initRolesManager() {
+    const card = document.getElementById('rolesManagerCard');
+    const authDiv = document.getElementById('rolesManagerAuth');
+    const contentDiv = document.getElementById('rolesManagerContent');
+    const passwordInput = document.getElementById('rolesManagerPassword');
+    const unlockBtn = document.getElementById('unlockRolesManagerBtn');
+    const lockBtn = document.getElementById('lockRolesManagerBtn');
+    const errorMsg = document.getElementById('rolesManagerAuthError');
+
+    // Only show card for admins (initial check, also handled in checkUserRole)
+    if (currentUserRole === 'admin') {
+        card.style.display = 'block';
+    }
+
+    // Unlock
+    unlockBtn.addEventListener('click', () => {
+        if (passwordInput.value === 'VIBGYOR') {
+            rolesManagerUnlocked = true;
+            authDiv.style.display = 'none';
+            contentDiv.style.display = 'block';
+            passwordInput.value = '';
+            errorMsg.style.display = 'none';
+            loadRolesData();
+        } else {
+            errorMsg.textContent = 'Incorrect password.';
+            errorMsg.style.display = 'block';
+        }
+    });
+
+    // Lock
+    lockBtn.addEventListener('click', () => {
+        rolesManagerUnlocked = false;
+        authDiv.style.display = 'block';
+        contentDiv.style.display = 'none';
+    });
+
+    // Handle Enter key on password
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') unlockBtn.click();
+    });
+}
+
+function loadRolesData() {
+    if (!rolesManagerUnlocked) return;
+
+    database.ref('userRoles').once('value').then(snapshot => {
+        const users = snapshot.val() || {};
+        const teachers = [];
+        const admins = [];
+        const incharges = [];
+
+        Object.entries(users).forEach(([uid, data]) => {
+            const user = { uid, ...data };
+            if (user.role === 'teacher') teachers.push(user);
+            else if (user.role === 'admin') admins.push(user);
+            else if (user.role === 'incharge') incharges.push(user);
+        });
+
+        renderRolesTable('list-teachers', teachers);
+        renderRolesTable('list-admins', admins);
+        renderRolesTable('list-incharges', incharges);
+    });
+}
+
+function renderRolesTable(tbodyId, users) {
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No users found for this role.</td></tr>';
+        return;
+    }
+
+    users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${user.name || 'N/A'}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td><span class="badge bg-primary">${user.role}</span></td>
+            <td>
+                <button class="btn btn-sm btn-danger remove-role-btn" data-uid="${user.uid}" data-name="${user.name}">
+                    <i class="fas fa-user-times"></i> Remove
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Attach event listeners
+    tbody.querySelectorAll('.remove-role-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const uid = this.dataset.uid;
+            const name = this.dataset.name;
+            if (confirm(`Are you sure you want to remove the ${currentUserRole} role from ${name}? They will become a regular user.`)) {
+                updateUserRole(uid, 'user');
+            }
+        });
+    });
+}
+
+function updateUserRole(uid, newRole) {
+    database.ref('userRoles/' + uid).update({ role: newRole })
+        .then(() => {
+            alert('User role updated successfully.');
+            loadRolesData(); // Refresh list
+        })
+        .catch(error => {
+            console.error('Error updating role:', error);
+            alert('Failed to update user role.');
+        });
+}
+
 // Initialize the app
 $(document).ready(function() {
     initOnlineStatus();
     initSupportPage();
+    initRolesManager(); // Initialize Roles Manager
     // Your existing initialization code...
 });
     </script>
