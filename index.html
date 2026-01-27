@@ -7351,53 +7351,7 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             }
         };
 
-        window.changeStudentRank = async function(studentId, currentPoints, studentName) {
-            const targetGrade = prompt(`Enter the desired rank for ${studentName} (A+, A, B, C, D, E):`);
-            if (targetGrade === null || targetGrade === "") return;
-            
-            const validGrades = ['A+', 'A', 'B', 'C', 'D', 'E'];
-            const normalizedGrade = targetGrade.toUpperCase().trim();
-            
-            if (!validGrades.includes(normalizedGrade)) {
-                alert("Please enter a valid rank (A+, A, B, C, D, or E).");
-                return;
-            }
-
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-
-            if (confirm(`Set ${studentName}'s rank to ${normalizedGrade}?`)) {
-                try {
-                    // Update manualGrade in Firebase
-                    await updateStudentInFirebase(studentId, { manualGrade: normalizedGrade });
-
-                    const now = new Date();
-                    const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
-                    const time = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata' });
-                    
-                    await addHistoryEntryToFirebase({
-                        date,
-                        time,
-                        studentId: studentId,
-                        name: studentName,
-                        action: 'Rank Change',
-                        points: 0,
-                        modifiedBy: auth.currentUser ? auth.currentUser.email : 'Unknown',
-                        remark: `Manual Rank set to ${normalizedGrade}`
-                    });
-
-                    if (typeof refreshRankings === 'function') refreshRankings();
-                    alert(`Rank updated successfully! ${studentName} is now set to ${normalizedGrade}.`);
-                } catch (error) {
-                    console.error("Error updating rank:", error);
-                    alert("Failed to update rank. Please try again.");
-                }
-            }
-        };
-
 // ...existing code...
-            document.getElementById('exportRankings').addEventListener('click', exportToExcel);
-            document.getElementById('exportHistory').addEventListener('click', exportHistoryToExcel); 
             if (document.getElementById('exportHistorySheets')) {
                 document.getElementById('exportHistorySheets').addEventListener('click', exportHistoryToGoogleSheets);
             }
@@ -7996,7 +7950,7 @@ function refreshRankings() {
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
     <td class="text-center">
-        <button class="btn btn-sm btn-outline-primary" onclick="changeStudentRank('${student.id}', ${student.points || 0}, '${(student.name || '').replace(/'/g, "\\'")}')" title="Manually change rank for ${student.name}">
+        <button class="btn btn-sm btn-outline-primary" onclick="openRankChangeModal('${student.id}')" title="Manually change rank for ${student.name}">
             <i class="fas fa-sort-numeric-up"></i> Change Rank
         </button>
     </td>
@@ -8030,7 +7984,7 @@ function refreshRankings() {
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
     <td class="text-center">
-        <button class="btn btn-sm btn-outline-primary" onclick="changeStudentRank('${student.id}', ${student.points || 0}, '${(student.name || '').replace(/'/g, "\\'")}')" title="Manually change rank for ${student.name}">
+        <button class="btn btn-sm btn-outline-primary" onclick="openRankChangeModal('${student.id}')" title="Manually change rank for ${student.name}">
             <i class="fas fa-sort-numeric-up"></i> Change Rank
         </button>
     </td>
@@ -9253,123 +9207,9 @@ filteredStudents.sort((a, b) => {
             }
         }
 
-        async function submitRankChange(event) {
-            event.preventDefault();
-            const studentId = document.getElementById('rankChangeStudentId').value;
-            const newDesiredRank = parseInt(document.getElementById('newRankInput').value);
-            const adminModifier = document.getElementById('rankChangeAdminSelector').value;
-            const adminEmail = currentUserEmail;
-            const isERank = document.getElementById('rankChangerForm').dataset.isERank === 'true';
-
-            if (isNaN(newDesiredRank)) {
-                displayUpdateMessage('rankChangerMessage', 'Please enter a valid rank.', 'danger');
-                return;
-            }
-
-            if (!adminModifier) {
-                displayUpdateMessage('rankChangerMessage', 'Please select who is modifying the rank.', 'danger');
-                return;
-            }
-
-            if (!adminEmail) {
-                displayUpdateMessage('rankChangerMessage', 'Your email ID is missing. Please log in again.', 'danger');
-                return;
-            }
-
-            const studentToUpdate = students.find(s => s.id === studentId);
-            if (!studentToUpdate) {
-                displayUpdateMessage('rankChangerMessage', 'Student not found.', 'danger');
-                return;
-            }
-
-            const oldPoints = studentToUpdate.points;
-            const oldRank = getStudentRank(studentToUpdate, isERank);
-
-            let targetPoints = 0;
-            let actionDescription = '';
-
-            if (isERank) {
-                const floorERankStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points < 0);
-                floorERankStudents.sort((a, b) => a.points - b.points);
-
-                if (newDesiredRank <= floorERankStudents.length) {
-                    targetPoints = floorERankStudents[newDesiredRank - 1].points;
-                    if (studentToUpdate.id === floorERankStudents[newDesiredRank - 1].id) {
-                        displayUpdateMessage('rankChangerMessage', `Student is already at E-Rank ${newDesiredRank} on their floor. No change needed.`, 'info');
-                        return;
-                    }
-                } else {
-                    targetPoints = floorERankStudents.length > 0 ? floorERankStudents[floorERankStudents.length - 1].points + 1 : 0;
-                }
-                actionDescription = `E-Rank Change (from E-Rank ${oldRank} to E-Rank ${newDesiredRank})`;
-
-            } else {
-                const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
-                floorStudents.sort((a, b) => b.points - a.points);
-
-                if (newDesiredRank <= floorStudents.length) {
-                    targetPoints = floorStudents[newDesiredRank - 1].points;
-                    if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
-                        displayUpdateMessage('rankChangerMessage', `Student is already at rank ${newDesiredRank} on their floor. No change needed.`, 'info');
-                        return;
-                    }
-                } else {
-                    targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
-                    targetPoints = Math.max(0, targetPoints);
-                }
-                actionDescription = `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`;
-            }
-
-            const pointsAdjustment = targetPoints - oldPoints;
-
-            try {
-                await updateStudentInFirebase(studentToUpdate.id, { points: studentToUpdate.points + pointsAdjustment });
-
-                const now = new Date();
-                const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
-                const time = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata' });
-
-                await addHistoryEntryToFirebase({
-                    date,
-                    time,
-                    studentId: studentToUpdate.id,
-                    name: studentToUpdate.name,
-                    action: actionDescription,
-                    pointsChanged: pointsAdjustment,
-                    oldPoints: oldPoints,
-                    newPoints: studentToUpdate.points + pointsAdjustment,
-                    modifiedBy: `${adminModifier} (${adminEmail})`
-                });
-
-                displayUpdateMessage('rankChangerMessage', `Done, rank changed for ${studentToUpdate.name} by ${adminModifier} (${adminEmail}).`, 'success');
-                setTimeout(() => {
-                    rankChangerModal.hide();
-                    // UI will update via real-time listeners
-                }, 2000);
-
-            } catch (error) {
-                console.error("Error changing rank:", error);
-                displayUpdateMessage('rankChangerMessage', 'Error changing rank. Please try again.', 'danger');
-            }
-        }
-
-        function getStudentRank(student, isERank = false) {
-            let relevantStudents;
-            if (isERank) {
-                relevantStudents = students.filter(s => s.floor === student.floor && s.points < 0);
-                relevantStudents.sort((a, b) => a.points - b.points);
-            } else {
-                relevantStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
-                relevantStudents.sort((a, b) => b.points - a.points);
-            }
-
-            const rankIndex = relevantStudents.findIndex(s => s.id === student.id);
-            return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
-        }
-
         const rankChangerModal = new bootstrap.Modal(document.getElementById('rankChangerModal'));
 
-        function openRankChangeModal(studentId, isERank = false) {
+        function openRankChangeModal(studentId) {
             const student = students.find(s => s.id === studentId);
             if (!student) {
                 alert('Student not found!');
@@ -9381,38 +9221,25 @@ filteredStudents.sort((a, b) => {
             document.getElementById('rankChangeCurrentPoints').value = student.points;
             document.getElementById('rankChangeCurrentGrade').value = student.assignedGrade || 'N/A';
             document.getElementById('rankChangeAdminEmail').value = currentUserEmail;
-
-            const newRankInputLabel = document.querySelector('label[for="newRankInput"]');
-            if (newRankInputLabel) { // Added check for label existence
-                if (isERank) {
-                    newRankInputLabel.textContent = 'Desired New Rank (within E-Rank or to positive):';
-                    document.getElementById('newRankInput').min = '';
-                } else {
-                    newRankInputLabel.textContent = 'Desired New Rank (within floor):';
-                    document.getElementById('newRankInput').min = '1';
-                }
-            }
-
-            const rankChangerForm = document.getElementById('rankChangerForm');
-            if (rankChangerForm) { // Added check for form existence
-                rankChangerForm.dataset.isERank = isERank;
+            
+            const gradeSelect = document.getElementById('newGradeSelect');
+            if (gradeSelect) {
+                gradeSelect.value = student.assignedGrade || '';
             }
 
             displayUpdateMessage('rankChangerMessage', '', 'info');
-
             rankChangerModal.show();
         }
 
         async function submitRankChange(event) {
             event.preventDefault();
             const studentId = document.getElementById('rankChangeStudentId').value;
-            const newDesiredRank = parseInt(document.getElementById('newRankInput').value);
+            const newGrade = document.getElementById('newGradeSelect').value;
             const adminModifier = document.getElementById('rankChangeAdminSelector').value;
             const adminEmail = currentUserEmail;
-            const isERank = document.getElementById('rankChangerForm').dataset.isERank === 'true';
 
-            if (isNaN(newDesiredRank)) {
-                displayUpdateMessage('rankChangerMessage', 'Please enter a valid rank.', 'danger');
+            if (!newGrade || newGrade === "") {
+                displayUpdateMessage('rankChangerMessage', 'Please select a grade.', 'danger');
                 return;
             }
 
@@ -9426,54 +9253,56 @@ filteredStudents.sort((a, b) => {
                 return;
             }
 
-            const studentToUpdate = students.find(s => s.id === studentId);
-            if (!studentToUpdate) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
                 displayUpdateMessage('rankChangerMessage', 'Student not found.', 'danger');
                 return;
             }
 
-            const oldPoints = studentToUpdate.points;
-            const oldRank = getStudentRank(studentToUpdate, isERank);
-
-            let targetPoints = 0;
-            let actionDescription = '';
-
-            if (isERank) {
-                const floorERankStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points < 0);
-                floorERankStudents.sort((a, b) => a.points - b.points);
-
-                if (newDesiredRank <= floorERankStudents.length) {
-                    targetPoints = floorERankStudents[newDesiredRank - 1].points;
-                    if (studentToUpdate.id === floorERankStudents[newDesiredRank - 1].id) {
-                        displayUpdateMessage('rankChangerMessage', `Student is already at E-Rank ${newDesiredRank} on their floor. No change needed.`, 'info');
-                        return;
-                    }
-                } else {
-                    targetPoints = floorERankStudents.length > 0 ? floorERankStudents[floorERankStudents.length - 1].points + 1 : 0;
-                }
-                actionDescription = `E-Rank Change (from E-Rank ${oldRank} to E-Rank ${newDesiredRank})`;
-
-            } else {
-                const floorStudents = students.filter(s => s.floor === studentToUpdate.floor && s.points >= 0);
-                floorStudents.sort((a, b) => b.points - a.points);
-
-                if (newDesiredRank <= floorStudents.length) {
-                    targetPoints = floorStudents[newDesiredRank - 1].points;
-                    if (studentToUpdate.id === floorStudents[newDesiredRank - 1].id) {
-                        displayUpdateMessage('rankChangerMessage', `Student is already at rank ${newDesiredRank} on their floor. No change needed.`, 'info');
-                        return;
-                    }
-                } else {
-                    targetPoints = floorStudents.length > 0 ? floorStudents[floorStudents.length - 1].points - 1 : 0;
-                    targetPoints = Math.max(0, targetPoints);
-                }
-                actionDescription = `Rank Change (from Rank ${oldRank} to Rank ${newDesiredRank})`;
-            }
-
-            const pointsAdjustment = targetPoints - oldPoints;
-
             try {
-                await updateStudentInFirebase(studentId, { points: studentToUpdate.points + pointsAdjustment });
+                const floorFilter = student.floor;
+                let studentsOnFloor = students.filter(s => String(s.floor) === String(floorFilter));
+                const sortedForRanking = [...studentsOnFloor].filter(s => s.points >= 0)
+                    .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
+
+                let newPoints = student.points;
+                
+                if (newGrade === 'E') {
+                    if (newPoints >= 0) newPoints = -5;
+                } else if (newGrade === 'D') {
+                    if (newPoints < 0) newPoints = 0;
+                } else if (newGrade === 'C') {
+                    const thresholdIdx = Math.min(sortedForRanking.length - 1, 94);
+                    if (thresholdIdx >= 0) {
+                        const thresholdPoints = sortedForRanking[thresholdIdx].points;
+                        if (newPoints < thresholdPoints) newPoints = thresholdPoints;
+                    } else if (newPoints < 0) newPoints = 0;
+                } else if (newGrade === 'B') {
+                    const thresholdIdx = Math.min(sortedForRanking.length - 1, 74);
+                    if (thresholdIdx >= 0) {
+                        const thresholdPoints = sortedForRanking[thresholdIdx].points;
+                        if (newPoints < thresholdPoints) newPoints = thresholdPoints;
+                    } else if (newPoints < 0) newPoints = 0;
+                } else if (newGrade === 'A') {
+                    const thresholdIdx = Math.min(sortedForRanking.length - 1, 49);
+                    if (thresholdIdx >= 0) {
+                        const thresholdPoints = sortedForRanking[thresholdIdx].points;
+                        if (newPoints < thresholdPoints) newPoints = thresholdPoints;
+                    } else if (newPoints < 0) newPoints = 0;
+                } else if (newGrade === 'A+') {
+                    const thresholdIdx = Math.min(sortedForRanking.length - 1, 9);
+                    if (thresholdIdx >= 0) {
+                        const thresholdPoints = sortedForRanking[thresholdIdx].points;
+                        if (newPoints < thresholdPoints) newPoints = thresholdPoints;
+                    } else if (newPoints < 0) newPoints = 0;
+                }
+
+                const pointsChanged = newPoints - student.points;
+
+                await updateStudentInFirebase(studentId, { 
+                    manualGrade: newGrade === 'false' ? null : newGrade,
+                    points: newPoints
+                });
 
                 const now = new Date();
                 const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
@@ -9482,19 +9311,18 @@ filteredStudents.sort((a, b) => {
                 await addHistoryEntryToFirebase({
                     date,
                     time,
-                    studentId: studentToUpdate.id,
-                    name: studentToUpdate.name,
-                    action: actionDescription,
-                    pointsChanged: pointsAdjustment,
-                    oldPoints: oldPoints,
-                    newPoints: studentToUpdate.points + pointsAdjustment,
+                    studentId: studentId,
+                    name: student.name,
+                    action: `Rank Change to ${newGrade === 'false' ? 'Auto' : newGrade}`,
+                    pointsChanged: pointsChanged,
+                    oldPoints: student.points,
+                    newPoints: newPoints,
                     modifiedBy: `${adminModifier} (${adminEmail})`
                 });
 
-                displayUpdateMessage('rankChangerMessage', `Done, rank changed for ${studentToUpdate.name} by ${adminModifier} (${adminEmail}).`, 'success');
+                displayUpdateMessage('rankChangerMessage', `Done, rank changed for ${student.name} by ${adminModifier}.`, 'success');
                 setTimeout(() => {
                     rankChangerModal.hide();
-                    // UI will update via real-time listeners
                 }, 2000);
 
             } catch (error) {
@@ -9503,19 +9331,6 @@ filteredStudents.sort((a, b) => {
             }
         }
 
-        function getStudentRank(student, isERank = false) {
-            let relevantStudents;
-            if (isERank) {
-                relevantStudents = students.filter(s => s.floor === student.floor && s.points < 0);
-                relevantStudents.sort((a, b) => a.points - b.points);
-            } else {
-                relevantStudents = students.filter(s => s.floor === student.floor && s.points >= 0);
-                relevantStudents.sort((a, b) => b.points - a.points);
-            }
-
-            const rankIndex = relevantStudents.findIndex(s => s.id === student.id);
-            return rankIndex !== -1 ? rankIndex + 1 : 'N/A';
-        }
 
         function displayIndividualStudentData(studentId) {
             const student = students.find(s => s.id === studentId);
