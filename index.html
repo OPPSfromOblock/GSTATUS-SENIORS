@@ -145,10 +145,16 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-            background-size: 400% 400%;
-            animation: gradientAnimation 25s ease infinite; /* Slower animation */
-            z-index: -1; /* Send to back */
-            opacity: 0.6; /* More subtle transparency */
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* Disable animation on low-range/mobile devices for performance */
+        @media (min-width: 768px) {
+            .animated-background {
+                background-size: 400% 400%;
+                animation: gradientAnimation 25s ease infinite;
+            }
         }
 
         @keyframes gradientAnimation {
@@ -158,40 +164,39 @@
         }
 
         .sidebar {
-            width: 280px; /* Increased width for better content display */
+            width: 280px;
             background: linear-gradient(180deg, #60a5fa 0%, #1e40af 100%);
             color: white;
             padding: 20px;
-            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Reduced shadow */
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Push logout to bottom */
-            position: fixed; /* Fixed sidebar */
-            height: 100vh; /* Full height */
+            justify-content: space-between;
+            position: fixed;
+            height: 100vh;
             z-index: 1000;
-            transition: transform 0.3s ease-in-out; /* For mobile sidebar toggle */
-            transform: translateX(-280px); /* Hidden by default on mobile */
-            overflow-y: auto; /* Add vertical scrollbar */
-            overflow-x: hidden; /* Hide horizontal scrollbar */
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-280px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .sidebar-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
             margin-bottom: 25px;
-            padding: 10px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
+            padding: 0; /* Removed padding to let logo fit entirely */
+            background: transparent; /* Simplified background */
             border-radius: 10px;
-            border-left: 4px solid #3b82f6;
+            overflow: hidden; /* Ensure logo doesn't bleed out of radius */
         }
 
         .sidebar-logo-box {
-            width: 100px;
-            height: 100px;
+            width: 100%; /* Full width of sidebar-header */
+            height: auto;
+            min-height: 100px;
             background: transparent;
-            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -201,7 +206,8 @@
         .sidebar-logo-box img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover; /* Fill the complete window/box */
+            display: block;
         }
 
         .sidebar-branding {
@@ -785,9 +791,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #60a5fa 0%, #1e40af 50%, #ffffff 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 8s ease infinite;
+            background: var(--secondary-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -795,6 +799,14 @@
             z-index: 9999;
             opacity: 1;
             transition: opacity 0.5s ease;
+        }
+
+        @media (min-width: 768px) {
+            .loading-overlay {
+                background: linear-gradient(135deg, #60a5fa 0%, #1e40af 50%, #ffffff 100%);
+                background-size: 400% 400%;
+                animation: gradientShift 8s ease infinite;
+            }
         }
 
         .loading-overlay.hidden {
@@ -812,28 +824,35 @@
         }
 
         .loading-logo {
-            max-width: 280px;
-            max-height: 280px;
+            max-width: 200px; /* Reduced for better mobile loading */
+            max-height: 200px;
             width: auto;
             height: auto;
             margin-bottom: 30px;
-            animation: pulse 2s ease-in-out infinite;
             object-fit: contain;
+        }
+
+        @media (min-width: 768px) {
+            .loading-logo {
+                max-width: 280px;
+                max-height: 280px;
+                animation: pulse 2s ease-in-out infinite;
+            }
         }
 
         .loading-text {
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 20px;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .spinner {
-            border: 6px solid rgba(255,255,255,0.3);
-            border-top: 6px solid white;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
         }
 
@@ -860,15 +879,20 @@
             left: 0;
             right: 0;
             background: rgba(255, 107, 53, 0.95);
-            padding: 15px 20px;
+            padding: 10px 15px; /* Reduced padding */
             z-index: 9998;
             display: none;
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
         }
 
         .progress-bar-container.active {
             display: block;
-            animation: slideDown 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .progress-bar-container {
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+                animation: slideDown 0.3s ease;
+            }
         }
 
         @keyframes slideDown {
@@ -883,8 +907,8 @@
         }
 
         .progress-message {
-            font-size: 0.95rem;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
             font-weight: 500;
         }
 
@@ -898,10 +922,16 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00b4d8 0%, #9d4edd 100%);
+            background: #00b4d8;
             width: 0%;
             transition: width 0.2s ease;
-            box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+        }
+
+        @media (min-width: 768px) {
+            .progress-fill {
+                background: linear-gradient(90deg, #00b4d8 0%, #9d4edd 100%);
+                box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+            }
         }
 
         /* Styles for editable table cells */
@@ -4186,16 +4216,35 @@ try {
                 const row = document.createElement('tr');
                 
                 const parts = item.date.split('-');
+                if (parts.length !== 3) {
+                    console.warn('Invalid date format in canteenScheduleData:', item.date);
+                    return;
+                }
                 const year = parseInt(`20${parts[2]}`);
                 const month = parseInt(parts[1]) - 1;
                 const day = parseInt(parts[0]);
                 const startDateObj = new Date(year, month, day);
+                
+                if (isNaN(startDateObj.getTime())) {
+                    console.warn('Invalid date object created for:', item.date);
+                    return;
+                }
+
                 const endDateObj = new Date(startDateObj);
                 endDateObj.setDate(startDateObj.getDate() + 1);
                 
-                const format = (d) => d.toISOString().slice(0,10).replace(/-/g, '');
+                const format = (d) => {
+                    try {
+                        return d.toISOString().slice(0,10).replace(/-/g, '');
+                    } catch (e) {
+                        console.error('Error formatting date:', d, e);
+                        return '';
+                    }
+                };
                 const startStr = format(startDateObj);
                 const endStr = format(endDateObj);
+
+                if (!startStr || !endStr) return;
 
                 const eventTitle = `Canteen: ${item.allocation} (${item.batch})`;
                 const eventDetails = `Allocation: ${item.allocation}, Batch: ${item.batch}`;
@@ -4226,17 +4275,28 @@ try {
                 if (item.allocation === '-' || item.allocation === 'Ekadashi') return;
 
                 const parts = item.date.split('-');
+                if (parts.length !== 3) return;
+                
                 const year = "20" + parts[2];
                 const month = parts[1];
                 const day = parts[0];
                 const startDateStr = `${year}${month}${day}`;
                 
                 const startDateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                if (isNaN(startDateObj.getTime())) return;
+
                 const endDateObj = new Date(startDateObj);
                 endDateObj.setDate(startDateObj.getDate() + 1);
                 
-                const format = (d) => d.toISOString().slice(0,10).replace(/-/g, '');
+                const format = (d) => {
+                    try {
+                        return d.toISOString().slice(0,10).replace(/-/g, '');
+                    } catch (e) {
+                        return '';
+                    }
+                };
                 const endDateStr = format(endDateObj);
+                if (!endDateStr) return;
 
                 icsContent += "BEGIN:VEVENT\r\n";
                 icsContent += `DTSTART;VALUE=DATE:${startDateStr}\r\n`;
@@ -7058,29 +7118,7 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             }
         }
 
-        function initializeEventListeners() {
-            // Parent Portal Listener
-            const btnCheckStudentStats = document.getElementById('btnCheckStudentStats');
-            if (btnCheckStudentStats) {
-                btnCheckStudentStats.addEventListener('click', checkStudentProgress);
-            }
-            const parentStudentMid = document.getElementById('parentStudentMid');
-            if (parentStudentMid) {
-                parentStudentMid.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') checkStudentProgress();
-                });
-            }
-
-            document.getElementById('positiveAction').addEventListener('change', function() {
-                document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
-                document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
-            });
-
-            document.querySelector('[name="negativeAction"]').addEventListener('change', function() {
-                document.getElementById('customNegativeInput').style.display = this.value === 'custom' ? 'block' : 'none';
-            });
-
-            // Function to validate student IDs and reject duplicates before processing
+        // Function to validate student IDs and reject duplicates before processing
         async function validateStudentIds(studentIds) {
             if (!Array.isArray(studentIds) || studentIds.length === 0) {
                 throw new Error('No student IDs provided');
@@ -7132,6 +7170,28 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
                 console.log(`No new student IDs for ${action} - all recently processed`);
             }
         }
+
+        function initializeEventListeners() {
+            // Parent Portal Listener
+            const btnCheckStudentStats = document.getElementById('btnCheckStudentStats');
+            if (btnCheckStudentStats) {
+                btnCheckStudentStats.addEventListener('click', checkStudentProgress);
+            }
+            const parentStudentMid = document.getElementById('parentStudentMid');
+            if (parentStudentMid) {
+                parentStudentMid.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') checkStudentProgress();
+                });
+            }
+
+            document.getElementById('positiveAction').addEventListener('change', function() {
+                document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
+                document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+
+            document.querySelector('[name="negativeAction"]').addEventListener('change', function() {
+                document.getElementById('customNegativeInput').style.display = this.value === 'custom' ? 'block' : 'none';
+            });
 
             document.getElementById('pointsForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -9137,25 +9197,8 @@ filteredStudents.sort((a, b) => {
                     const newRating = selectedRatingInput ? parseInt(selectedRatingInput.value) : null;
 
                     if (newRating !== null) {
-                        let pointsAwarded = 0;
-                        let actionText = '';
-
-                        if (newRating === 5) {
-                            pointsAwarded = 10;
-                            actionText = 'Batch Discipline Review: Excellent (+10)';
-                        } else if (newRating === 4) {
-                            pointsAwarded = 5;
-                            actionText = 'Batch Discipline Review: Good (+5)';
-                        } else if (newRating === 3) {
-                            pointsAwarded = 0;
-                            actionText = 'Batch Discipline Review: Satisfactory (0)';
-                        } else if (newRating === 2) {
-                            pointsAwarded = -5;
-                            actionText = 'Batch Discipline Review: Needs Improvement (-5)';
-                        } else if (newRating === 1) {
-                            pointsAwarded = -10;
-                            actionText = 'Batch Discipline Review: Poor (-10)';
-                        }
+                        let pointsAwarded = newRating * 3;
+                        let actionText = `Batch Discipline Review: ${newRating} Stars (+${pointsAwarded})`;
 
                         const oldPoints = student.points;
                         const newPoints = oldPoints + pointsAwarded;
