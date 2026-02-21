@@ -8423,11 +8423,13 @@ function refreshRankings() {
         async function createSpreadsheetWithDrive(title, rows, token) {
             try {
                 console.log('Creating spreadsheet with Drive integration...');
+                console.log('Using OAuth token for authentication');
                 
-                // Create spreadsheet with API key (using consistent authentication)
-                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${GOOGLE_API_KEY}`, {
+                // Create spreadsheet with OAuth token (more reliable than API key)
+                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8446,7 +8448,7 @@ function refreshRankings() {
                         if (errorData.error?.message?.includes('Google Sheets API has not been used')) {
                             throw new Error('Google Sheets API is not enabled for this project. Please enable it in Google Cloud Console and try again.');
                         } else {
-                            throw new Error('Permission denied. Please make sure you are signed in with Google and have the necessary permissions.');
+                            throw new Error('Permission denied: ' + (errorData.error?.message || 'Check Google Sheets API permissions'));
                         }
                     } else if (errorData.error?.code === 429) {
                         throw new Error('Too many requests. Please wait a moment and try again.');
@@ -8459,10 +8461,11 @@ function refreshRankings() {
                 const spreadsheetId = spreadsheet.spreadsheetId;
                 console.log('Spreadsheet created with ID:', spreadsheetId);
                 
-                // Add data to spreadsheet using API key
-                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED&key=${GOOGLE_API_KEY}`, {
+                // Add data to spreadsheet using OAuth token
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED`, {
                     method: 'PUT',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8498,10 +8501,10 @@ function refreshRankings() {
         // Move spreadsheet to user's Drive
         async function moveSpreadsheetToDrive(spreadsheetId, token) {
             try {
-                // Get file metadata using API key
-                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}?key=${GOOGLE_API_KEY}`, {
+                // Get file metadata using OAuth token
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}`, {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${token}`
                     }
                 });
                 
