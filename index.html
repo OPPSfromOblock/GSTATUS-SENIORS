@@ -82,7 +82,7 @@
     
     <!-- Google API Configuration -->
     <script>
-        const GOOGLE_API_KEY = 'AIzaSyB1Xfa6HFdGWsZaROOBIiwzCHdD01iYdQE';
+        const GOOGLE_API_KEY = 'AIzaSyB7J5EceJ2mlOjtZReNZbsvkNLk5w1ybXA';
         const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4', 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
     </script>
@@ -2087,6 +2087,7 @@
                                         <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
                                         <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
                                         <option value="RONAK SIR">RONAK SIR</option>
+                                        <option value="RAHUL SIR">RAHUL SIR</option>
                                         <option value="Manoj">Manoj</option>
                                         <option value="Testing Admin">Testing admin</option>
                                     </select>
@@ -2332,6 +2333,7 @@
                                     <option value="RAJIV">RAJIV</option>
                                     <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
                                     <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
+                                    <option value="RAHUL SIR">RAHUL SIR</option>
                                     <option value="Manoj">Manoj</option>
                                     <option value="Testing Admin">Testing admin</option>
                                 </select>
@@ -8422,11 +8424,10 @@ function refreshRankings() {
             try {
                 console.log('Creating spreadsheet with Drive integration...');
                 
-                // Create spreadsheet with API key
+                // Create spreadsheet with API key (using consistent authentication)
                 const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${GOOGLE_API_KEY}`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8458,11 +8459,10 @@ function refreshRankings() {
                 const spreadsheetId = spreadsheet.spreadsheetId;
                 console.log('Spreadsheet created with ID:', spreadsheetId);
                 
-                // Add data to spreadsheet
+                // Add data to spreadsheet using API key
                 const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED&key=${GOOGLE_API_KEY}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8498,10 +8498,10 @@ function refreshRankings() {
         // Move spreadsheet to user's Drive
         async function moveSpreadsheetToDrive(spreadsheetId, token) {
             try {
-                // Get file metadata
+                // Get file metadata using API key
                 const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}?key=${GOOGLE_API_KEY}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 
