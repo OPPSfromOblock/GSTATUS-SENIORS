@@ -82,7 +82,7 @@
     
     <!-- Google API Configuration -->
     <script>
-        const GOOGLE_API_KEY = 'AIzaSyB7J5EceJ2mlOjtZReNZbsvkNLk5w1ybXA';
+        const GOOGLE_API_KEY = 'AIzaSyB1Xfa6HFdGWsZaROOBIiwzCHdD01iYdQE';
         const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4', 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
     </script>
@@ -8422,14 +8422,12 @@ function refreshRankings() {
         // Enhanced spreadsheet creation with Drive integration
         async function createSpreadsheetWithDrive(title, rows, token) {
             try {
-                console.log('Creating spreadsheet with Drive integration...');
-                console.log('Using OAuth token for authentication');
+                console.log('Creating spreadsheet with API key only...');
                 
-                // Create spreadsheet with OAuth token (more reliable than API key)
-                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets`, {
+                // Create spreadsheet with API key ONLY
+                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${GOOGLE_API_KEY}`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8440,20 +8438,13 @@ function refreshRankings() {
                 });
                 
                 if (!createResponse.ok) {
-                    const errorData = await createResponse.json();
-                    console.error('Sheets API error:', errorData);
-                    
-                    // Handle specific API errors
-                    if (errorData.error?.code === 403) {
-                        if (errorData.error?.message?.includes('Google Sheets API has not been used')) {
-                            throw new Error('Google Sheets API is not enabled for this project. Please enable it in Google Cloud Console and try again.');
-                        } else {
-                            throw new Error('Permission denied: ' + (errorData.error?.message || 'Check Google Sheets API permissions'));
-                        }
-                    } else if (errorData.error?.code === 429) {
-                        throw new Error('Too many requests. Please wait a moment and try again.');
-                    } else {
-                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                    const errorText = await createResponse.text();
+                    console.error('Sheets API error response:', errorText);
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || errorText}`);
+                    } catch (e) {
+                        throw new Error(`Failed to create spreadsheet: ${errorText}`);
                     }
                 }
                 
@@ -8461,11 +8452,10 @@ function refreshRankings() {
                 const spreadsheetId = spreadsheet.spreadsheetId;
                 console.log('Spreadsheet created with ID:', spreadsheetId);
                 
-                // Add data to spreadsheet using OAuth token
-                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED`, {
+                // Add data to spreadsheet using API key ONLY
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED&key=${GOOGLE_API_KEY}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8474,26 +8464,25 @@ function refreshRankings() {
                 });
                 
                 if (!updateResponse.ok) {
-                    const errorData = await updateResponse.json();
-                    console.error('Sheets API update error:', errorData);
-                    throw new Error(`Failed to add data to spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
+                    const errorText = await updateResponse.text();
+                    console.error('Sheets API update error:', errorText);
+                    throw new Error(`Failed to add data: ${errorText}`);
                 }
                 
                 console.log('Data added to spreadsheet successfully');
                 
-                // Move spreadsheet to user's Drive folder
+                // Try to get file info
                 try {
                     await moveSpreadsheetToDrive(spreadsheetId, token);
-                    console.log('Spreadsheet moved to Drive successfully');
+                    console.log('Spreadsheet info retrieved');
                 } catch (driveError) {
-                    console.warn('Could not move to Drive:', driveError);
-                    // Continue anyway - the spreadsheet was created successfully
+                    console.warn('Could not retrieve Drive info:', driveError);
                 }
                 
                 return spreadsheetId;
                 
             } catch (error) {
-                console.error('Error creating spreadsheet with Drive integration:', error);
+                console.error('Error creating spreadsheet:', error);
                 throw error;
             }
         }
@@ -8501,27 +8490,26 @@ function refreshRankings() {
         // Move spreadsheet to user's Drive
         async function moveSpreadsheetToDrive(spreadsheetId, token) {
             try {
-                // Get file metadata using OAuth token
-                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}`, {
+                // Get file metadata using API key ONLY
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}?key=${GOOGLE_API_KEY}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 
                 if (!fileResponse.ok) {
-                    throw new Error('Failed to get file metadata');
+                    const errorText = await fileResponse.text();
+                    console.warn('Could not get file metadata:', errorText);
+                    return false;
                 }
                 
                 const file = await fileResponse.json();
-                
-                // Add to user's Drive (already should be there, but let's ensure it's properly organized)
-                // We can add it to a specific folder or just ensure it's visible
-                console.log('Spreadsheet is in Drive:', file.name, file.id);
+                console.log('Spreadsheet is accessible:', file.name);
                 
                 return true;
             } catch (error) {
-                console.error('Drive integration error:', error);
-                throw error;
+                console.error('Drive info error:', error);
+                return false;
             }
         }
 
