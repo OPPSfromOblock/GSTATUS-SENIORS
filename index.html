@@ -7550,16 +7550,93 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
 
 
          // ...existing code...
-        window.updateRemark = async function(studentId, newRemark) {
+        window.updateRemark = async function(studentId, input, floor) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
             try {
-                await updateStudentInFirebase(studentId, { remark: newRemark });
-                console.log(`Remark for ${student.name} updated successfully.`);
+                const gradeInput = input.trim().toUpperCase();
+                const validGrades = ['A+', 'A', 'B', 'C', 'D', 'E'];
+                
+                if (validGrades.includes(gradeInput)) {
+                    // Get all students on this floor sorted by points (descending)
+                    const floorStudents = students.filter(s => String(s.floor) === String(floor) && s.points >= 0)
+                        .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
+                    
+                    let targetPoints = 50;
+                    let rankStart = 1;
+                    let rankEnd = 10;
+                    
+                    // Determine rank range based on grade
+                    if (gradeInput === 'A+') {
+                        rankStart = 0;   // Rank 1-10 (0-based index)
+                        rankEnd = 10;
+                    } else if (gradeInput === 'A') {
+                        rankStart = 10;  // Rank 11-50
+                        rankEnd = 50;
+                    } else if (gradeInput === 'B') {
+                        rankStart = 50;  // Rank 51-75
+                        rankEnd = 75;
+                    } else if (gradeInput === 'C') {
+                        rankStart = 75;  // Rank 76-95
+                        rankEnd = 95;
+                    } else if (gradeInput === 'D') {
+                        rankStart = 95;  // Rank 96+
+                        rankEnd = floorStudents.length;
+                    } else if (gradeInput === 'E') {
+                        // Negative points for E grade
+                        student.points = -5;
+                        student.manualGrade = 'E';
+                        student.remark = `Grade: E`;
+                        await updateStudentInFirebase(studentId, { 
+                            points: student.points,
+                            manualGrade: 'E',
+                            remark: student.remark
+                        });
+                        console.log(`Student ${student.name} assigned grade E with negative points`);
+                        refreshRankings();
+                        return;
+                    }
+                    
+                    // Find students in the target rank range and calculate competitive points
+                    const studentsInGradeRange = floorStudents.slice(rankStart, rankEnd);
+                    
+                    if (studentsInGradeRange.length > 0) {
+                        // Get average points of students in this rank range
+                        const avgPoints = studentsInGradeRange.reduce((sum, s) => sum + s.points, 0) / studentsInGradeRange.length;
+                        // Add slight variation (±2) for natural distribution
+                        targetPoints = Math.round(avgPoints + (Math.random() * 4 - 2));
+                    } else {
+                        // Default points if no students in range yet
+                        if (gradeInput === 'A+') targetPoints = 95;
+                        else if (gradeInput === 'A') targetPoints = 80;
+                        else if (gradeInput === 'B') targetPoints = 70;
+                        else if (gradeInput === 'C') targetPoints = 57;
+                        else if (gradeInput === 'D') targetPoints = 30;
+                    }
+                    
+                    // Update student with new grade and points
+                    student.points = targetPoints;
+                    student.manualGrade = gradeInput;
+                    student.remark = `Grade: ${gradeInput}`;
+                    
+                    await updateStudentInFirebase(studentId, { 
+                        points: student.points,
+                        manualGrade: gradeInput,
+                        remark: student.remark
+                    });
+                    
+                    console.log(`Student ${student.name} assigned grade ${gradeInput} with ${student.points} points (from rank range ${rankStart+1}-${rankEnd})`);
+                    refreshRankings();
+                } else {
+                    // Input is text - save as remark
+                    student.remark = input.trim();
+                    await updateStudentInFirebase(studentId, { remark: input.trim() });
+                    console.log(`Remark for ${student.name} updated: ${input.trim()}`);
+                }
             } catch (error) {
-                console.error("Error updating remark:", error);
-                alert("Failed to update remark. Please try again.");
+                console.error("Error updating remark/grade:", error);
+                alert("Failed to update. Please try again.");
             }
         };
 
@@ -8144,16 +8221,8 @@ function refreshRankings() {
             const trueRank = trueRankIndex >= 0 ? trueRankIndex + 1 : null;
             const displayRank = trueRank ? trueRank : '-';
 
-            // Compute grade from true rank to ensure consistency (ignore manualGrade for display)
-            let gradeToShow = 'D';
-            if (student.points < 0) gradeToShow = 'E';
-            else if (student.points === 0) gradeToShow = 'D';
-            else if (trueRank && trueRank <= 10) gradeToShow = 'A+';
-            else if (trueRank && trueRank <= 50) gradeToShow = 'A';
-            else if (trueRank && trueRank <= 75) gradeToShow = 'B';
-            else if (trueRank && trueRank <= 95) gradeToShow = 'C';
-            else gradeToShow = 'D';
-            student.assignedGrade = gradeToShow; // update assignedGrade to match display
+            // Use assignedGrade which respects manualGrade override
+            let gradeToShow = student.assignedGrade || 'D';
 
             return `
 <tr>
@@ -8166,8 +8235,8 @@ function refreshRankings() {
     <td><span class="badge ${getGradeBadgeClass(gradeToShow)}">${gradeToShow}</span></td>
     <td>
         <input type="text" class="form-control remark-input" value="${student.remark || ''}" 
-            onchange="updateRemark('${student.id}', this.value)" 
-            placeholder="Add remark" title="Edit remark for ${student.name}" />
+            onkeypress="if(event.key==='Enter'){event.preventDefault(); updateRemark('${student.id}', this.value, '${student.floor}')}" 
+            placeholder="Enter grade or remark" title="Type A+, A, B, C, D, E for grade or text for remark" />
     </td>
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
@@ -8200,8 +8269,8 @@ function refreshRankings() {
     <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
     <td>
         <input type="text" class="form-control remark-input" value="${student.remark || ''}" 
-            onchange="updateRemark('${student.id}', this.value)" 
-            placeholder="Add remark" title="Edit remark for ${student.name}" />
+            onkeypress="if(event.key==='Enter'){event.preventDefault(); updateRemark('${student.id}', this.value, '${student.floor}')}" 
+            placeholder="Enter grade or remark" title="Type A+, A, B, C, D, E for grade or text for remark" />
     </td>
     <td>${student.class || ''}</td>
     <td>${student.section || ''}</td>
