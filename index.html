@@ -20,7 +20,7 @@
                     database: () => ({
                         ref: () => ({
                             once: () => Promise.resolve({val: () => ({})}),
-                            on: () => {},
+                            // on: () => {},
                             set: () => Promise.resolve(),
                             update: () => Promise.resolve(),
                             push: () => ({key: 'mock_' + Date.now()})
@@ -40,7 +40,7 @@
                     GoogleAuthProvider: () => {}
                 }),
                 analytics: () => {}
-            };
+            };L
         }
     </script>
 
@@ -82,7 +82,7 @@
     
     <!-- Google API Configuration -->
     <script>
-        const GOOGLE_API_KEY = 'AIzaSyB1Xfa6HFdGWsZaROOBIiwzCHdD01iYdQE';
+        const GOOGLE_API_KEY = 'AIzaSyB7J5EceJ2mlOjtZReNZbsvkNLk5w1ybXA';
         const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4', 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
         const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
     </script>
@@ -2044,7 +2044,12 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="adminSelector">Modified By (Incharge):</label>
+                                    <label class="form-label d-flex justify-content-between align-items-center" for="adminSelector">
+                                        <span>Modified By (Incharge):</span>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addNewInchargeBtn" style="padding: 2px 8px; font-size: 0.8rem;">
+                                            <i class="fas fa-plus"></i> Add New
+                                        </button>
+                                    </label>
                                     <select class="form-select" id="adminSelector" title="Select the incharge who is making this point change." aria-label="Select incharge">
                                         <option value="">Select Incharge</option>
                                         <option value="BHAVESHBHAI JOLIYA">BHAVESHBHAI JOLIYA</option>
@@ -2292,7 +2297,12 @@
                                 <ul class="pagination justify-content-center" id="batchDisciplinePagination"></ul>
                             </nav>
                             <div class="mb-3">
-                                <label class="form-label" for="batchDisciplineAdminSelector">Modified By (Incharge):</label>
+                                <label class="form-label d-flex justify-content-between align-items-center" for="batchDisciplineAdminSelector">
+                                    <span>Modified By (Incharge):</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addNewInchargeBatchBtn" style="padding: 2px 8px; font-size: 0.8rem;">
+                                        <i class="fas fa-plus"></i> Add New
+                                    </button>
+                                </label>
                                 <select class="form-select" id="batchDisciplineAdminSelector" title="Select the incharge who is making this point change." aria-label="Select incharge for batch discipline">
                                     <option value="">Select Incharge</option>
                                     <option value="BHAVESHBHAI JOLIYA">BHAVESHBHAI JOLIYA</option>
@@ -2308,6 +2318,7 @@
                                     <option value="AMAN KUMAR">AMAN KUMAR</option>
                                     <option value="LOKESH YADAV">LOKESH YADAV</option>
                                     <option value="SUNNY SINGH">SUNNY SINGH</option>
+                                    <option value="SUNNY SIR">SUNNY SIR</option>
                                     <option value="Anirudh Kumar">Anirudh Kumar</option>
                                     <option value="Gauri Shankar Sah">Gauri Shankar Sah</option>
                                     <option value="CHANDAN KUMAR THAKUR">CHANDAN KUMAR THAKUR</option>
@@ -3021,6 +3032,20 @@
                                                 <i class="fas fa-table"></i> Export to Google Sheets
                                             </button>
                                         </div>
+                                        <div class="btn-group" role="group" aria-label="Email actions" id="canteenEmailOptions">
+                                            <div class="input-group input-group-sm me-2" style="width: 260px;">
+                                                <label class="input-group-text" for="canteenRecipientSelect">Recipient</label>
+                                                <select class="form-select" id="canteenRecipientSelect" title="Select saved recipient email">
+                                                    <option value="">Select recipient</option>
+                                                </select>
+                                                <button class="btn btn-outline-primary" type="button" id="addCanteenRecipientBtn" title="Add recipient">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <button class="btn btn-info" id="sendCanteenEmailBtn" title="Send filtered list to selected recipient">
+                                                <i class="fas fa-paper-plane"></i> Send Filtered List
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -3298,6 +3323,7 @@
                                 <option value="AMAN KUMAR">AMAN KUMAR</option>
                                 <option value="LOKESH YADAV">LOKESH YADAV</option>
                                 <option value="SUNNY SINGH">SUNNY SINGH</option>
+                                <option value="SUNNY SIR">SUNNY SIR</option>
                                 <option value="Anirudh Kumar">Anirudh Kumar</option>
                                 <option value="Gauri Shankar Sah">Gauri Shankar Sah</option>
                                 <option value="CHANDAN KUMAR THAKUR">CHANDAN KUMAR THAKUR</option>
@@ -3323,7 +3349,7 @@
                                 <option value="HARI KRISHNA TIWARI">HARI KRISHNA TIWARI</option>
                                 <option value="SHIVA KRISHNA">SHIVA KRISHNA</option>
                                 <option value="Manoj">Manoj</option>
-                                <option value="Rahul">Rahul</option>
+                                <option value="RAHUL SIR">RAHUL SIR</option>
                                 <option value="Testing Admin">Testing admin</option>
                             </select>
                         </div>
@@ -5327,6 +5353,75 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
             });
         }
 
+        // Canteen recipient storage and send-email integration (mailto fallback)
+        const CANTEEN_RECIPIENTS_KEY = 'canteenRecipients';
+        function loadCanteenRecipients() {
+            try { return JSON.parse(localStorage.getItem(CANTEEN_RECIPIENTS_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function saveCanteenRecipients(list) { localStorage.setItem(CANTEEN_RECIPIENTS_KEY, JSON.stringify(list || [])); }
+        function populateCanteenRecipientSelect() {
+            const sel = document.getElementById('canteenRecipientSelect');
+            if (!sel) return;
+            const list = loadCanteenRecipients();
+            sel.innerHTML = '<option value="">Select recipient</option>';
+            list.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.email;
+                opt.textContent = r.label ? `${r.label} <${r.email}>` : r.email;
+                sel.appendChild(opt);
+            });
+        }
+        function addCanteenRecipientHandler() {
+            const label = prompt('Enter recipient name/label (optional):');
+            const email = prompt('Enter recipient email (will be saved):');
+            if (!email) return alert('Email is required to add a recipient.');
+            const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+            if (!re.test(email.trim())) return alert('Please enter a valid email address.');
+            const list = loadCanteenRecipients();
+            if (list.find(r => r.email.toLowerCase() === email.trim().toLowerCase())) { alert('Recipient already exists.'); populateCanteenRecipientSelect(); return; }
+            list.push({ label: (label||'').trim(), email: email.trim() });
+            saveCanteenRecipients(list);
+            populateCanteenRecipientSelect();
+            alert('Recipient saved.');
+        }
+        function prepareCanteenEmailBody(subset) {
+            const lines = [];
+            lines.push('MID\tName\tClass\tRoom\tCup\tAmount');
+            const amountsMap = new Map();
+            document.querySelectorAll('.canteen-amount-input').forEach(input => {
+                const key = String(input.dataset.studentid || '').trim();
+                const val = String(input.value || '').trim();
+                if (key) amountsMap.set(key, val);
+            });
+            subset.forEach(s => {
+                const id = s.id || s.firebaseKey || '';
+                const roomData = String(s.roomNo || s.room || '');
+                let room = roomData, cup = '';
+                if (roomData.includes('/')) [room, cup] = roomData.split('/');
+                const amount = amountsMap.get(String(id)) || '';
+                lines.push([id, s.name || '', s.class || '', room || '', cup || '', amount].join('\t'));
+            });
+            return lines.join('\n');
+        }
+        function sendCanteenEmailHandler() {
+            const sel = document.getElementById('canteenRecipientSelect');
+            const to = sel ? sel.value : '';
+            if (!to) return alert('Please select a recipient from the dropdown or add one first.');
+            const subset = getVisibleFilteredStudents();
+            if (!subset || subset.length === 0) return alert('No filtered students to send.');
+            const body = prepareCanteenEmailBody(subset);
+            const subject = `Canteen Filtered List - ${new Date().toLocaleDateString()}`;
+            const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailto;
+        }
+        // Hook up buttons
+        populateCanteenRecipientSelect();
+        const addCanteenRecipientBtn = document.getElementById('addCanteenRecipientBtn');
+        if (addCanteenRecipientBtn) addCanteenRecipientBtn.addEventListener('click', addCanteenRecipientHandler);
+        const sendCanteenEmailBtn = document.getElementById('sendCanteenEmailBtn');
+        if (sendCanteenEmailBtn) sendCanteenEmailBtn.addEventListener('click', sendCanteenEmailHandler);
+
         const deleteStudentByMidBtn = document.getElementById('deleteStudentByMidBtn');
         if (deleteStudentByMidBtn) {
             deleteStudentByMidBtn.addEventListener('click', ()=>{
@@ -7186,6 +7281,61 @@ Your Firebase setup is ready for GitHub Pages deployment!`);
                 });
             }
 
+            // --- ADD NEW INCHARGE BUTTONS (Admin only) ---
+            const isCurrentUserAdmin = () => {
+                try {
+                    return (typeof currentUserRole !== 'undefined' && currentUserRole === 'admin') || (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin');
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            const addInchargeHandler = () => {
+                if (!isCurrentUserAdmin()) {
+                    alert('Only admins can add new incharges.');
+                    return;
+                }
+
+                const name = prompt("Enter New Incharge Name:");
+                if (name && name.trim()) {
+                    const trimmedName = name.trim().toUpperCase();
+                    const selectors = ['adminSelector', 'batchDisciplineAdminSelector', 'rankChangeAdminSelector'];
+                    selectors.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            // Check if already exists
+                            let exists = false;
+                            for (let i = 0; i < el.options.length; i++) {
+                                if (el.options[i].value === trimmedName) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                const option = document.createElement('option');
+                                option.value = trimmedName;
+                                option.textContent = trimmedName;
+                                el.appendChild(option);
+                            }
+                            el.value = trimmedName;
+                        }
+                    });
+                    alert(`"${trimmedName}" added to incharge lists.`);
+                }
+            };
+
+            const addNewInchargeBtn = document.getElementById('addNewInchargeBtn');
+            const addNewInchargeBatchBtn = document.getElementById('addNewInchargeBatchBtn');
+
+            // Show/hide or attach handlers depending on admin role
+            if (!isCurrentUserAdmin()) {
+                if (addNewInchargeBtn) addNewInchargeBtn.style.display = 'none';
+                if (addNewInchargeBatchBtn) addNewInchargeBatchBtn.style.display = 'none';
+            } else {
+                if (addNewInchargeBtn) addNewInchargeBtn.addEventListener('click', addInchargeHandler);
+                if (addNewInchargeBatchBtn) addNewInchargeBatchBtn.addEventListener('click', addInchargeHandler);
+            }
+
             document.getElementById('positiveAction').addEventListener('change', function() {
                 document.getElementById('examPercentage').style.display = this.value === 'exam' ? 'block' : 'none';
                 document.getElementById('customPositiveInput').style.display = this.value === 'custom' ? 'block' : 'none';
@@ -7940,19 +8090,17 @@ function refreshRankings() {
     let mainRankStudents = studentsOnFloor.filter(s => s.assignedGrade !== 'E');
     let eRankStudents = studentsOnFloor.filter(s => s.assignedGrade === 'E');
 
-    // Sort main rank students: grade, points, id
-    const gradeOrder = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+    // Sort main rank students by points (descending), then by ID
     mainRankStudents.sort((a, b) => {
-        const gA = gradeOrder[a.assignedGrade] ?? 99;
-        const gB = gradeOrder[b.assignedGrade] ?? 99;
-        if (gA !== gB) return gA - gB;
-        if (b.points !== a.points) return b.points - a.points;
+        const pa = Number(a.points ?? 0);
+        const pb = Number(b.points ?? 0);
+        if (pb !== pa) return pb - pa;
         return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
-    // Sort E-rank students by points (least negative first), then by ID
+    // Sort E-rank students by points (most negative first), then by ID
     eRankStudents.sort((a, b) => {
-        if (a.points !== b.points) return a.points - b.points;
+        if (a.points !== b.points) return b.points - a.points;
         return String(a.id || '').localeCompare(String(b.id || ''));
     });
 
@@ -7992,9 +8140,21 @@ function refreshRankings() {
     } else {
         const rows = mainRankStudents.map((student) => {
             // Find true rank based on points among all students on floor with >= 0 points
-            const trueRank = sortedForRanking.findIndex(s => s.id === student.id) + 1;
-            const displayRank = trueRank > 0 ? trueRank : '-';
-            
+            const trueRankIndex = sortedForRanking.findIndex(s => String(s.id) === String(student.id));
+            const trueRank = trueRankIndex >= 0 ? trueRankIndex + 1 : null;
+            const displayRank = trueRank ? trueRank : '-';
+
+            // Compute grade from true rank to ensure consistency (ignore manualGrade for display)
+            let gradeToShow = 'D';
+            if (student.points < 0) gradeToShow = 'E';
+            else if (student.points === 0) gradeToShow = 'D';
+            else if (trueRank && trueRank <= 10) gradeToShow = 'A+';
+            else if (trueRank && trueRank <= 50) gradeToShow = 'A';
+            else if (trueRank && trueRank <= 75) gradeToShow = 'B';
+            else if (trueRank && trueRank <= 95) gradeToShow = 'C';
+            else gradeToShow = 'D';
+            student.assignedGrade = gradeToShow; // update assignedGrade to match display
+
             return `
 <tr>
     <td>${displayRank}</td>
@@ -8003,7 +8163,7 @@ function refreshRankings() {
     <td>${student.room || ''}</td>
     <td>${student.floor || ''}</td>
     <td>${student.points ?? 0}</td>
-    <td><span class="badge ${getGradeBadgeClass(student.assignedGrade)}">${student.assignedGrade}</span></td>
+    <td><span class="badge ${getGradeBadgeClass(gradeToShow)}">${gradeToShow}</span></td>
     <td>
         <input type="text" class="form-control remark-input" value="${student.remark || ''}" 
             onchange="updateRemark('${student.id}', this.value)" 
@@ -8185,39 +8345,45 @@ function refreshRankings() {
             const wb = XLSX.utils.book_new();
             const wsData = [
                 ['Rank', 'Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark', 'Class', 'Section'],
-                ...students
-                    .sort((a, b) => b.points - a.points)
-                    .map((student, index) => {
-                        let assignedGradeForExport;
-                        if (student.manualGrade) {
-                            assignedGradeForExport = student.manualGrade;
-                        } else if (student.points < 0) {
-                            assignedGradeForExport = 'E';
-                        } else if (index < 10) {
-                            assignedGradeForExport = 'A+';
-                        } else if (index < 50) {
-                            assignedGradeForExport = 'A';
-                        } else if (index < 80) {
-                            assignedGradeForExport = 'B';
-                        } else if (index < 150) {
-                            assignedGradeForExport = 'C';
-                        } else {
-                            assignedGradeForExport = 'D';
-                        }
+                // Build export rows by computing grade per-floor based on points-descending rank
+                ...(() => {
+                    const rows = [];
+                    // Consider floors present in data (or default 1-6)
+                    const floorNumbers = Array.from(new Set(students.map(s => s.floor))).sort();
+                    floorNumbers.forEach(floorNum => {
+                        const floorStudents = students.filter(s => String(s.floor) === String(floorNum));
+                        const sortedForFloor = [...floorStudents].filter(s => (s.points ?? 0) >= 0)
+                            .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
 
-                        return [
-                            index + 1,
-                            student.id,
-                            student.name,
-                            student.room,
-                            student.floor,
-                            student.points,
-                            assignedGradeForExport,
-                            student.remark || '',
-                            student.class || '',
-                            student.section || ''
-                        ];
-                    })
+                        floorStudents.forEach((student) => {
+                            let assignedGradeForExport = 'D';
+                            if ((student.points ?? 0) < 0) assignedGradeForExport = 'E';
+                            else if ((student.points ?? 0) === 0) assignedGradeForExport = 'D';
+                            else {
+                                const rank = sortedForFloor.findIndex(s => String(s.id) === String(student.id));
+                                if (rank >= 0 && rank < 10) assignedGradeForExport = 'A+';
+                                else if (rank >= 0 && rank < 50) assignedGradeForExport = 'A';
+                                else if (rank >= 0 && rank < 75) assignedGradeForExport = 'B';
+                                else if (rank >= 0 && rank < 95) assignedGradeForExport = 'C';
+                                else assignedGradeForExport = 'D';
+                            }
+
+                            rows.push([
+                                '', // Rank (optional in this export)
+                                student.id,
+                                student.name,
+                                student.room,
+                                student.floor,
+                                student.points,
+                                assignedGradeForExport,
+                                student.remark || '',
+                                student.class || '',
+                                student.section || ''
+                            ]);
+                        });
+                    });
+                    return rows;
+                })()
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -8422,12 +8588,13 @@ function refreshRankings() {
         // Enhanced spreadsheet creation with Drive integration
         async function createSpreadsheetWithDrive(title, rows, token) {
             try {
-                console.log('Creating spreadsheet with API key only...');
+                console.log('Creating spreadsheet with Drive integration...');
                 
-                // Create spreadsheet with API key ONLY
-                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${GOOGLE_API_KEY}`, {
+                // Create spreadsheet
+                const createResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets`, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8438,13 +8605,20 @@ function refreshRankings() {
                 });
                 
                 if (!createResponse.ok) {
-                    const errorText = await createResponse.text();
-                    console.error('Sheets API error response:', errorText);
-                    try {
-                        const errorData = JSON.parse(errorText);
-                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || errorText}`);
-                    } catch (e) {
-                        throw new Error(`Failed to create spreadsheet: ${errorText}`);
+                    const errorData = await createResponse.json();
+                    console.error('Sheets API error:', errorData);
+                    
+                    // Handle specific API errors
+                    if (errorData.error?.code === 403) {
+                        if (errorData.error?.message?.includes('Google Sheets API has not been used')) {
+                            throw new Error('Google Sheets API is not enabled for this project. Please enable it in Google Cloud Console and try again.');
+                        } else {
+                            throw new Error('Permission denied. Please make sure you are signed in with Google and have the necessary permissions.');
+                        }
+                    } else if (errorData.error?.code === 429) {
+                        throw new Error('Too many requests. Please wait a moment and try again.');
+                    } else {
+                        throw new Error(`Failed to create spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
                     }
                 }
                 
@@ -8452,10 +8626,11 @@ function refreshRankings() {
                 const spreadsheetId = spreadsheet.spreadsheetId;
                 console.log('Spreadsheet created with ID:', spreadsheetId);
                 
-                // Add data to spreadsheet using API key ONLY
-                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED&key=${GOOGLE_API_KEY}`, {
+                // Add data to spreadsheet
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z1000?valueInputOption=USER_ENTERED`, {
                     method: 'PUT',
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -8464,25 +8639,26 @@ function refreshRankings() {
                 });
                 
                 if (!updateResponse.ok) {
-                    const errorText = await updateResponse.text();
-                    console.error('Sheets API update error:', errorText);
-                    throw new Error(`Failed to add data: ${errorText}`);
+                    const errorData = await updateResponse.json();
+                    console.error('Sheets API update error:', errorData);
+                    throw new Error(`Failed to add data to spreadsheet: ${errorData.error?.message || 'Unknown error'}`);
                 }
                 
                 console.log('Data added to spreadsheet successfully');
                 
-                // Try to get file info
+                // Move spreadsheet to user's Drive folder
                 try {
                     await moveSpreadsheetToDrive(spreadsheetId, token);
-                    console.log('Spreadsheet info retrieved');
+                    console.log('Spreadsheet moved to Drive successfully');
                 } catch (driveError) {
-                    console.warn('Could not retrieve Drive info:', driveError);
+                    console.warn('Could not move to Drive:', driveError);
+                    // Continue anyway - the spreadsheet was created successfully
                 }
                 
                 return spreadsheetId;
                 
             } catch (error) {
-                console.error('Error creating spreadsheet:', error);
+                console.error('Error creating spreadsheet with Drive integration:', error);
                 throw error;
             }
         }
@@ -8490,26 +8666,27 @@ function refreshRankings() {
         // Move spreadsheet to user's Drive
         async function moveSpreadsheetToDrive(spreadsheetId, token) {
             try {
-                // Get file metadata using API key ONLY
-                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}?key=${GOOGLE_API_KEY}`, {
+                // Get file metadata
+                const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}`, {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${token}`
                     }
                 });
                 
                 if (!fileResponse.ok) {
-                    const errorText = await fileResponse.text();
-                    console.warn('Could not get file metadata:', errorText);
-                    return false;
+                    throw new Error('Failed to get file metadata');
                 }
                 
                 const file = await fileResponse.json();
-                console.log('Spreadsheet is accessible:', file.name);
+                
+                // Add to user's Drive (already should be there, but let's ensure it's properly organized)
+                // We can add it to a specific folder or just ensure it's visible
+                console.log('Spreadsheet is in Drive:', file.name, file.id);
                 
                 return true;
             } catch (error) {
-                console.error('Drive info error:', error);
-                return false;
+                console.error('Drive integration error:', error);
+                throw error;
             }
         }
 
@@ -11243,22 +11420,23 @@ function exportAllRankings() {
         wsData.push(['Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Remark', 'Class', 'Section', 'Amount', 'Sign']);
         let studentsOnFloor = students.filter(s => String(s.floor) === String(floorNum));
 
+        // Pre-calculate ranking for this floor (points-descending)
+        const sortedForFloor = [...studentsOnFloor].filter(s => (s.points ?? 0) >= 0)
+            .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
+
         studentsOnFloor.forEach((student, idx) => {
             let grade = 'D';
-            if (student.manualGrade) {
-                grade = student.manualGrade;
-            } else if (student.points < 0) {
+            if ((student.points ?? 0) < 0) {
                 grade = 'E';
+            } else if ((student.points ?? 0) === 0) {
+                grade = 'D';
             } else {
-                const sorted = [...studentsOnFloor].filter(s => s.points >= 0)
-                    .sort((a, b) => b.points - a.points || String(a.id || '').localeCompare(String(b.id || '')));
-                const rank = sorted.findIndex(s => s.id === student.id);
-                // New ranking system (consistent across all floors)
-                if (rank < 10) grade = 'A+';
-                else if (rank < 50) grade = 'A';
-                else if (rank < 75) grade = 'B';
-                else if (rank < 95) grade = 'C';
-                else grade = 'D'; // 96 and above
+                const rank = sortedForFloor.findIndex(s => String(s.id) === String(student.id));
+                if (rank >= 0 && rank < 10) grade = 'A+';
+                else if (rank >= 0 && rank < 50) grade = 'A';
+                else if (rank >= 0 && rank < 75) grade = 'B';
+                else if (rank >= 0 && rank < 95) grade = 'C';
+                else grade = 'D';
             }
 
             wsData.push([
