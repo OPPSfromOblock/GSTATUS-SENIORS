@@ -11448,6 +11448,10 @@ filteredStudents.sort((a, b) => {
                         return dateB - dateA;
                     });
                     console.log("History data updated from Firebase (real-time)");
+                    
+                    // AUTO-SYNC: Check and fix any mismatched student points
+                    setTimeout(() => initPointsSync(), 500);
+                    
                     refreshResponses(); // Re-render responses on history data change
                     renderAdjudicatorTables(); // Re-render adjudicator tables
                     hideLoading();
@@ -12917,6 +12921,96 @@ function updateUserRole(uid, newRole) {
             console.error('Error updating role:', error);
             alert('Failed to update user role.');
         });
+}
+
+// ============================================
+// AUTO-SYNC FUNCTION: Fix Student Points Mismatch
+// ============================================
+// This function syncs student.points with their latest history entry
+async function syncStudentPointsWithHistory() {
+    try {
+        console.log('Starting student points sync...');
+        let fixedCount = 0;
+        const discrepancies = [];
+        
+        // Check each student
+        for (const student of students) {
+            const history = responseHistory.filter(e => e.studentId === student.id);
+            
+            if (history.length === 0) {
+                // No history - points should be 0
+                if (student.points !== 0 && student.points !== undefined) {
+                    discrepancies.push({
+                        studentId: student.id,
+                        name: student.name,
+                        issue: 'No history but has points',
+                        expected: 0,
+                        actual: student.points
+                    });
+                }
+                continue;
+            }
+            
+            // Sort history by date/time
+            history.sort((a, b) => {
+                const dateA = new Date(`${a.date.split('/').reverse().join('-')}T${a.time}`);
+                const dateB = new Date(`${b.date.split('/').reverse().join('-')}T${b.time}`);
+                return dateA - dateB;
+            });
+            
+            // Get the latest entry's newPoints (this is authoritative)
+            const latestEntry = history[history.length - 1];
+            const correctPoints = latestEntry.newPoints;
+            
+            // Check if mismatch
+            if (student.points !== correctPoints) {
+                discrepancies.push({
+                    studentId: student.id,
+                    name: student.name,
+                    issue: 'Points mismatch',
+                    expected: correctPoints,
+                    actual: student.points,
+                    latestEntry: latestEntry.date + ' ' + latestEntry.time
+                });
+                
+                // Fix the points in Firebase
+                try {
+                    await database.ref(`students/${student.firebaseKey}`).update({
+                        points: correctPoints
+                    });
+                    console.log(`✓ FIXED: ${student.name} (${student.id}): ${student.points} → ${correctPoints}`);
+                    fixedCount++;
+                } catch (error) {
+                    console.error(`✗ Error updating ${student.name}:`, error);
+                }
+            }
+        }
+        
+        // Report results
+        if (fixedCount > 0) {
+            console.log(`\n=== SYNC COMPLETE ===`);
+            console.log(`Fixed: ${fixedCount} student(s)`);
+            discrepancies.forEach(d => {
+                console.log(`  ${d.name} (${d.studentId}): ${d.actual} → ${d.expected}`);
+            });
+        } else {
+            console.log('✓ All student points are correctly synced');
+        }
+        
+        return { fixedCount, discrepancies };
+        
+    } catch (error) {
+        console.error('Error in syncStudentPointsWithHistory:', error);
+    }
+}
+
+// Call the sync function after data is loaded
+function initPointsSync() {
+    // Wait for both students and history to be loaded
+    if (students && students.length > 0 && responseHistory && responseHistory.length > 0) {
+        console.log(`Checking ${students.length} students against ${responseHistory.length} history entries...`);
+        syncStudentPointsWithHistory();
+    }
 }
 
 // Initialize the app
